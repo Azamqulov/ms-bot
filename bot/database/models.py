@@ -27,7 +27,7 @@ class User(Base):
     phone_number: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
     username: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     role: Mapped[str] = mapped_column(String(32), default="user", nullable=False) # 'super_admin', 'admin', 'user'
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
     attempts: Mapped[List["Attempt"]] = relationship("Attempt", back_populates="user", cascade="all, delete-orphan")
 
@@ -43,7 +43,7 @@ class Test(Base):
     time_limit_min: Mapped[int] = mapped_column(Integer, default=150, nullable=False)
     created_by_user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
     questions: Mapped[List["Question"]] = relationship("Question", back_populates="test", cascade="all, delete-orphan", order_by="Question.order_no")
     question_groups: Mapped[List["QuestionGroup"]] = relationship("QuestionGroup", back_populates="test", cascade="all, delete-orphan")
@@ -91,8 +91,8 @@ class Attempt(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     test_id: Mapped[int] = mapped_column(Integer, ForeignKey("tests.id", ondelete="CASCADE"), nullable=False)
     status: Mapped[str] = mapped_column(String(32), default="in_progress", nullable=False) # 'in_progress', 'completed', 'timed_out'
-    started_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     raw_score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     theta: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     standard_error: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
@@ -114,7 +114,7 @@ class AttemptAnswer(Base):
     sub_part_label: Mapped[Optional[str]] = mapped_column(String(16), nullable=True) # "a", "b" yoki null
     user_answer: Mapped[str] = mapped_column(Text, nullable=False)
     is_correct: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    answered_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    answered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
     attempt: Mapped["Attempt"] = relationship("Attempt", back_populates="answers")
     question: Mapped["Question"] = relationship("Question", back_populates="answers")

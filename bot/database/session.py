@@ -18,10 +18,15 @@ if "sqlite" in effective_db_url:
     if parent_dir and not parent_dir.exists():
         parent_dir.mkdir(parents=True, exist_ok=True)
 
+connect_args = {}
+if "postgresql" in effective_db_url or "postgres" in effective_db_url:
+    connect_args["statement_cache_size"] = 0
+
 engine = create_async_engine(
     effective_db_url,
     echo=False,
-    future=True
+    future=True,
+    connect_args=connect_args
 )
 
 async_session_maker = async_sessionmaker(
@@ -36,11 +41,14 @@ async def init_db() -> None:
     from sqlalchemy import text
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        # SQLite uchun yangi ustunlarni avtomatik qo'shish
+        # Ustunlarni xavfsiz tekshirish/qo'shish
         try:
-            await conn.execute(text("ALTER TABLE users ADD COLUMN phone_number VARCHAR(32)"))
+            if "sqlite" in effective_db_url:
+                await conn.execute(text("ALTER TABLE users ADD COLUMN phone_number VARCHAR(32)"))
+            else:
+                await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number VARCHAR(32)"))
         except Exception:
-            pass  # Ustun allaqachon mavjud bo'lsa xatoni e'tiborsiz qoldirish
+            pass  # Ustun allaqachon mavjud bo'lsa e'tiborsiz qoldirish
 
 
 async def get_session() -> AsyncSession:

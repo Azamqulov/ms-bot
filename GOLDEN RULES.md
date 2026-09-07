@@ -5,8 +5,8 @@
 
 ## 🎯 Overall Objective & Current Phase
 - **Loyiha:** Milliy Sertifikat — Matematika imtihoniga tayyorlanuvchilar uchun mock test va RASH (IRT — Item Response Theory) modeli asosida avtomatik baholovchi Telegram Bot + Telegram Mini App (Web App).
-- **Hozirgi Bosqich:** Phase 3 (Security Hardening: Telegram WebApp initData HMAC-SHA256 Server Authentication, requirements.txt fix).
-- **Status:** Production / 19 ta testdan 100% muvaffaqiyatli o'tdi. Server va bot faol ishlamoqda.
+- **Hozirgi Bosqich:** Phase 4 (Cloud Database Migration: SQLite -> Supabase PostgreSQL Pooler with PgBouncer & TIMESTAMPTZ support).
+- **Status:** Production / 19 ta testdan 100% muvaffaqiyatli o'tdi. Server va bot Supabase bulut bazasi bilan faol ishlamoqda.
 
 ## 🧠 Architecture Decision Log (ADR)
 - **Zero Emoji & 100% Pure SVG Icons:** Foydalanuvchi talabiga ko'ra barcha standart emojilar olib tashlandi va yagona Lucide SVG ikonkalar tizimiga o'tkazildi (`icon-standards`).
@@ -23,11 +23,12 @@
   2. Savol matnini oddiy so'zlar bilan yozish va o'quvchi ekranida qanday ko'rinishini real vaqtda kuzatish.
   3. Har bir variant yonidagi `[✓ To'g'ri javob]` tugmasini bir marta bosish orqali to'g'ri javobni bir zumda belgilash (ortiqcha dropdownlar yo'q qilindi).
 - **Cache-Control Headers:** WebApp statik sahifalarida brauzer keshida eski versiya qolib ketishining oldini olish uchun `no-cache, no-store, must-revalidate` sarlavhalari ulandi.
-- **Backend & Stack:** Python 3.13, `aiogram 3.31.0`, `FastAPI 0.115.0`, `uvicorn 0.34.0`, `KaTeX 0.16.11`, `SQLAlchemy 2.0.52 (async)`.
+- **Backend & Stack:** Python 3.13, `aiogram 3.31.0`, `FastAPI 0.115.0`, `uvicorn 0.34.0`, `KaTeX 0.16.11`, `SQLAlchemy 2.0.52 (async)`, `Supabase PostgreSQL (asyncpg)`.
+- **Supabase Cloud Database & PgBouncer Compatibility:** Barcha ma'lumotlar bazasi lokal SQLite dan Supabase PostgreSQL bulut bazasiga ko'chirildi. PgBouncer pooler bilan `statement_cache_size: 0` va asyncpg bilan datetime nomuvofiqligining oldini olish uchun barcha sana/vaqt ustunlari `TIMESTAMPTZ` (timezone-aware) ga o'tkazildi.
 
 ## 🤖 AI Developers & Team Protocol
 - Pipeline: Dev → QA-Tester → Team-Lead → Senior-QA → PM
-- Barcha o'zgarishlar qat'iy sinovdan o'tkazildi (18 ta Pytest testlari orqali).
+- Barcha o'zgarishlar qat'iy sinovdan o'tkazildi (19 ta Pytest testlari orqali).
 
 ## 🔄 Active Task (In Progress)
 - [x] 1. Barcha emojilarni toza SVG ikonkalarga almashtirish (0 emoji).
@@ -57,6 +58,7 @@
 - [x] 26. `web/admin.html` va `admin.html` fayllaridan `SUPER_ADMIN_ID` fallback olib tashlandi, faqat Telegram ichida ochilishiga cheklov qo'yildi va barcha admin fetch so'rovlariga `X-Telegram-Init-Data` sarlavhasi ulandi.
 - [x] 27. Barcha 19 ta Pytest testlari (xavfsizlik va endpointlar integratsiyasi bilan birga) 100% muvaffaqiyatli o'tdi.
 - [x] 28. Ism-familiya validatsiyasi kuchaytirildi (faqat '.' yoki placeholder bo'lsa bot `/start` da to'liq ismni so'raydi, Web App da ham profilni tahrirlash va sinxronlash to'liq joriy qilindi).
+- [x] 29. Ma'lumotlar bazasi to'liq Supabase (PostgreSQL) bulutiga ko'chirildi: barcha mavjud foydalanuvchilar, testlar, savollar va urinishlar saqlandi, PgBouncer va TIMESTAMPTZ sozlamalari joriy qilindi.
 
 
 ## ✅ Completed Checklist (History)

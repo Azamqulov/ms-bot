@@ -42,6 +42,10 @@ uploads/*
 # Executables & Binaries
 *.exe
 *.dll
+*.zip
+*.log
+cf_*.txt
+ngrok_*.txt
 
 # IDE
 .vscode/
