@@ -1334,6 +1334,17 @@
 
     <!-- ================= TAB 1: TEST YARATISH FORMASI ================= -->
     <div class="form-body" id="createTestForm">
+      <!-- Edit Mode Banner -->
+      <div id="editModeBanner" style="display:none; align-items:center; justify-content:space-between; background:var(--primary-light); border:1px solid var(--primary-border); border-radius:8px; padding:10px 14px; margin-bottom:14px;">
+        <div style="font-size:13px; font-weight:600; color:var(--primary); display:flex; align-items:center; gap:8px;">
+          <svg class="icon" style="width:16px; height:16px;" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          <span id="editModeText">Test javoblarini tahrirlash</span>
+        </div>
+        <button type="button" class="btn-action-small" onclick="cancelEditMode()" style="background:var(--card-bg); font-size:11px; padding:4px 8px; color:var(--text);">
+          Bekor qilish
+        </button>
+      </div>
+
       <!-- Test nomi -->
       <div class="form-group">
         <label class="form-label">Test nomi</label>
@@ -2944,6 +2955,50 @@
         return;
       }
 
+      // Agar tahrirlash rejimida bo'lsa:
+      if (editingTestId) {
+        try {
+          const res = await fetch(`${API_BASE}/api/admin/tests/${editingTestId}/update`, {
+            method: 'POST',
+            headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({
+              title: title,
+              time_limit_min: timeLimit,
+              questions: questionsPayload,
+              grouped_context: {
+                shared_context_text: groupContextData.text || "33–35-savollar uchun umumiy shart:",
+                shared_image_url: groupContextData.image || null,
+                shared_options: sharedOpts
+              }
+            })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.success) {
+            showToast("Test va javob kalitlari muvaffaqiyatli saqlandi!");
+            cancelEditMode();
+            switchAdminTab('list');
+          } else {
+            showToast("Xatolik: " + (data.detail || data.message || "Saqlab bo'lmadi"), true);
+          }
+        } catch (err) {
+          showToast("Xatolik: " + err.message, true);
+        } finally {
+          publishBtn.disabled = false;
+          if (editingTestId) {
+            publishBtn.innerHTML = `
+              <svg class="icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              O'ZGARISHLARNI SAQLASH
+            `;
+          } else {
+            publishBtn.innerHTML = `
+              <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              TESTNI CHIQARISH VA SAQLASH
+            `;
+          }
+        }
+        return;
+      }
+
       try {
         const res = await fetch(`${API_BASE}/api/admin/create-test`, {
           method: 'POST',
@@ -3094,6 +3149,10 @@
                   <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                   Kodni nusxalash
                 </button>
+                <button type="button" class="btn-action-small" onclick="openEditTest(${t.id})" style="color:var(--primary); font-weight:600; border-color:var(--primary-border);">
+                  <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  Tahrirlash
+                </button>
                 <button type="button" class="btn-action-small" onclick="window.open((window.location.hostname.includes('github.io') ? '../index.html' : '/') + '?code=' + encodeURIComponent('${escapeHtml(t.code)}') + (API_BASE ? '&api=' + encodeURIComponent(API_BASE) : ''), '_blank')">
                   <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   Ko'rish
@@ -3131,6 +3190,122 @@
     function copyCodeText(code) {
       navigator.clipboard.writeText(code);
       showToast(`Test kodi nusxalandi: ${code}`);
+    }
+
+    let editingTestId = null;
+
+    async function openEditTest(testId) {
+      try {
+        showToast("Test ma'lumotlari yuklanmoqda...");
+        const res = await fetch(`${API_BASE}/api/admin/test-details/${testId}`, {
+          headers: getAdminAuthHeaders()
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `Yuklab bo'lmadi (${res.status})`);
+        }
+        const data = await res.json();
+        const test = data.test;
+        if (!test) throw new Error("Test topilmadi");
+
+        editingTestId = test.id;
+
+        // Formaga qiymatlarni to'ldirish
+        const titleInput = document.getElementById('testTitle');
+        if (titleInput) titleInput.value = test.title || '';
+
+        const codeInput = document.getElementById('testCode');
+        if (codeInput) {
+          codeInput.value = test.code || '';
+          codeInput.disabled = true;
+        }
+
+        const timeInput = document.getElementById('testTimeLimit');
+        if (timeInput) timeInput.value = test.time_limit_min || 150;
+
+        // 1-35 savollar
+        if (test.questions && Array.isArray(test.questions)) {
+          test.questions.forEach(q => {
+            if (q.order_no >= 1 && q.order_no <= 35) {
+              if (q.correct_answer) {
+                answers1to35[q.order_no] = q.correct_answer;
+                selectKeyOption(q.order_no, q.correct_answer);
+              }
+              if (q.text || q.image_url) {
+                questionsMeta[q.order_no] = {
+                  text: q.text || '',
+                  image: q.image_url || '',
+                  options: q.options || { A: '', B: '', C: '', D: '' }
+                };
+                const badge = document.getElementById(`badge_q_${q.order_no}`);
+                if (badge) badge.style.display = (q.text || q.image_url) ? 'inline-block' : 'none';
+              }
+            } else if (q.order_no >= 36 && q.order_no <= 45) {
+              // Ochiq savollar
+              if (!openQuestionsData[q.order_no]) openQuestionsData[q.order_no] = {};
+              if (q.sub_parts && Array.isArray(q.sub_parts) && q.sub_parts.length > 0) {
+                openQuestionsData[q.order_no] = {};
+                q.sub_parts.forEach(part => {
+                  const answers = (part.alternative_answers && part.alternative_answers.length > 0)
+                    ? part.alternative_answers
+                    : [part.correct_answer || ''];
+                  openQuestionsData[q.order_no][part.label] = answers;
+                });
+              }
+              if (q.text || q.image_url) {
+                openQuestionsMeta[q.order_no] = {
+                  text: q.text || '',
+                  image: q.image_url || ''
+                };
+              }
+            }
+          });
+        }
+
+        // 36-45 kartochkalarini yangilangan ma'lumotlar bilan qayta initsializatsiya qilish
+        initQuestions36to45();
+
+        // Banner va tugmalar matnini yangilash
+        const banner = document.getElementById('editModeBanner');
+        if (banner) banner.style.display = 'flex';
+
+        const bannerText = document.getElementById('editModeText');
+        if (bannerText) bannerText.innerText = `"${test.title}" (#${test.code}) javoblarini tahrirlash`;
+
+        const publishBtn = document.getElementById('btnPublishTest');
+        if (publishBtn) {
+          publishBtn.innerHTML = `
+            <svg class="icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            O'ZGARISHLARNI SAQLASH
+          `;
+          publishBtn.style.background = 'var(--success)';
+        }
+
+        // Konstruktor oynasiga o'tish
+        switchAdminTab('create');
+        showToast("Test yuklandi. Kerakli javoblarni o'zgartirib, 'O'zgarishlarni saqlash' tugmasini bosing.");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (err) {
+        showToast("Yuklashda xatolik: " + err.message, true);
+      }
+    }
+
+    function cancelEditMode() {
+      editingTestId = null;
+      const banner = document.getElementById('editModeBanner');
+      if (banner) banner.style.display = 'none';
+
+      const codeInput = document.getElementById('testCode');
+      if (codeInput) codeInput.disabled = false;
+
+      const publishBtn = document.getElementById('btnPublishTest');
+      if (publishBtn) {
+        publishBtn.innerHTML = `
+          <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          TESTNI CHIQARISH VA SAQLASH
+        `;
+        publishBtn.style.background = '';
+      }
     }
 
     async function toggleTestStatus(testId) {

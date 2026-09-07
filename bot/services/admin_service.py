@@ -277,6 +277,142 @@ async def delete_test_by_id(test_id: int) -> Tuple[bool, str]:
         return True, "Test muvaffaqiyatli o'chirildi"
 
 
+async def get_test_details_admin(test_id: int, user_id: int) -> Optional[Dict[str, Any]]:
+    """Admin uchun test ma'lumotlari, barcha savollar va to'g'ri javob kalitlarini qaytarish"""
+    async with async_session_maker() as session:
+        user_stmt = select(User).where(User.id == user_id)
+        user = (await session.execute(user_stmt)).scalar_one_or_none()
+
+        stmt = (
+            select(Test)
+            .options(
+                selectinload(Test.questions).selectinload(Question.group),
+                selectinload(Test.question_groups)
+            )
+            .where(Test.id == test_id)
+        )
+        res = await session.execute(stmt)
+        test = res.scalar_one_or_none()
+        if not test:
+            return None
+
+        # Ruxsat tekshiruvi: faqat o'z testi yoki super_admin
+        if user and user.role != "super_admin" and test.created_by_user_id != user_id:
+            return None
+
+        questions_data = []
+        for q in test.questions:
+            questions_data.append({
+                "id": q.id,
+                "order_no": q.order_no,
+                "type": q.type,
+                "section": q.section,
+                "difficulty_b": q.difficulty_b,
+                "text": q.text,
+                "image_url": q.image_url,
+                "options": q.options,
+                "correct_answer": q.correct_answer,
+                "sub_parts": q.sub_parts,
+                "group_id": q.group_id,
+            })
+        questions_data.sort(key=lambda x: x["order_no"])
+
+        grouped_context = None
+        if test.question_groups:
+            grp = test.question_groups[0]
+            grouped_context = {
+                "id": grp.id,
+                "shared_context_text": grp.shared_context_text,
+                "shared_image_url": grp.shared_image_url,
+                "shared_options": grp.shared_options,
+            }
+
+        return {
+            "id": test.id,
+            "code": test.code,
+            "title": test.title,
+            "description": test.description or "",
+            "time_limit_min": test.time_limit_min,
+            "question_count": test.question_count,
+            "is_active": test.is_active,
+            "questions": questions_data,
+            "grouped_context": grouped_context,
+        }
+
+
+async def update_test_with_questions(
+    test_id: int,
+    user_id: int,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    time_limit_min: Optional[int] = None,
+    questions_data: Optional[List[Dict[str, Any]]] = None,
+    grouped_context: Optional[Dict[str, Any]] = None,
+) -> Tuple[bool, str]:
+    """Test ma'lumotlari va uning savollari/to'g'ri javob kalitlarini yangilash"""
+    async with async_session_maker() as session:
+        user_stmt = select(User).where(User.id == user_id)
+        user = (await session.execute(user_stmt)).scalar_one_or_none()
+
+        stmt = (
+            select(Test)
+            .options(
+                selectinload(Test.questions),
+                selectinload(Test.question_groups)
+            )
+            .where(Test.id == test_id)
+        )
+        test = (await session.execute(stmt)).scalar_one_or_none()
+        if not test:
+            return False, "Test topilmadi"
+
+        if user and user.role != "super_admin" and test.created_by_user_id != user_id:
+            return False, "Sizda ushbu testni tahrirlash huquqi yo'q"
+
+        if title:
+            test.title = title.strip()
+        if description is not None:
+            test.description = description.strip() if description else None
+        if time_limit_min is not None and time_limit_min > 0:
+            test.time_limit_min = time_limit_min
+
+        # Guruh kontekstini yangilash
+        if grouped_context and test.question_groups:
+            grp = test.question_groups[0]
+            if "shared_context_text" in grouped_context:
+                grp.shared_context_text = grouped_context["shared_context_text"]
+            if "shared_image_url" in grouped_context:
+                grp.shared_image_url = grouped_context["shared_image_url"]
+            if "shared_options" in grouped_context:
+                grp.shared_options = grouped_context["shared_options"]
+
+        # Savollar kalitlarini / ma'lumotlarini yangilash
+        if questions_data:
+            q_map = {q.order_no: q for q in test.questions}
+            for q_in in questions_data:
+                order_no = q_in.get("order_no")
+                if order_no in q_map:
+                    q_obj = q_map[order_no]
+                    if "correct_answer" in q_in:
+                        q_obj.correct_answer = q_in["correct_answer"]
+                    if "sub_parts" in q_in:
+                        q_obj.sub_parts = q_in["sub_parts"]
+                    if "text" in q_in and q_in["text"]:
+                        q_obj.text = q_in["text"]
+                    if "options" in q_in and q_in["options"]:
+                        q_obj.options = q_in["options"]
+                    if "difficulty_b" in q_in and q_in["difficulty_b"] is not None:
+                        q_obj.difficulty_b = float(q_in["difficulty_b"])
+                    if "image_url" in q_in:
+                        q_obj.image_url = q_in["image_url"]
+                    if "section" in q_in and q_in["section"]:
+                        q_obj.section = q_in["section"]
+
+        await session.commit()
+        return True, "Test va javob kalitlari muvaffaqiyatli yangilandi!"
+
+
+
 def get_sample_test_template() -> str:
     """Adminlar to'ldirishi uchun qulay JSON shablon namunasi"""
     template = {

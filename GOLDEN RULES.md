@@ -59,6 +59,7 @@
 - [x] 27. Barcha 19 ta Pytest testlari (xavfsizlik va endpointlar integratsiyasi bilan birga) 100% muvaffaqiyatli o'tdi.
 - [x] 28. Ism-familiya validatsiyasi kuchaytirildi (faqat '.' yoki placeholder bo'lsa bot `/start` da to'liq ismni so'raydi, Web App da ham profilni tahrirlash va sinxronlash to'liq joriy qilindi).
 - [x] 29. Ma'lumotlar bazasi to'liq Supabase (PostgreSQL) bulutiga ko'chirildi: barcha mavjud foydalanuvchilar, testlar, savollar va urinishlar saqlandi, PgBouncer va TIMESTAMPTZ sozlamalari joriy qilindi.
+- [x] 30. Admin panelida test javoblari va savollarini tahrirlash (Edit Mode) funksiyasi to'liq joriy qilindi: har bir kartochkaga [Tahrirlash] tugmasi, formaga ma'lumotlarni avtomatik yuklash, kalitlarni o'zgartirish va backendda xavfsiz saqlash (`PUT /api/admin/tests/{test_id}`).
 
 
 ## ✅ Completed Checklist (History)

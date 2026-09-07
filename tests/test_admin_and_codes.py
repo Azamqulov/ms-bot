@@ -209,3 +209,45 @@ async def test_admin_api_authentication_security():
         assert res_ok.status_code == 200
         assert res_ok.json()["success"] is True
 
+        created_test_id = res_ok.json()["test_id"]
+
+        # 6. Admin test ma'lumotlari va kalitlarini olish (GET /api/admin/test-details/{test_id})
+        res_details = await client.get(
+            f"/api/admin/test-details/{created_test_id}",
+            headers={"X-Telegram-Init-Data": valid_admin_init_data},
+        )
+        assert res_details.status_code == 200
+        details_data = res_details.json()["test"]
+        assert details_data["id"] == created_test_id
+        assert len(details_data["questions"]) == 1
+        assert details_data["questions"][0]["correct_answer"] == "A"
+
+        # 7. Kalitlarni tahrirlash va saqlash (POST /api/admin/tests/{test_id}/update)
+        res_update = await client.post(
+            f"/api/admin/tests/{created_test_id}/update",
+            json={
+                "title": "Yangilangan Xavfsizlik Testi",
+                "time_limit_min": 90,
+                "questions": [
+                    {
+                        "order_no": 1,
+                        "correct_answer": "C",
+                    }
+                ]
+            },
+            headers={"X-Telegram-Init-Data": valid_admin_init_data},
+        )
+        assert res_update.status_code == 200
+        assert res_update.json()["success"] is True
+
+        # 8. Qayta tekshirish: kalit "C" ga o'zgarganini tasdiqlash
+        res_details_after = await client.get(
+            f"/api/admin/test-details/{created_test_id}",
+            headers={"X-Telegram-Init-Data": valid_admin_init_data},
+        )
+        assert res_details_after.status_code == 200
+        after_data = res_details_after.json()["test"]
+        assert after_data["title"] == "Yangilangan Xavfsizlik Testi"
+        assert after_data["time_limit_min"] == 90
+        assert after_data["questions"][0]["correct_answer"] == "C"
+

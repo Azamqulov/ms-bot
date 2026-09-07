@@ -29,6 +29,8 @@ from bot.services.admin_service import (
     toggle_test_status,
     delete_test_by_id,
     is_admin,
+    get_test_details_admin,
+    update_test_with_questions,
 )
 from bot.services.test_service import (
     get_or_create_user,
@@ -440,6 +442,14 @@ async def api_toggle_test(
     return {"success": True, "message": msg, "is_active": is_active}
 
 
+class UpdateTestPayload(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    time_limit_min: Optional[int] = None
+    questions: Optional[List[Dict[str, Any]]] = None
+    grouped_context: Optional[Dict[str, Any]] = None
+
+
 @app.delete("/api/admin/tests/{test_id}")
 async def api_delete_test(
     test_id: int,
@@ -447,6 +457,42 @@ async def api_delete_test(
 ):
     """Testni o'chirish"""
     success, msg = await delete_test_by_id(test_id)
+    if not success:
+        raise HTTPException(status_code=400, detail=msg)
+    return {"success": True, "message": msg}
+
+
+@app.get("/api/admin/test-details/{test_id}")
+async def api_get_admin_test_details(
+    test_id: int,
+    admin_telegram_id: int = Depends(require_admin_user),
+):
+    """Admin uchun testning barcha savollari va to'g'ri javob kalitlarini olish"""
+    user = await get_or_create_user(admin_telegram_id, "Admin")
+    details = await get_test_details_admin(test_id, user.id)
+    if not details:
+        raise HTTPException(status_code=404, detail="Test topilmadi yoki ko'rishga ruxsat yo'q")
+    return {"test": details}
+
+
+@app.put("/api/admin/tests/{test_id}")
+@app.post("/api/admin/tests/{test_id}/update")
+async def api_update_admin_test(
+    test_id: int,
+    payload: UpdateTestPayload,
+    admin_telegram_id: int = Depends(require_admin_user),
+):
+    """Test va uning javob kalitlarini tahrirlash/saqlash"""
+    user = await get_or_create_user(admin_telegram_id, "Admin")
+    success, msg = await update_test_with_questions(
+        test_id=test_id,
+        user_id=user.id,
+        title=payload.title,
+        description=payload.description,
+        time_limit_min=payload.time_limit_min,
+        questions_data=payload.questions,
+        grouped_context=payload.grouped_context,
+    )
     if not success:
         raise HTTPException(status_code=400, detail=msg)
     return {"success": True, "message": msg}
