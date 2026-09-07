@@ -74,6 +74,11 @@
   - 3) "Testga qatnashish turi"da "Ochiq test" noaktiv qilindi, faqat "Yopiq test" faol qoldirildi; "Test kodi (Kupon)" doimiy ko'rinadigan qilib chiqarildi.
   - 4) "Test yakunlangandan keyin natijalarni yashirish" (`hide_answers`) funksiyasi to'liq ulandi: agar bu yoqilgan bo'lsa, o'quvchi testni yakunlaganda bal va to'g'ri javoblar ko'rsatilmaydi, "Test muvaffaqiyatli yakunlandi! Natijalarni ustozingiz e'lon qiladi" xabari beriladi; agar o'chiq bo'lsa natija darhol sertifikat bilan chiqadi. Natijalar ustozga har doim to'liq yetib boradi.
   - 5) Vaqt tugaganda (`remainingSeconds <= 0`) avtomatik testni yakunlash (auto-submit timeout) to'liq ishchi holatga keltirildi.
+- [x] 40. `web/index.html` va `web/admin.html` fayllariga to'liq mobil-first responsive CSS media queries tizimi joriy qilindi:
+  - 360px (juda kichik telefon): container padding kichraytirildi, header/timer yozuvlari kichraydi, pufakchali variant tugmalari (`bubble-btn`) kichik o'lchamga tushirildi, diagnostika panjarasida ustun soni 5 dan 4 ga kamaytirildi, modal padding va font-size optimallashtirildi.
+  - 480px (kichik telefon): header `flex-wrap:wrap` qilindi (yozuvlar pastga siljishi o'rniga qator bo'yicha joylashadi), stat-row (`span`/`b`) avvalgiday yonma-yon lekin kichraymagan holda chiqadi, sertifikat yuklab olish tugmalari ekranga sig'adi, admin-nav-btn yorliqlari kichrayadi, test kartochalari (`test-card`) va statistika modal KPI bloki 2 ustunli grid formatga o'tadi.
+  - 576px: ochiq savol juft kiritish qatorlari (`open-inputs-pair`) 2 ustundan 1 ustunlik to'liq kenglikka o'tadi.
+  - 640px: `app-container` 100% kenglikda bo'ladi.
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.

@@ -1296,6 +1296,101 @@
     .toast.error {
       background: var(--danger);
     }
+
+    /* ================= RESPONSIVE: MOBILE-FIRST MEDIA QUERIES ================= */
+
+    /* Small phones: 480px and below */
+    @media (max-width: 480px) {
+      body { padding: 8px; }
+
+      /* App header */
+      .app-header {
+        padding: 12px 14px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .app-header h1 { font-size: 15px; gap: 6px; }
+      .app-header h1 svg { width: 16px; height: 16px; }
+      .header-actions { gap: 6px; }
+      .icon-btn { width: 32px; height: 32px; }
+
+      /* Admin nav tabs – shrink labels */
+      .admin-nav-bar { padding: 6px 10px; gap: 6px; }
+      .admin-nav-btn { font-size: 11px; gap: 4px; height: 36px; }
+      .admin-nav-btn svg { width: 14px; height: 14px; }
+
+      /* Form body */
+      .form-body { padding: 14px; gap: 14px; }
+      .form-input { height: 40px; font-size: 13px; }
+      .form-label { font-size: 12px; }
+      .form-hint { font-size: 11px; }
+
+      /* API status bar – wrap if needed */
+      .api-status-bar { flex-wrap: wrap; gap: 6px; font-size: 11px; padding: 6px 12px; }
+
+      /* Test card */
+      .test-card { padding: 12px; gap: 10px; }
+      .test-card-title { font-size: 14px; }
+      .test-card-code { font-size: 11px; }
+      .test-card-meta { gap: 10px; font-size: 11px; }
+      .test-card-actions { gap: 6px; flex-wrap: wrap; }
+      .btn-action-small { font-size: 11px; padding: 5px 10px; }
+
+      /* Options grid (answer key) – 2 cols on tiny screens */
+      .key-options-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+      .key-options-grid.six-options { grid-template-columns: repeat(3, 1fr); }
+      .key-option-btn { height: 36px; font-size: 13px; }
+
+      /* Stats modal KPI cards */
+      #statsKpiGrid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+
+      /* Stats participant row – stack on small screen */
+      #statsTableContainer > div > div {
+        flex-direction: column;
+        align-items: flex-start !important;
+      }
+      #statsTableContainer [style*="text-align:right"] {
+        text-align: left !important;
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid var(--border);
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between !important;
+        flex-direction: row !important;
+      }
+      #statsTableContainer [style*="align-items:center"] {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      /* Modal card – full width */
+      .modal-card { max-width: 100% !important; margin: 8px !important; }
+      .modal-header { padding: 12px 14px; }
+      .modal-body { padding: 14px !important; }
+      .modal-footer { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+    }
+
+    /* Extra small: 360px */
+    @media (max-width: 360px) {
+      .admin-nav-btn span { display: none; }
+      .admin-nav-btn { width: 40px; }
+
+      .key-options-grid { gap: 4px; }
+      .key-option-btn { height: 32px; font-size: 12px; }
+
+      .test-card-actions > * { flex: 1; min-width: calc(50% - 4px); justify-content: center; }
+    }
+
+    /* Tablet/medium breakpoint: 640px */
+    @media (max-width: 640px) {
+      /* Ensure app-container takes full width */
+      .app-container { max-width: 100%; }
+
+      /* Admin nav: uniform sizing */
+      .admin-nav-btn { font-size: 12px; }
+    }
   </style>
 </head>
 <body>

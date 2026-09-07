@@ -153,8 +153,17 @@
       font-size: 16px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       color: var(--text-main);
+      white-space: nowrap;        /* Yozuv bir qatorda qolsin */
+      flex-shrink: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .brand span {
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .header-actions {
@@ -335,6 +344,8 @@
       border-radius: 10px;
       padding: 12px 14px;
       margin-bottom: 18px;
+      flex-wrap: nowrap;  /* Bir qatorda qolsin */
+      gap: 8px;
     }
 
     .sheet-progress-info {
@@ -913,6 +924,123 @@
       from { opacity: 0; transform: scale(0.92); }
       to { opacity: 1; transform: scale(1); }
     }
+
+    /* ================= RESPONSIVE: MOBILE-FIRST MEDIA QUERIES ================= */
+
+    /* Extra small phones: 360px and below */
+    @media (max-width: 360px) {
+      .container { padding: 10px 10px; }
+
+      .brand span { font-size: 13px; }
+      .brand svg { width: 18px; height: 18px; }
+
+      .timer-badge { font-size: 12px; padding: 5px 8px; gap: 4px; }
+
+      .hero-title { font-size: 18px; }
+      .hero-desc { font-size: 12px; }
+
+      .bubble-btn { height: 40px; font-size: 14px; border-radius: 8px; }
+      .sheet-bubbles-group { gap: 6px; }
+
+      .sheet-bubbles-group.six-opts { gap: 5px; }
+      .sheet-bubbles-group.six-opts .bubble-btn { height: 38px; font-size: 12px; }
+
+      .floating-counter { min-width: 70px; }
+      .floating-counter-label { font-size: 10px; }
+      .floating-counter-val { font-size: 13px; }
+      .btn-submit-main { font-size: 13px; padding: 11px 10px; }
+
+      .stat-row { font-size: 12px; flex-direction: column; gap: 2px; align-items: flex-start; }
+      .grade-badge { font-size: 26px; padding: 8px 18px; }
+      .score-number { font-size: 32px; }
+
+      .diag-grid { grid-template-columns: repeat(4, 1fr); }
+
+      .modal-box { padding: 16px; }
+      .modal-title { font-size: 15px; }
+      .btn-modal-cancel, .btn-modal-danger { font-size: 13px; padding: 10px; }
+    }
+
+    /* Small phones: 480px and below */
+    @media (max-width: 480px) {
+      .container { padding: 12px; }
+
+      /* Header: brand va timer bir satorga sig'magan holda kichray */
+      header {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-bottom: 10px;
+        margin-bottom: 12px;
+      }
+      .brand { font-size: 14px; gap: 7px; }
+      .header-actions { gap: 8px; }
+      .timer-badge { font-size: 12px; padding: 5px 10px; }
+
+      /* Stat rows in result card - no overlap */
+      .stat-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 4px;
+        font-size: 12px;
+        padding: 6px 0;
+      }
+      .stat-row span { flex: 1 1 55%; }
+      .stat-row b { text-align: right; flex: 0 0 auto; }
+
+      .grade-badge { font-size: 28px; padding: 8px 20px; }
+      .score-number { font-size: 36px; }
+
+      /* Diagnostic grid: 5 cols may be too tight on 360 — use 4 */
+      .diag-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+      .diag-item { font-size: 11px; padding: 5px 3px; }
+      .diag-num { font-size: 10px; }
+      .diag-ans { font-size: 12px; }
+
+      /* Bubble buttons – keep them in one row but allow font to shrink */
+      .bubble-btn { height: 44px; font-size: 15px; }
+      .sheet-bubbles-group { gap: 7px; }
+
+      /* Six option bubbles (33-35 type) */
+      .sheet-bubbles-group.six-opts { gap: 6px; }
+      .sheet-bubbles-group.six-opts .bubble-btn { height: 40px; font-size: 13px; }
+
+      /* Floating bar – ensure counter doesn't push button off screen */
+      .floating-bar-content { gap: 8px; }
+      .floating-counter { min-width: 80px; }
+      .floating-counter-label { font-size: 10px; }
+      .floating-counter-val { font-size: 14px; }
+      .btn-submit-main { font-size: 14px; padding: 12px 10px; }
+
+      /* Modal */
+      .modal-box { padding: 18px 16px; max-width: 100%; }
+      .modal-title { font-size: 16px; }
+      .modal-actions { gap: 8px; }
+
+      /* Result card cert download buttons – wrap on small screens */
+      #certContainer [style*="display:flex"] {
+        flex-wrap: wrap;
+      }
+      #certContainer button { font-size: 12px !important; padding: 9px 6px !important; }
+
+      /* Section meta text – shorten on small */
+      .section-subtitle { font-size: 11px; }
+
+      /* User badge info wrap */
+      .user-badge-card { flex-wrap: wrap; gap: 6px; }
+      .user-badge-info { max-width: 100%; }
+    }
+
+    /* Medium phones: 576px and below */
+    @media (max-width: 576px) {
+      /* Open question pair – full width instead of 2-column grid */
+      .open-inputs-pair {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      /* Floating bar */
+      .floating-counter-label { font-size: 11px; }
+    }
   </style>
 </head>
 <body>
@@ -1042,13 +1170,13 @@
       <div class="floating-bar-spacer"></div>
 
       <!-- SUZUVCHI TASDIQLASH VA NATIJANI TEKSHIRISH TUGMASI -->
-      <div class="floating-submit-bar">
+      <div class="floating-submit-bar" id="floatingSubmitBar">
         <div class="floating-bar-content">
           <div class="floating-counter">
             <span class="floating-counter-label">Holat</span>
             <span class="floating-counter-val" id="floatingCounter">0 / 45 ta</span>
           </div>
-          <button class="btn-submit-main" onclick="openFinishModal()">
+          <button class="btn-submit-main" id="btnMainSubmit" onclick="executeSubmitTest()">
             <svg class="icon" viewBox="0 0 24 24">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
@@ -1101,14 +1229,14 @@
           </div>
 
           <!-- Tugmalar: ikkalasi ham bir xil 50% kenglikda va bir tekisda -->
-          <div style="display:flex; gap:10px; margin-top:12px;">
-            <button id="resCertDownloadBtn" class="btn btn-outline" onclick="triggerDownloadCert()" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; font-weight:600; padding:11px 8px; white-space:nowrap; border-radius:10px; cursor:pointer;">
-              <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              <span>Yuklab olish (JPG)</span>
+          <div style="display:flex; gap:8px; margin-top:12px;">
+            <button id="resCertDownloadBtn" class="btn btn-outline" onclick="triggerDownloadCert()" style="flex:1; min-width:0; display:flex; align-items:center; justify-content:center; gap:5px; font-size:12px; font-weight:600; padding:11px 6px; border-radius:10px; cursor:pointer; overflow:hidden;">
+              <svg class="icon icon-sm" style="flex-shrink:0;" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Yuklab olish</span>
             </button>
-            <button class="btn btn-outline" onclick="openCertFullscreen()" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; font-weight:600; padding:11px 8px; white-space:nowrap; border-radius:10px; cursor:pointer;">
-              <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
-              <span>Kattalashtirish</span>
+            <button class="btn btn-outline" onclick="openCertFullscreen()" style="flex:1; min-width:0; display:flex; align-items:center; justify-content:center; gap:5px; font-size:12px; font-weight:600; padding:11px 6px; border-radius:10px; cursor:pointer; overflow:hidden;">
+              <svg class="icon icon-sm" style="flex-shrink:0;" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+              <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Kattalashtirish</span>
             </button>
           </div>
         </div>
@@ -1122,13 +1250,11 @@
         <!-- 45 talik diagnostika matritsasi -->
         <div class="diag-grid" id="diagGridContainer"></div>
 
-        <button class="btn btn-primary" onclick="restartApp()" style="margin-top:16px;">
+        <button class="btn btn-primary" onclick="closeTelegramAppOrRestart()" style="margin-top:16px;">
           <svg class="icon" viewBox="0 0 24 24">
-            <polyline points="23 4 23 10 17 10"></polyline>
-            <polyline points="1 20 1 14 7 14"></polyline>
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
           </svg>
-          Yangi test tekshirish
+          Testdan chiqish
         </button>
       </div>
     </div>
@@ -1615,14 +1741,24 @@
       if (target) target.classList.add('active');
       window.scrollTo(0, 0);
 
-      // Agar Screen 1 (kod kiritish ekrani) bo'lsa, taymer umuman ko'rinmasin!
+      // Taymer boshqaruvi
       const timerBadge = document.getElementById('timerBadge');
       if (timerBadge) {
         if (screenId === 'screenCode') {
           timerBadge.style.display = 'none';
         } else if (screenId === 'screenQuiz') {
           timerBadge.style.display = 'flex';
+        } else {
+          // Natija yoki boshqa ekranlarda taymer ko'rinmasin
+          timerBadge.style.display = 'none';
         }
+      }
+
+      // Natija ekranlarida suzuvchi yakunlash tugmasini yashir
+      const floatingBar = document.getElementById('floatingSubmitBar');
+      if (floatingBar) {
+        const isResultScreen = (screenId === 'screenResult' || screenId === 'screenHiddenResult' || screenId === 'screenCode');
+        floatingBar.style.display = isResultScreen ? 'none' : 'flex';
       }
     }
 
@@ -1929,11 +2065,12 @@
     }
 
     // ================= YAKUNLASH TASDIQLASH VA SUBMIT =================
-    // ================= YAKUNLASH TASDIQLASH VA SUBMIT =================
     let isSubmittingTest = false;
+    let testAlreadySubmitted = false; // muvaffaqiyatli submit bo'lsa qaytmas flag
 
     function openFinishModal() {
-      if (isSubmittingTest) return;
+      // Test allaqachon yakunlangan bo'lsa modal chiqmasin
+      if (isSubmittingTest || testAlreadySubmitted) return;
 
       let count = 0;
       questions.forEach(q => {
@@ -1953,6 +2090,8 @@
     }
 
     function closeFinishModal() {
+      // Faqat yuborilayotgan vaqtda (loading) modalni yopishni block qilamiz
+      // testAlreadySubmitted holatida isSubmittingTest false bo'lgani uchun yopish ishlaydi
       if (isSubmittingTest) return;
       document.getElementById('finishModal').classList.remove('open');
     }
@@ -1961,7 +2100,8 @@
       if (isSubmittingTest) return;
       isSubmittingTest = true;
 
-      const submitBtn = document.getElementById('btnConfirmSubmit');
+      // Asosiy yakunlash tugmasini disable qilamiz (qayta bosilmasin)
+      const submitBtn = document.getElementById('btnMainSubmit');
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = `
@@ -1972,7 +2112,12 @@
         `;
       }
 
-      closeFinishModal();
+      // Modalni DARHOL to'g'ridan-to'g'ri yopamiz (closeFinishModal() ni ishlatmaymiz
+      // chunki u isSubmittingTest=true bo'lganda ishlashdan bosh tortadi)
+      document.getElementById('finishModal').classList.remove('open');
+      // Floating bar ni ham darhol yashiramiz
+      const floatingBarEl = document.getElementById('floatingSubmitBar');
+      if (floatingBarEl) floatingBarEl.style.display = 'none';
 
       const overlay = document.getElementById('submitLoadingOverlay');
       if (overlay) {
@@ -2041,6 +2186,18 @@
         }
 
         const result = await res.json();
+        // Muvaffaqiyatli submit — qaytmas flag o'rnatiladi
+        testAlreadySubmitted = true;
+        isSubmittingTest = false; // loading holat tugadi
+        if (overlay) overlay.style.display = 'none';
+        // Submit tugmasini butunlay o'chirib qo'yamiz
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerText = "Yakunlandi";
+        }
+        // Modalni yopamiz (endi closeFinishModal isSubmittingTest=false bo'lgani uchun ishlaydi)
+        document.getElementById('finishModal').classList.remove('open');
+        // Natija ekraniga o'tish
         if (result.hide_answers) {
           showHiddenResultScreen(result.message);
         } else {
@@ -2048,8 +2205,8 @@
           displayResult(result);
         }
       } catch (err) {
+        // Xatolik bo'lsa foydalanuvchi qayta urinib ko'rishi mumkin
         showToast("Natijani tekshirishda xatolik: " + err.message, true);
-      } finally {
         isSubmittingTest = false;
         if (overlay) overlay.style.display = 'none';
         if (submitBtn) {
@@ -2104,15 +2261,16 @@
         statusEl.style.color = "var(--danger)";
       }
 
-      // Rasmiy Sertifikat Blankasini ko'rsatish
+      // Rasmiy Sertifikat Blankasini ko'rsatish — FAQAT sertifikat olgan bo'lsagina
       const certBox = document.getElementById('certContainer');
       const certImg = document.getElementById('resCertImg');
       const certBadgeText = document.getElementById('certBadgeText');
       const certSpinner = document.getElementById('certImgSpinner');
 
-      if (res.certificate_url) {
+      // Sertifikat olmagan bo'lsa — cert blokini umuman ko'rsatma
+      if (res.is_certified && res.certificate_url) {
         let fullCertUrl = res.certificate_url;
-        if (fullCertUrl && !fullCertUrl.startsWith('http://') && !fullCertUrl.startsWith('https://')) {
+        if (!fullCertUrl.startsWith('http://') && !fullCertUrl.startsWith('https://')) {
           const cleanApi = (API_BASE || '').replace(/\/+$/, '');
           const cleanPath = fullCertUrl.replace(/^\/+/, '');
           fullCertUrl = cleanApi ? `${cleanApi}/${cleanPath}` : `/${cleanPath}`;
@@ -2125,19 +2283,13 @@
           certImg.style.display = 'none';
           certImg.src = fullCertUrl;
         }
-
         if (certBadgeText) {
-          if (res.is_certified) {
-            certBadgeText.innerText = "Sertifikat berilsin";
-            certBadgeText.style.background = "rgba(16, 185, 129, 0.15)";
-            certBadgeText.style.color = "var(--success)";
-          } else {
-            certBadgeText.innerText = "Sertifikat berilmadi";
-            certBadgeText.style.background = "rgba(239, 68, 68, 0.15)";
-            certBadgeText.style.color = "var(--danger)";
-          }
+          certBadgeText.innerText = "Sertifikat tayyor";
+          certBadgeText.style.background = "rgba(16, 185, 129, 0.15)";
+          certBadgeText.style.color = "var(--success)";
         }
       } else {
+        // Sertifikat yo'q — blokni yashir
         if (certBox) certBox.style.display = 'none';
       }
 

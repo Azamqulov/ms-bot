@@ -414,7 +414,8 @@ async def api_submit_test(payload: SubmitTestRequest):
         "final_score": rasch_result.final_score,
         "grade": rasch_result.grade,
         "is_certified": rasch_result.is_certified,
-        "certificate_url": cert_url,
+        # Sertifikat URL faqat sertifikat olgan o'quvchilargagina qaytariladi
+        "certificate_url": cert_url if rasch_result.is_certified else None,
         "details": detailed_results,
     }
 
