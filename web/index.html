@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uz" data-theme="dark">
+<html lang="uz" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -24,6 +24,28 @@
   <style>
     /* ================= THEME TOKENS ================= */
     :root {
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --card-sub-bg: #f8fafc;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: rgba(37, 99, 235, 0.1);
+      --success: #059669;
+      --success-soft: rgba(5, 150, 105, 0.1);
+      --danger: #e11d48;
+      --danger-soft: rgba(225, 29, 72, 0.1);
+      --danger-hover: #be123c;
+      --border: #cbd5e1;
+      --opt-hover: #e2e8f0;
+      --bubble-bg: #f1f5f9;
+      --bubble-text: #334155;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      --radius: 14px;
+    }
+
+    [data-theme="dark"] {
       --bg-color: #0b1329;
       --card-bg: #152238;
       --card-sub-bg: #0d1829;
@@ -914,7 +936,7 @@
         <!-- Rejim almashtirish -->
         <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" title="Rejimni almashtirish">
           <svg class="icon icon-sm" id="themeIcon" viewBox="0 0 24 24">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
           </svg>
         </button>
 
@@ -1221,19 +1243,22 @@
   </div>
 
   <script>
-    // Theme Management (Light / Dark)
-    let currentTheme = localStorage.getItem('theme') || 'dark';
+    // Theme Management (Light / Dark) - Default: Light
+    let currentTheme = localStorage.getItem('ms_theme_v2') || 'light';
 
     function applyTheme(theme) {
       currentTheme = theme;
       document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('ms_theme_v2', theme);
       localStorage.setItem('theme', theme);
 
       const icon = document.getElementById('themeIcon');
-      if (theme === 'light') {
-        icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
-      } else {
-        icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+      if (icon) {
+        if (theme === 'light') {
+          icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+        } else {
+          icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+        }
       }
     }
 
@@ -1265,8 +1290,9 @@
     if (tg) {
       tg.ready();
       tg.expand();
-      if (tg.colorScheme) {
-        applyTheme(tg.colorScheme);
+      const saved = localStorage.getItem('ms_theme_v2');
+      if (saved) {
+        applyTheme(saved);
       }
     }
 

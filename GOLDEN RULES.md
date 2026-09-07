@@ -67,7 +67,7 @@
 - [x] 35. O'quvchi javoblar varaqasida [A] [B] [C] [D] (va 33-35 da A–F) variant tugmalari kartochkaning butun kengligi (100%) bo'yicha teng taqsimlanib, to'liq yoyilishi (`flex: 1`, `width: 100%`) ta'minlandi.
 - [x] 36. WebApp natijalar ekranida rasmiy sertifikat rasmining cross-origin (GitHub Pages -> API tunnel) mutlaq URL manzili to'g'rilandi (404 broken image bartaraf etildi), rasm ramkasiga yuklanish spinneri o'rnatildi, "Yuklab olish (JPG)" va "Kattalashtirish" tugmalari 50/50 teng kenglikda bir tekis qilindi va to'g'ridan-to'g'ri Blob orqali telefon xotirasiga .jpg fayl qilib yuklab olish funksiyasi joriy qilindi.
 - [x] 37. Test yakunlash interfeysi matnlari foydalanuvchi talabiga ko'ra tabiiy va rasmiy o'zbek tiliga o'tkazildi: suzuvchi panel tugmasi "Testni yakunlash", tasdiqlash modali sarlavhasi "Testni yakunlaysizmi?", bekor qilish "Davom ettirish" va asosiy yakunlash tugmasi "Ha, tugatish" deb qayta nomlandi.
-
+- [x] 38. O'quvchi javoblar varaqasi (Web App) boshlang'ich mavzusi (default theme) foydalanuvchi talabiga asosan Dark rejimidan Light rejimiga o'tkazildi: `:root` tokenlari Light rejimga moslandi, HTML `data-theme="light"` qilindi, quyosh/oy ikonkasi to'g'rilandi va mavzu tanlash xotirasi (`ms_theme_v2`) sinxronlashtirildi.
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.
