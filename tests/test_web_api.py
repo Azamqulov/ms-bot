@@ -21,9 +21,13 @@ async def test_web_api_endpoints():
         assert len(data["questions"]) == 45
 
         # 2. Rasm yuklash testi
+        from bot.web_app.auth import create_mock_init_data
+        from bot.config import settings
+        admin_headers = {"X-Telegram-Init-Data": create_mock_init_data(settings.SUPER_ADMIN_ID, settings.BOT_TOKEN)}
+
         fake_file = io.BytesIO(b"fake image data")
         files = {"file": ("geometry.png", fake_file, "image/png")}
-        img_res = await client.post("/api/admin/upload-image", files=files)
+        img_res = await client.post("/api/admin/upload-image", files=files, headers=admin_headers)
         assert img_res.status_code == 200
         img_data = img_res.json()
         assert "url" in img_data
@@ -51,7 +55,7 @@ async def test_web_api_endpoints():
                 }
             ]
         }
-        create_res = await client.post("/api/admin/create-test", json=new_test_payload)
+        create_res = await client.post("/api/admin/create-test", json=new_test_payload, headers=admin_headers)
         assert create_res.status_code == 200
         created_data = create_res.json()
         assert created_data["code"] == unique_code

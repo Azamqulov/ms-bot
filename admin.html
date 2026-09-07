@@ -1685,9 +1685,17 @@
   <div class="toast" id="toastMsg"></div>
 
   <script>
-    // ================= GLOBAL STATE =================
-    const SUPER_ADMIN_ID = 1685356708;
-    const currentTelegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || SUPER_ADMIN_ID;
+    // ================= GLOBAL STATE & AUTH =================
+    const telegramInitData = window.Telegram?.WebApp?.initData || '';
+    const currentTelegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null;
+
+    function getAdminAuthHeaders(extraHeaders = {}) {
+      const headers = { ...extraHeaders };
+      if (telegramInitData) {
+        headers['X-Telegram-Init-Data'] = telegramInitData;
+      }
+      return headers;
+    }
 
     const answers1to35 = {}; // {1: 'A', 2: 'B', ...}
     const questionsMeta = {}; // {1: {text: '', image: '', options: {A:'', B:'', C:'', D:''}}}
@@ -2225,6 +2233,7 @@
       try {
         const res = await fetch(`${API_BASE}/api/admin/upload-image`, {
           method: 'POST',
+          headers: getAdminAuthHeaders(),
           body: formData
         });
         const data = await res.json();
@@ -2938,7 +2947,7 @@
       try {
         const res = await fetch(`${API_BASE}/api/admin/create-test`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({
             creator_telegram_id: currentTelegramId,
             code: code,
@@ -3035,7 +3044,9 @@
       }
 
       try {
-        const res = await fetch(`${API_BASE}/api/admin/tests/${currentTelegramId}`);
+        const res = await fetch(`${API_BASE}/api/admin/tests/${currentTelegramId || 0}`, {
+          headers: getAdminAuthHeaders()
+        });
         let data = { tests: [] };
         const cType = res.headers.get("content-type") || "";
         if (cType.includes("application/json")) {
@@ -3124,7 +3135,10 @@
 
     async function toggleTestStatus(testId) {
       try {
-        const res = await fetch(`${API_BASE}/api/admin/tests/${testId}/toggle`, { method: 'POST' });
+        const res = await fetch(`${API_BASE}/api/admin/tests/${testId}/toggle`, {
+          method: 'POST',
+          headers: getAdminAuthHeaders()
+        });
         const data = await res.json();
         if (res.ok && data.success) {
           showToast(data.message);
@@ -3143,7 +3157,10 @@
         `Haqiqatan ham '${code}' testini butunlay o'chirib tashlamoqchimisiz?`,
         async () => {
           try {
-            const res = await fetch(`${API_BASE}/api/admin/tests/${testId}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/admin/tests/${testId}`, {
+              method: 'DELETE',
+              headers: getAdminAuthHeaders()
+            });
             const data = await res.json();
             if (res.ok && data.success) {
               showToast("Test o'chirildi!");
@@ -3229,7 +3246,9 @@
       restoreDraft();
 
       // Dastlabki testlar sonini bilish
-      fetch(`${API_BASE}/api/admin/tests/${currentTelegramId}`)
+      fetch(`${API_BASE}/api/admin/tests/${currentTelegramId || 0}`, {
+        headers: getAdminAuthHeaders()
+      })
         .then(r => r.json())
         .then(data => {
           if (data && Array.isArray(data.tests)) {
@@ -3240,6 +3259,23 @@
     });
 
     async function verifyAdminAccess() {
+      // 1. Agar Telegram initData mavjud bo'lmasa (brauzerda to'g'ridan-to'g'ri ochilsa)
+      if (!telegramInitData) {
+        document.body.innerHTML = `
+          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:30px; text-align:center; font-family:Inter,sans-serif; background:var(--bg); color:var(--text);">
+            <div style="width:60px; height:60px; border-radius:50%; background:var(--danger-light); display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+              <svg class="icon" style="width:32px; height:32px; color:var(--danger);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <h2 style="font-size:20px; font-weight:700; margin-bottom:8px;">Kirish cheklangan</h2>
+            <p style="color:var(--text-sub); font-size:14px; max-width:340px; line-height:1.6; margin-bottom:24px;">
+              Bu sahifa faqat Telegram bot ichida ochiladi.
+            </p>
+          </div>
+        `;
+        return false;
+      }
+
+      // 2. Adminlik huquqini tekshirish
       const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
       if (user && user.id) {
         try {

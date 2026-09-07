@@ -5,8 +5,8 @@
 
 ## 🎯 Overall Objective & Current Phase
 - **Loyiha:** Milliy Sertifikat — Matematika imtihoniga tayyorlanuvchilar uchun mock test va RASH (IRT — Item Response Theory) modeli asosida avtomatik baholovchi Telegram Bot + Telegram Mini App (Web App).
-- **Hozirgi Bosqich:** Phase 2 (Design Polish: 100% SVG Icons, Light/Dark Theming, Large Map Button).
-- **Status:** Production / 18 ta testdan 100% muvaffaqiyatli o'tdi. Server va bot faol ishlamoqda.
+- **Hozirgi Bosqich:** Phase 3 (Security Hardening: Telegram WebApp initData HMAC-SHA256 Server Authentication, requirements.txt fix).
+- **Status:** Production / 19 ta testdan 100% muvaffaqiyatli o'tdi. Server va bot faol ishlamoqda.
 
 ## 🧠 Architecture Decision Log (ADR)
 - **Zero Emoji & 100% Pure SVG Icons:** Foydalanuvchi talabiga ko'ra barcha standart emojilar olib tashlandi va yagona Lucide SVG ikonkalar tizimiga o'tkazildi (`icon-standards`).
@@ -52,6 +52,11 @@
 - [x] 21. O'quvchi javoblar varaqasi foydalanuvchi yuborgan andazaga to'liq moslashtirildi: har bir savol alohida kartochkaga olinib (`1-savol` va pastida `[A][B][C][D]` to'rtburchak tugmalar), ko'z ikonkasi yashirildi.
 - [x] 22. Test topshirilganda natijalar nafaqat o'quvchiga, balki ushbu testni yaratgan o'qituvchi/muallifning Telegramiga ham to'liq ma'lumotlar bilan (ism, telefon, ball, daraja) avtomatik yuborilishi ta'minlandi.
 - [x] 23. Bot bosh menyusidan "Botda topshirish" tugmasi butunlay olib tashlandi va "Test topshirish (Web App)" tugmasi foydalanuvchi talabiga ko'ra "Javobni tekshirish" ga o'zgartirildi.
+- [x] 24. `requirements.txt` ga `httpx>=0.27.0` qaramligi qo'shildi (toza klonda testlar to'liq o'tishi uchun).
+- [x] 25. Admin API endpointlariga Telegram WebApp `initData` HMAC-SHA256 server-side autentifikatsiyasi va RBAC tekshiruvi joriy qilindi (`bot/web_app/auth.py`).
+- [x] 26. `web/admin.html` va `admin.html` fayllaridan `SUPER_ADMIN_ID` fallback olib tashlandi, faqat Telegram ichida ochilishiga cheklov qo'yildi va barcha admin fetch so'rovlariga `X-Telegram-Init-Data` sarlavhasi ulandi.
+- [x] 27. Barcha 19 ta Pytest testlari (xavfsizlik va endpointlar integratsiyasi bilan birga) 100% muvaffaqiyatli o'tdi.
+
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.

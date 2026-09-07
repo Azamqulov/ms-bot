@@ -40,6 +40,7 @@ from bot.services.test_service import (
 )
 from bot.services.report_service import generate_result_report, generate_teacher_notification
 from bot.core.validator import check_open_answer
+from bot.web_app.auth import require_admin_user
 
 logger = logging.getLogger(__name__)
 
@@ -305,7 +306,10 @@ async def api_submit_test(payload: SubmitTestRequest):
 # ==================== ADMIN API: RASM VA TEST YUKLASH ====================
 
 @app.post("/api/admin/upload-image")
-async def api_upload_image(file: UploadFile = File(...)):
+async def api_upload_image(
+    file: UploadFile = File(...),
+    admin_telegram_id: int = Depends(require_admin_user),
+):
     """Savol uchun rasm (chizma, formula grafikasi) yuklash — HEIC/HEIF avtomatik konvertatsiya bilan"""
     ext = Path(file.filename or "").suffix.lower()
     raw_content = await file.read()
@@ -356,9 +360,12 @@ async def api_upload_image(file: UploadFile = File(...)):
 
 
 @app.post("/api/admin/create-test")
-async def api_create_test(payload: CreateTestPayload):
-    """Admin tomonidan yangi test yaratish"""
-    admin_user = await get_or_create_user(payload.creator_telegram_id, "Admin")
+async def api_create_test(
+    payload: CreateTestPayload,
+    admin_telegram_id: int = Depends(require_admin_user),
+):
+    """Admin tomonidan yangi test yaratish (haqiqiy tasdiqlangan admin_telegram_id ishlatiladi)"""
+    admin_user = await get_or_create_user(admin_telegram_id, "Admin")
 
     if payload.time_limit_min <= 0:
         raise HTTPException(status_code=400, detail="Vaqt chegarasi kamida 1 daqiqa bo'lishi kerak.")
@@ -386,15 +393,21 @@ async def api_create_test(payload: CreateTestPayload):
 
 
 @app.get("/api/admin/tests/{telegram_id}")
-async def api_get_admin_tests(telegram_id: int):
-    """Admin o'z testlari statistikasini olish"""
-    user = await get_or_create_user(telegram_id, "Admin")
+async def api_get_admin_tests(
+    telegram_id: int,
+    admin_telegram_id: int = Depends(require_admin_user),
+):
+    """Admin o'z testlari statistikasini olish (tasdiqlangan admin_telegram_id bo'yicha)"""
+    user = await get_or_create_user(admin_telegram_id, "Admin")
     tests = await get_admin_tests(user.id)
     return {"tests": tests}
 
 
 @app.post("/api/admin/tests/{test_id}/toggle")
-async def api_toggle_test(test_id: int):
+async def api_toggle_test(
+    test_id: int,
+    admin_telegram_id: int = Depends(require_admin_user),
+):
     """Test faolligini o'zgartirish (faol / to'xtatilgan)"""
     success, msg, is_active = await toggle_test_status(test_id)
     if not success:
@@ -403,10 +416,14 @@ async def api_toggle_test(test_id: int):
 
 
 @app.delete("/api/admin/tests/{test_id}")
-async def api_delete_test(test_id: int):
+async def api_delete_test(
+    test_id: int,
+    admin_telegram_id: int = Depends(require_admin_user),
+):
     """Testni o'chirish"""
     success, msg = await delete_test_by_id(test_id)
     if not success:
         raise HTTPException(status_code=400, detail=msg)
     return {"success": True, "message": msg}
+
 

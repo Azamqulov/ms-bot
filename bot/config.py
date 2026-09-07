@@ -4,6 +4,9 @@ import os
 
 
 class Settings(BaseSettings):
+    # Telegram Bot Token (@BotFather orqali olinadi).
+    # DIQQAT: Ushbu token Telegram Mini App initData ma'lumotlarini serverda
+    # HMAC-SHA256 orqali kriptografik tasdiqlash uchun ham qat'iy zarur!
     BOT_TOKEN: str = "123456789:TEST_BOT_TOKEN_CHANGE_ME"
     DATABASE_URL: str = "sqlite+aiosqlite:///./data/msbot.db"
     SUPER_ADMIN_ID: int = 1685356708

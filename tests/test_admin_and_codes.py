@@ -108,3 +108,104 @@ async def test_create_and_access_test_by_code():
     my_tests = await get_admin_tests(admin_user.id)
     codes = [t["code"] for t in my_tests]
     assert test_code in codes
+
+
+@pytest.mark.asyncio
+async def test_admin_api_authentication_security():
+    """
+    Admin API endpointlari autentifikatsiya va avtorizatsiyasini to'liq tekshirish:
+    - Headersiz so'rov -> 401
+    - Noto'g'ri hash (soxta ma'lumot) -> 401
+    - Eskirgan sessiya (auth_date > 24 soat) -> 401
+    - Oddiy (admin bo'lmagan) user -> 403
+    - Haqiqiy admin initData -> 200
+    """
+    import time
+    import uuid
+    from httpx import AsyncClient, ASGITransport
+    from bot.web_app.api import app
+    from bot.web_app.auth import create_mock_init_data
+
+    await init_db()
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        test_payload = {
+            "code": f"AUTH-{uuid.uuid4().hex[:6].upper()}",
+            "title": "Xavfsizlik Testi",
+            "time_limit_min": 60,
+            "questions": [
+                {
+                    "order_no": 1,
+                    "type": "Y-1",
+                    "text": "Savol",
+                    "options": {"A": "1", "B": "2", "C": "3", "D": "4"},
+                    "correct_answer": "A",
+                }
+            ],
+        }
+
+        # 1. Sarlavhasiz (hech qanday X-Telegram-Init-Data siz)
+        res_no_header = await client.post("/api/admin/create-test", json=test_payload)
+        assert res_no_header.status_code == 401
+        assert "talab qilinadi" in res_no_header.json().get("detail", "")
+
+        # 2. Noto'g'ri / soxta hash bilan
+        fake_init_data = create_mock_init_data(
+            user_id=settings.SUPER_ADMIN_ID,
+            bot_token=settings.BOT_TOKEN,
+            is_valid=False,
+        )
+        res_fake_hash = await client.post(
+            "/api/admin/create-test",
+            json=test_payload,
+            headers={"X-Telegram-Init-Data": fake_init_data},
+        )
+        assert res_fake_hash.status_code == 401
+        assert "hash mos kelmadi" in res_fake_hash.json().get("detail", "")
+
+        # 3. Eskirgan auth_date (> 24 soat oldin)
+        expired_time = int(time.time()) - 100000
+        expired_init_data = create_mock_init_data(
+            user_id=settings.SUPER_ADMIN_ID,
+            bot_token=settings.BOT_TOKEN,
+            auth_date=expired_time,
+            is_valid=True,
+        )
+        res_expired = await client.post(
+            "/api/admin/create-test",
+            json=test_payload,
+            headers={"X-Telegram-Init-Data": expired_init_data},
+        )
+        assert res_expired.status_code == 401
+        assert "eskirgan" in res_expired.json().get("detail", "")
+
+        # 4. Admin bo'lmagan oddiy begona foydalanuvchi (403 Forbidden)
+        non_admin_id = 999111222
+        non_admin_init_data = create_mock_init_data(
+            user_id=non_admin_id,
+            bot_token=settings.BOT_TOKEN,
+            is_valid=True,
+        )
+        res_forbidden = await client.post(
+            "/api/admin/create-test",
+            json=test_payload,
+            headers={"X-Telegram-Init-Data": non_admin_init_data},
+        )
+        assert res_forbidden.status_code == 403
+        assert "admin" in res_forbidden.json().get("detail", "").lower()
+
+        # 5. Haqiqiy Super Admin initData bilan (200 OK)
+        valid_admin_init_data = create_mock_init_data(
+            user_id=settings.SUPER_ADMIN_ID,
+            bot_token=settings.BOT_TOKEN,
+            is_valid=True,
+        )
+        res_ok = await client.post(
+            "/api/admin/create-test",
+            json=test_payload,
+            headers={"X-Telegram-Init-Data": valid_admin_init_data},
+        )
+        assert res_ok.status_code == 200
+        assert res_ok.json()["success"] is True
+
