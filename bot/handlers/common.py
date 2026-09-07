@@ -42,7 +42,7 @@ async def cmd_start(message: Message, state: FSMContext):
         f"• Natijangiz rasmiy <b>RASH (IRT) modeli</b> asosida baholanadi;\n"
         f"• <b>0 dan 75 gacha</b> aniq ball hamda rasmiy darajangizni (<b>A+, A, B+, B, C+, C</b>) olasiz;\n"
         f"• O'z bilimingizni sinab, imtihonga 100% tayyorlanasiz.\n\n"
-        f"Boshlash uchun pastdagi <b>'🚀 Test topshirish (Web App)'</b> tugmasini bosing!"
+        f"Boshlash uchun pastdagi <b>'🚀 Javobni tekshirish'</b> tugmasini bosing!"
     )
     await message.answer(welcome_text, reply_markup=get_main_menu_keyboard(is_adm, user=user))
 
@@ -108,7 +108,7 @@ async def process_phone(message: Message, state: FSMContext):
         f"Siz muvaffaqiyatli ro'yxatdan o'tdingiz.\n"
         f"👤 <b>Talabgor:</b> {full_name}\n"
         f"📱 <b>Telefon:</b> {phone}\n\n"
-        "Endi pastdagi <b>'🚀 Test topshirish (Web App)'</b> tugmasini bosib, to'g'ridan-to'g'ri Milliy Sertifikat mock testini topshirishingiz mumkin!\n"
+        "Endi pastdagi <b>'🚀 Javobni tekshirish'</b> tugmasini bosib, to'g'ridan-to'g'ri Milliy Sertifikat javoblar varaqasini tekshirishingiz mumkin!\n"
         "Test natijalaringiz avtomatik hisoblanib, ushbu botga batafsil hisobot sifatida keladi."
     )
     db_user = await get_user_by_telegram_id(message.from_user.id)

@@ -249,7 +249,7 @@ async def parse_and_save_test(message: Message, state: FSMContext, content_str: 
             f"📝 <b>Nomi:</b> {test_obj.title}\n"
             f"❓ <b>Savollar soni:</b> {test_obj.question_count} ta\n"
             f"⏱ <b>Vaqt chegarasi:</b> {test_obj.time_limit_min} daqiqa\n\n"
-            f"💡 <i>Talabgorlar botda '📝 Test topshirish' bosgach <code>{test_obj.code}</code> kodini kiritib testni boshlashlari mumkin!</i>"
+            f"💡 <i>Talabgorlar botda '🚀 Javobni tekshirish' bosgach <code>{test_obj.code}</code> kodini kiritib javoblarni tekshirishlari mumkin!</i>"
         )
         await message.answer(reply_text, reply_markup=get_main_menu_keyboard(True))
     else:

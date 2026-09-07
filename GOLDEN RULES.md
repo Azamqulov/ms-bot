@@ -51,6 +51,7 @@
 - [x] 20. Admin panelida 33-35 kontekstli savollar bloki test tekshirish (OMR) tizimiga moslashtirildi: barcha ortiqcha matn/chizma maydonlari yig'ishtirilib, to'g'ridan-to'g'ri 6 ta variantli (A–F) toza kalit tanlash qatorlari joriy qilindi.
 - [x] 21. O'quvchi javoblar varaqasi foydalanuvchi yuborgan andazaga to'liq moslashtirildi: har bir savol alohida kartochkaga olinib (`1-savol` va pastida `[A][B][C][D]` to'rtburchak tugmalar), ko'z ikonkasi yashirildi.
 - [x] 22. Test topshirilganda natijalar nafaqat o'quvchiga, balki ushbu testni yaratgan o'qituvchi/muallifning Telegramiga ham to'liq ma'lumotlar bilan (ism, telefon, ball, daraja) avtomatik yuborilishi ta'minlandi.
+- [x] 23. Bot bosh menyusidan "Botda topshirish" tugmasi butunlay olib tashlandi va "Test topshirish (Web App)" tugmasi foydalanuvchi talabiga ko'ra "Javobni tekshirish" ga o'zgartirildi.
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.

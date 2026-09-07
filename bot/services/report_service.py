@@ -73,7 +73,7 @@ def generate_history_report(attempts: List[Attempt]) -> str:
     if not attempts:
         return (
             "📭 <b>Siz hali hech qaysi testni yakunlamagansiz.</b>\n\n"
-            "Sinovdan o'tish uchun asosiy menyudan <b>'📝 Test topshirish'</b> tugmasini bosing!"
+            "Sinovdan o'tish uchun asosiy menyudan <b>'🚀 Javobni tekshirish'</b> tugmasini bosing!"
         )
 
     lines = ["📊 <b>SIZNING NATIJALARINGIZ TARIXI:</b>\n"]

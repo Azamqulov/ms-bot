@@ -20,16 +20,13 @@ def get_main_menu_keyboard(is_admin_user: bool = False, user: Optional[Any] = No
     kb = [
         [
             KeyboardButton(
-                text="🚀 Test topshirish (Web App)",
+                text="🚀 Javobni tekshirish",
                 web_app=WebAppInfo(url=web_url)
             ),
             KeyboardButton(text="📊 Natijalarim"),
         ],
         [
-            KeyboardButton(text="📝 Botda topshirish"),
             KeyboardButton(text="ℹ️ RASH modeli haqida"),
-        ],
-        [
             KeyboardButton(text="❓ Yordam"),
         ],
     ]
