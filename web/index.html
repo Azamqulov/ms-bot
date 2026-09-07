@@ -718,6 +718,13 @@
           </svg>
           Rasmiy 45 talik STANDART test
         </button>
+
+        <div style="margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; justify-content: center;">
+          <a href="/admin" id="btnAdminPanelLink" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); transition: all 0.2s ease;">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <span>👑 Admin Panelga o'tish</span>
+          </a>
+        </div>
       </div>
     </div>
 
@@ -1337,9 +1344,20 @@
       showScreen('screenCode');
     }
 
+    function updateAdminLink() {
+      const link = document.getElementById('btnAdminPanelLink');
+      if (!link) return;
+      if (window.location.protocol === 'file:' || window.location.hostname.endsWith('github.io')) {
+        link.href = 'web/admin.html';
+      } else {
+        link.href = '/admin';
+      }
+    }
+
     // ================= DASTUR ISHGA TUSHGANDA VA F5 BOSILGANDA TIKLASH =================
     window.addEventListener('DOMContentLoaded', () => {
       fetchUserProfile();
+      updateAdminLink();
       checkAndRestoreSession();
     });
 
@@ -1351,6 +1369,7 @@
 
     // Skript yuklanganda darhol profilni olish va sessiyani tiklashga urinish
     fetchUserProfile();
+    updateAdminLink();
     checkAndRestoreSession();
   </script>
 </body>
