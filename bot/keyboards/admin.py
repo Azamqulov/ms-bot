@@ -8,10 +8,15 @@ def get_admin_dashboard_keyboard(is_super: bool) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
     # Veb Konstruktorni ochish tugmasi
+    admin_url = (
+        f"{settings.WEB_APP_URL.rstrip('/')}/web/admin.html"
+        if "github.io" in settings.WEB_APP_URL
+        else f"{settings.WEB_APP_URL.rstrip('/')}/admin"
+    )
     builder.row(
         InlineKeyboardButton(
             text="🌐 Veb Konstruktorni ochish (TMA)",
-            web_app=WebAppInfo(url=f"{settings.WEB_APP_URL}/admin")
+            web_app=WebAppInfo(url=admin_url)
         )
     )
 

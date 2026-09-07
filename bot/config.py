@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     DEFAULT_TEST_TIME_LIMIT_MIN: int = 150
     WEB_SERVER_HOST: str = "0.0.0.0"
     WEB_SERVER_PORT: int = 8000
-    WEB_APP_URL: str = "http://localhost:8000"
+    WEB_APP_URL: str = "https://azamqulov.github.io/ms-bot/"
 
     model_config = SettingsConfigDict(
         env_file=".env",
