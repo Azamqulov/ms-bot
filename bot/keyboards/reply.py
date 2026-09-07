@@ -17,6 +17,11 @@ def get_main_menu_keyboard(is_admin_user: bool = False, user: Optional[Any] = No
         delimiter = "&" if "?" in web_url else "?"
         web_url = f"{web_url}{delimiter}{query_str}"
 
+    if settings.API_SERVER_URL and "github.io" in settings.WEB_APP_URL:
+        api_clean = settings.API_SERVER_URL.rstrip('/')
+        delimiter = "&" if "?" in web_url else "?"
+        web_url = f"{web_url}{delimiter}api={urllib.parse.quote(api_clean, safe=':/')}"
+
     kb = [
         [
             KeyboardButton(

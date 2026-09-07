@@ -130,9 +130,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .icon-btn {
+    }    .icon-btn {
       background: none;
       border: 1px solid var(--border);
       color: var(--text-sub);
@@ -143,6 +141,69 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    /* API Status Bar */
+    .api-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: var(--card-sub);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+    .api-status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .status-dot.online {
+      background: #10b981;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+    .status-dot.offline {
+      background: #ef4444;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+      animation: pulse-red 1.5s infinite;
+    }
+    .status-dot.warning {
+      background: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    }
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.15); }
+    }
+    .btn-api-config {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    .btn-api-config:hover {
+      background: var(--primary-light);
+      border-color: var(--primary-border);
+      color: var(--primary);
     }
 
     .icon-btn:hover {
@@ -1259,6 +1320,18 @@
       </div>
     </header>
 
+    <!-- Server Connection Status Bar -->
+    <div class="api-status-bar" id="apiStatusBar">
+      <div class="api-status-indicator" id="apiStatusIndicator">
+        <span class="status-dot warning" id="statusDot"></span>
+        <span class="status-text" id="statusText">Server holati tekshirilmoqda...</span>
+      </div>
+      <button type="button" class="btn-api-config" onclick="openApiConfigModal()">
+        <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        Server sozlamasi
+      </button>
+    </div>
+
     <!-- Top Navigation Switcher -->
     <div class="admin-nav-bar">
       <button type="button" class="admin-nav-btn active" id="navCreateTab" onclick="switchAdminTab('create')">
@@ -1568,6 +1641,38 @@
     </div>
   </div>
 
+  <!-- ================= MODAL: SERVER SOZLAMALARI ================= -->
+  <div class="modal-overlay" id="apiConfigModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span style="font-weight:700; color:var(--text); font-size:15px; display:flex; align-items:center; gap:8px;">
+          <svg class="icon" style="color:var(--primary); width:18px; height:18px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          Backend Server Sozlamasi
+        </span>
+        <button type="button" class="icon-btn" style="border:none;" onclick="closeModal('apiConfigModal')">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:16px 20px; display:flex; flex-direction:column; gap:14px;">
+        <p style="font-size:12px; color:var(--text-sub); line-height:1.5;">
+          Admin panel testlarni saqlash va rasmlarni yuklash uchun backend server bilan bog'lanadi. Agar bot va tunnel kompyuteringizda ishlayotgan bo'lsa, konsolda berilgan URL manzilini shu yerga kiriting.
+        </p>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Server API Manzili (URL):</label>
+          <input type="text" class="form-input" id="inputApiUrl" placeholder="https://xxxx.trycloudflare.com yoki http://localhost:8000" style="font-size:13px; font-family:monospace;">
+        </div>
+        <div id="apiTestStatusBox" style="font-size:12px; padding:8px 12px; border-radius:6px; display:none;"></div>
+      </div>
+      <div class="modal-footer" style="padding:12px 20px; display:flex; justify-content:space-between; gap:10px;">
+        <button type="button" class="btn-action-small" onclick="resetApiUrlToDefault()">Tozalash</button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-action-small" onclick="closeModal('apiConfigModal')">Yopish</button>
+          <button type="button" class="btn-action-small" id="btnSaveApiConfig" style="background:var(--primary); color:#fff; border-color:var(--primary);" onclick="saveApiUrlConfig()">Tekshirish va saqlash</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= MODAL: TASDIQLASH DIALOGI ================= -->
   <div class="modal-overlay" id="confirmModal">
     <div class="modal-card">
@@ -1652,7 +1757,123 @@
       }
       return '';
     }
-    const API_BASE = getApiBaseUrl();
+    let API_BASE = getApiBaseUrl();
+
+    function updateStatusBarUI(status, message) {
+      const dot = document.getElementById('statusDot');
+      const text = document.getElementById('statusText');
+      if (!dot || !text) return;
+      dot.className = 'status-dot ' + status;
+      text.innerText = message;
+    }
+
+    async function checkServerConnection(targetUrl) {
+      const testBase = (targetUrl !== undefined ? targetUrl : API_BASE).replace(/\/+$/, '');
+      if (!testBase) {
+        if (window.location.hostname.includes('github.io')) {
+          updateStatusBarUI('offline', "Server manzili kiritilmagan! (Sozlashni bosing)");
+        } else {
+          updateStatusBarUI('offline', "Lokal serverga ulanmagan!");
+        }
+        return false;
+      }
+
+      updateStatusBarUI('warning', "Server tekshirilmoqda...");
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        const res = await fetch(`${testBase}/api/user/${SUPER_ADMIN_ID}`, {
+          method: 'GET',
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          try {
+            const hostDisplay = new URL(testBase).host;
+            updateStatusBarUI('online', `Server faol (${hostDisplay})`);
+          } catch(e) {
+            updateStatusBarUI('online', "Server faol");
+          }
+          return true;
+        } else {
+          updateStatusBarUI('offline', `Server xatosi: ${res.status}`);
+          return false;
+        }
+      } catch (err) {
+        updateStatusBarUI('offline', "Server bilan aloqa yo'q! (Sozlashni bosing)");
+        return false;
+      }
+    }
+
+    function openApiConfigModal() {
+      const modal = document.getElementById('apiConfigModal');
+      const inp = document.getElementById('inputApiUrl');
+      const box = document.getElementById('apiTestStatusBox');
+      if (inp) inp.value = API_BASE || '';
+      if (box) box.style.display = 'none';
+      if (modal) modal.classList.add('active');
+    }
+
+    async function saveApiUrlConfig() {
+      const inp = document.getElementById('inputApiUrl');
+      const btn = document.getElementById('btnSaveApiConfig');
+      const box = document.getElementById('apiTestStatusBox');
+      const val = (inp?.value || '').trim().replace(/\/+$/, '');
+
+      if (!val) {
+        box.style.display = 'block';
+        box.style.background = 'var(--danger-light)';
+        box.style.color = 'var(--danger)';
+        box.innerText = "Iltimos, server URL manzilini kiriting!";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "Tekshirilmoqda...";
+      box.style.display = 'block';
+      box.style.background = 'var(--primary-light)';
+      box.style.color = 'var(--primary)';
+      box.innerText = "Serverga ulanish tekshirilmoqda...";
+
+      const isOk = await checkServerConnection(val);
+      btn.disabled = false;
+      btn.innerText = "Tekshirish va saqlash";
+
+      if (isOk) {
+        API_BASE = val;
+        localStorage.setItem('MS_API_BASE_URL', val);
+        box.style.background = 'var(--success-light)';
+        box.style.color = 'var(--success)';
+        box.innerText = "✅ Server muvaffaqiyatli ulandi va saqlandi!";
+        showToast("Server muvaffaqiyatli ulandi!");
+        setTimeout(() => {
+          closeModal('apiConfigModal');
+          if (document.getElementById('navListTab')?.classList.contains('active')) {
+            loadMyTests();
+          }
+        }, 800);
+      } else {
+        box.style.background = 'var(--danger-light)';
+        box.style.color = 'var(--danger)';
+        box.innerText = "❌ Ushbu manzilga ulanib bo'lmadi. Bot va tunnel ishlab turganini tekshiring!";
+      }
+    }
+
+    function resetApiUrlToDefault() {
+      localStorage.removeItem('MS_API_BASE_URL');
+      API_BASE = getApiBaseUrl();
+      const inp = document.getElementById('inputApiUrl');
+      if (inp) inp.value = API_BASE || '';
+      const box = document.getElementById('apiTestStatusBox');
+      if (box) {
+        box.style.display = 'block';
+        box.style.background = 'var(--card-sub)';
+        box.style.color = 'var(--text-sub)';
+        box.innerText = "Kesh tozalandi.";
+      }
+      checkServerConnection();
+    }
 
     let currentKbTab = 'greek';
     let isGreekShiftActive = false;
@@ -2152,6 +2373,13 @@
 
       showToast("Rasm yuklanmoqda...");
 
+      if (!API_BASE && window.location.hostname.includes('github.io')) {
+        openApiConfigModal();
+        showToast("Server manzili kiritilmagan! Iltimos, serverni sozlang.", true);
+        activeUploadTarget = null;
+        return;
+      }
+
       try {
         const res = await fetch(`${API_BASE}/api/admin/upload-image`, {
           method: 'POST',
@@ -2179,7 +2407,12 @@
           showToast("Rasmni yuklab bo'lmadi: " + (data.detail || "Noma'lum xatolik"), true);
         }
       } catch (err) {
-        showToast("Rasm yuklashda xatolik: " + err.message, true);
+        if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+          showToast("Server bilan ulanish yo'q! Bot va tunnel ishlab turganini tekshiring.", true);
+          openApiConfigModal();
+        } else {
+          showToast("Rasm yuklashda xatolik: " + err.message, true);
+        }
       } finally {
         activeUploadTarget = null;
       }
@@ -2849,6 +3082,17 @@
         });
       }
 
+      if (!API_BASE && window.location.hostname.includes('github.io')) {
+        publishBtn.disabled = false;
+        publishBtn.innerHTML = `
+          <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          TESTNI CHIQARISH VA SAQLASH
+        `;
+        openApiConfigModal();
+        showToast("Backend Server URL kiritilmagan! Iltimos, server manzilini kiriting.", true);
+        return;
+      }
+
       try {
         const res = await fetch(`${API_BASE}/api/admin/create-test`, {
           method: 'POST',
@@ -2882,7 +3126,7 @@
         } else {
           const rawText = await res.text();
           if (rawText.trim().startsWith("<") && window.location.hostname.includes("github.io")) {
-            throw new Error("GitHub Pages faqat statik sayt, unda backend server ishlamaydi. Iltimos, admin panelni http://localhost:8000/admin orqali oching!");
+            throw new Error("GitHub Pages faqat statik sayt, unda backend server ishlamaydi. Iltimos, server manzilini to'g'ri kiriting!");
           }
           throw new Error(`Server xatosi (${res.status})`);
         }
@@ -2900,7 +3144,13 @@
           showToast("Xatolik: " + (data.detail || data.message || "Yuklab bo'lmadi"), true);
         }
       } catch (err) {
-        showToast("Server bilan ulanishda xatolik: " + err.message, true);
+        if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+          showToast("Server bilan ulanish uzildi! Bot va tunnel ishlab turganini tekshiring yoki yuqoridagi 'Server sozlamasi' orqali manzilni yangilang.", true);
+          updateStatusBarUI('offline', "Server bilan aloqa yo'q! (Sozlashni bosing)");
+          openApiConfigModal();
+        } else {
+          showToast("Server bilan ulanishda xatolik: " + err.message, true);
+        }
       } finally {
         publishBtn.disabled = false;
         publishBtn.innerHTML = `
@@ -3100,6 +3350,9 @@
         document.getElementById('calIconStart')?.addEventListener('click', () => fpStart.open());
         document.getElementById('calIconEnd')?.addEventListener('click', () => fpEnd.open());
       }
+
+      // Server holatini tekshirish
+      checkServerConnection();
 
       // Adminlik huquqini tekshirish
       const isAllowed = await verifyAdminAccess();

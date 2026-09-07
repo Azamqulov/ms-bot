@@ -3,6 +3,7 @@ Milliy Sertifikat Bot - Avtomatik Starter
 Ishlatish: python start.py
 """
 
+import os
 import subprocess
 import sys
 import signal
@@ -95,9 +96,14 @@ if __name__ == "__main__":
 
     # 3. Bot ishga tushirish
     log("[BOT] Bot ishga tushirilmoqda...")
+    env = os.environ.copy()
+    if tunnel_url:
+        env["API_SERVER_URL"] = tunnel_url
+
     bot_proc = subprocess.Popen(
         [sys.executable, "-m", "bot.main"],
         cwd=Path(__file__).parent,
+        env=env,
     )
     processes.append(bot_proc)
 

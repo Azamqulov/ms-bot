@@ -492,10 +492,6 @@
       border-color: rgba(59, 130, 246, 0.45);
     }
 
-    .open-sheet-row.has-answer {
-      border-color: rgba(16, 185, 129, 0.4);
-    }
-
     .open-sheet-header {
       display: flex;
       justify-content: space-between;
@@ -1146,6 +1142,10 @@
       }
       const saved = localStorage.getItem('MS_API_BASE_URL');
       if (saved) return saved;
+      // GitHub Pages bo'lmasa, joriy server URLini ishlatamiz
+      if (!window.location.hostname.includes('github.io')) {
+        return window.location.origin;
+      }
       return '';
     }
     const API_BASE = getApiBaseUrl();
