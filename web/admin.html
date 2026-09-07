@@ -1298,7 +1298,10 @@
       <!-- Vaqt chegarasi (Doimiy va Vaqtli test uchun) -->
       <div class="form-group" id="testTimeLimitGroup">
         <label class="form-label">Vaqt (daqiqa)</label>
-        <input type="number" class="form-input" id="testTimeLimit" value="150" min="5" max="360" oninput="scheduleAutosave()">
+        <input type="number" class="form-input" id="testTimeLimit" value="150" min="1" max="600" step="1"
+               onkeydown="if(['-', '+', 'e', 'E', '.'].includes(event.key)) event.preventDefault();"
+               oninput="this.value = this.value.replace(/[^0-9]/g, ''); scheduleAutosave();"
+               onblur="if(!this.value || parseInt(this.value) < 1) this.value = 150;">
       </div>
 
       <!-- Faqat Vaqtli test tanlanganda chiqadigan bo'lim (Doimiy testda yashiriladi) -->
@@ -2802,7 +2805,13 @@
     async function publishFullTest() {
       const title = document.getElementById('testTitle').value.trim();
       let code = document.getElementById('testCode').value.trim().toUpperCase();
-      const timeLimit = parseInt(document.getElementById('testTimeLimit').value) || 150;
+      const rawTime = parseInt(document.getElementById('testTimeLimit').value);
+      if (isNaN(rawTime) || rawTime <= 0) {
+        showToast("Vaqt chegarasi musbat butun son (kamida 1 daqiqa) bo'lishi kerak!", true);
+        document.getElementById('testTimeLimit').focus();
+        return;
+      }
+      const timeLimit = Math.max(1, rawTime);
       const subject = "Matematika";
       const testType = document.querySelector('#selectTestType .custom-option.selected')?.getAttribute('data-value') || 'permanent';
       const actualAccessType = (testType === 'timed') ? selectedAccessType : 'open';

@@ -333,12 +333,15 @@ async def api_create_test(payload: CreateTestPayload):
     """Admin tomonidan yangi test yaratish"""
     admin_user = await get_or_create_user(payload.creator_telegram_id, "Admin")
 
+    if payload.time_limit_min <= 0:
+        raise HTTPException(status_code=400, detail="Vaqt chegarasi kamida 1 daqiqa bo'lishi kerak.")
+
     success, msg, test_obj = await create_test_with_questions(
         creator_user_id=admin_user.id,
         code=payload.code,
         title=payload.title,
         description=payload.description or "",
-        time_limit_min=payload.time_limit_min,
+        time_limit_min=max(1, payload.time_limit_min),
         questions_data=payload.questions,
         grouped_context=payload.grouped_context,
     )
