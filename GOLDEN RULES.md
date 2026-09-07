@@ -48,6 +48,7 @@
 - [x] 17. Loyiha xavfsiz holatda (.env, ma'lumotlar bazasi va ortiqcha binarlar tozalanib) git omboriga commit qilindi va `https://github.com/Azamqulov/ms-bot.git` omborining `main` tarmog'iga muvaffaqiyatli push qilindi.
 - [x] 18. GitHub Pages uchun root papkada faqat `index.html` qoldirildi, `admin.html` faqat `web/admin.html` da saqlandi.
 - [x] 19. Botda birinchi kirganda Ism-familiya va Telefon raqamini so'rash (onboarding), ushbu shaxsiy ma'lumotlar bilan WebApp da test topshirish va natijani avtomatik ravishda talabgorning Telegram botiga batafsil hisobot ko'rinishida yuborish to'liq joriy qilindi.
+- [x] 20. Admin panelida 33-35 kontekstli savollar bloki test tekshirish (OMR) tizimiga moslashtirildi: barcha ortiqcha matn/chizma maydonlari yig'ishtirilib, to'g'ridan-to'g'ri 6 ta variantli (A–F) toza kalit tanlash qatorlari joriy qilindi.
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.
