@@ -14,7 +14,7 @@ from bot.services.admin_service import (
     get_admin_tests,
     get_test_participants_stats,
 )
-from bot.services.test_service import get_or_create_user
+from bot.services.test_service import get_or_create_user, get_user_by_telegram_id
 from bot.keyboards.admin import (
     get_admin_dashboard_keyboard,
     get_admin_back_keyboard,
@@ -70,7 +70,8 @@ async def callback_close_panel(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.delete()
     is_adm = await is_admin(callback.from_user.id)
-    await callback.message.answer("Asosiy menyuga qaytdingiz.", reply_markup=get_main_menu_keyboard(is_adm))
+    user = await get_user_by_telegram_id(callback.from_user.id)
+    await callback.message.answer("Asosiy menyuga qaytdingiz.", reply_markup=get_main_menu_keyboard(is_adm, user=user))
 
 
 # ==================== SUPER ADMIN: ADMINLARNI BOSHQARISH ====================
@@ -120,7 +121,8 @@ async def process_add_admin_id(message: Message, state: FSMContext):
     target_id = int(raw_id)
     success, msg = await add_admin(target_id)
     await state.clear()
-    await message.answer(f"{'✅' if success else '❌'} {msg}", reply_markup=get_main_menu_keyboard(True))
+    user = await get_user_by_telegram_id(message.from_user.id)
+    await message.answer(f"{'✅' if success else '❌'} {msg}", reply_markup=get_main_menu_keyboard(True, user=user))
 
 
 @router.callback_query(F.data == "adm_remove_admin_prompt")
@@ -148,7 +150,8 @@ async def process_remove_admin_id(message: Message, state: FSMContext):
     target_id = int(raw_id)
     success, msg = await remove_admin(target_id)
     await state.clear()
-    await message.answer(f"{'✅' if success else '❌'} {msg}", reply_markup=get_main_menu_keyboard(True))
+    user = await get_user_by_telegram_id(message.from_user.id)
+    await message.answer(f"{'✅' if success else '❌'} {msg}", reply_markup=get_main_menu_keyboard(True, user=user))
 
 
 # ==================== MENING TESTLARIM VA STATISTIKA ====================

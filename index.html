@@ -1468,8 +1468,37 @@
     let remainingSeconds = 150 * 60;
     const SESSION_KEY = 'msbot_active_test_session';
 
+    let studentTelegramId = null;
+    let studentUsername = '';
     let studentFullName = '';
     let studentPhone = '';
+
+    // Telegram foydalanuvchisini xavfsiz aniqlash (initDataUnsafe yoki initData satridan)
+    function getTelegramUser() {
+      if (tg?.initDataUnsafe?.user) {
+        return tg.initDataUnsafe.user;
+      }
+      if (tg?.initData) {
+        try {
+          const params = new URLSearchParams(tg.initData);
+          const userStr = params.get('user');
+          if (userStr) {
+            return JSON.parse(userStr);
+          }
+        } catch (e) {}
+      }
+      return null;
+    }
+
+    // Telegramsiz tashqi brauzerda test qilinganda admin ID si bilan chalkashmasligi uchun
+    function getGuestBrowserId() {
+      let gid = localStorage.getItem('ms_guest_id');
+      if (!gid || isNaN(parseInt(gid))) {
+        gid = Math.floor(100000000 + Math.random() * 800000000);
+        localStorage.setItem('ms_guest_id', gid);
+      }
+      return parseInt(gid);
+    }
 
     // ================= TALABGOR PROFILI VA ISMINI ANIQLASH =================
     function isValidPersonName(n) {
@@ -1485,41 +1514,69 @@
       const qName = urlParams.get('name');
       const qPhone = urlParams.get('phone');
       const qTgId = urlParams.get('tg_id');
+      const qUsername = urlParams.get('username');
 
+      const tgUser = getTelegramUser();
+
+      // 1. Telegram ID ni aniqlash (URL parametri > Telegram SDK > localStorage)
+      if (qTgId && !isNaN(parseInt(qTgId))) {
+        studentTelegramId = parseInt(qTgId);
+        localStorage.setItem('ms_telegram_id', studentTelegramId);
+      } else if (tgUser?.id) {
+        studentTelegramId = tgUser.id;
+        localStorage.setItem('ms_telegram_id', studentTelegramId);
+      } else {
+        const savedTgId = localStorage.getItem('ms_telegram_id');
+        if (savedTgId && !isNaN(parseInt(savedTgId))) {
+          studentTelegramId = parseInt(savedTgId);
+        }
+      }
+
+      // 2. Username ni aniqlash
+      if (qUsername) {
+        studentUsername = qUsername.replace(/^@/, '');
+        localStorage.setItem('ms_student_username', studentUsername);
+      } else if (tgUser?.username) {
+        studentUsername = tgUser.username;
+        localStorage.setItem('ms_student_username', studentUsername);
+      } else {
+        studentUsername = localStorage.getItem('ms_student_username') || '';
+      }
+
+      // 3. Telefon raqamini aniqlash
       if (qPhone) {
         studentPhone = decodeURIComponent(qPhone).trim();
         localStorage.setItem('ms_student_phone', studentPhone);
+      } else {
+        studentPhone = localStorage.getItem('ms_student_phone') || '';
       }
 
-      // 1. Agar bot WebApp URL da to'g'ri ism uzatgan bo'lsa
+      // 4. Ism-familiyani URL dan olish
       if (qName) {
         const decoded = decodeURIComponent(qName).trim();
         if (isValidPersonName(decoded)) {
           studentFullName = decoded;
           localStorage.setItem('ms_student_name', studentFullName);
-          updateUserDisplay();
-          return;
         }
       }
 
-      // 2. Telegram WebApp user ma'lumotlari orqali bazadan olish
-      const tgUser = tg?.initDataUnsafe?.user;
-      const tgId = qTgId || tgUser?.id || null;
-
-      if (tgId) {
+      // 5. Agar studentTelegramId bo'lsa, backend bazasidan to'liq ma'lumotlarni tekshirish
+      if (studentTelegramId) {
         try {
-          const res = await fetch(`${API_BASE}/api/user/${tgId}`);
+          const res = await fetch(`${API_BASE}/api/user/${studentTelegramId}`);
           if (res.ok) {
             const data = await res.json();
-            if (data.phone_number) {
+            if (data.phone_number && !studentPhone) {
               studentPhone = data.phone_number;
               localStorage.setItem('ms_student_phone', studentPhone);
             }
-            if (data.full_name && isValidPersonName(data.full_name)) {
+            if (data.full_name && isValidPersonName(data.full_name) && !studentFullName) {
               studentFullName = data.full_name;
               localStorage.setItem('ms_student_name', studentFullName);
-              updateUserDisplay();
-              return;
+            }
+            if (data.username && !studentUsername) {
+              studentUsername = data.username;
+              localStorage.setItem('ms_student_username', studentUsername);
             }
             if (data.is_admin) {
               const wrap = document.getElementById('adminPanelLinkWrap');
@@ -1535,29 +1592,20 @@
         }
       }
 
-      // 3. localStorage dan avval saqlangan ism (agar u yaroqli bo'lsa)
-      const savedName = localStorage.getItem('ms_student_name');
-      if (savedName && isValidPersonName(savedName)) {
-        studentFullName = savedName;
-        studentPhone = localStorage.getItem('ms_student_phone') || studentPhone || '';
-        updateUserDisplay();
-        return;
-      } else {
-        localStorage.removeItem('ms_student_name');
-      }
-
-      // 4. Telegram user profilidan to'liq ism olish (agar faqat '.' bo'lmasa)
-      if (tgUser) {
-        const full = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim();
-        if (isValidPersonName(full)) {
-          studentFullName = full;
-          updateUserDisplay();
-          return;
+      // 6. Agar ism hali ham bo'sh bo'lsa, localStorage yoki Telegram SDK dan olish
+      if (!studentFullName) {
+        const savedName = localStorage.getItem('ms_student_name');
+        if (savedName && isValidPersonName(savedName)) {
+          studentFullName = savedName;
+        } else if (tgUser) {
+          const full = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim();
+          if (isValidPersonName(full)) {
+            studentFullName = full;
+            localStorage.setItem('ms_student_name', studentFullName);
+          }
         }
       }
 
-      // 5. Agar hali ham ism topilmagan bo'lsa
-      studentFullName = '';
       updateUserDisplay();
     }
 
@@ -2136,11 +2184,33 @@
       clearInterval(timerInterval);
       clearActiveSession();
 
-      const user = tg?.initDataUnsafe?.user || {
-        id: 1685356708,
-        first_name: "Talabgor",
-        username: "test_user"
-      };
+      // Haqiqiy foydalanuvchini aniqlash (hech qachon admin ID si bilan aralashmasligi kerak)
+      const tgUser = getTelegramUser();
+      const urlParams = new URLSearchParams(window.location.search);
+      const qTgId = urlParams.get('tg_id');
+
+      let finalTelegramId = null;
+      if (studentTelegramId) {
+        finalTelegramId = studentTelegramId;
+      } else if (qTgId && !isNaN(parseInt(qTgId))) {
+        finalTelegramId = parseInt(qTgId);
+      } else if (tgUser?.id) {
+        finalTelegramId = tgUser.id;
+      } else {
+        const savedTgId = localStorage.getItem('ms_telegram_id');
+        if (savedTgId && !isNaN(parseInt(savedTgId))) {
+          finalTelegramId = parseInt(savedTgId);
+        } else {
+          finalTelegramId = getGuestBrowserId();
+        }
+      }
+
+      const finalUsername = studentUsername || urlParams.get('username') || tgUser?.username || localStorage.getItem('ms_student_username') || null;
+      const finalFullName = studentFullName || 
+        urlParams.get('name') || 
+        (tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() : '') || 
+        localStorage.getItem('ms_student_name') || 
+        'Talabgor';
 
       const payloadAnswers = [];
       for (const [qId, ansObj] of Object.entries(answers)) {
@@ -2168,15 +2238,14 @@
       }
 
       try {
-        const finalFullName = studentFullName || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Talabgor';
         const res = await fetch(`${API_BASE}/api/test/submit`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
             test_id: currentTest.id,
-            telegram_id: user.id,
+            telegram_id: finalTelegramId,
             full_name: finalFullName,
-            username: user.username,
+            username: finalUsername,
             answers: payloadAnswers
           })
         });

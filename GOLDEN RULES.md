@@ -90,7 +90,8 @@
 - [x] [2026-09-07] Ochiq testda "Test kodi"ni yashirish va Yopiq testda ko'rsatish dinamikasi ulandi.
 - [x] [2026-09-07] Ortiqcha "Fanni tanlang" menyusi butunlay olib tashlandi.
 - [x] [2026-09-07] Loyiha to'liq `https://github.com/Azamqulov/ms-bot.git` ga push qilindi.
-- [x] [2026-09-07] 18 ta Pytest testlari 100% muvaffaqiyatli o'tdi.
+- [x] [2026-09-07] Boshqa foydalanuvchilar test topshirganda ularning natijalari admin ID si (1685356708) bilan yozilib ketishi va "Natijalarim"da ko'rinmaslik muammosi to'liq tuzatildi: web/index.html da studentTelegramId, query param va Telegram WebApp user ID dinamik bog'landi, hardcoded admin ID fallback butunlay olib tashlandi.
+- [x] [2026-09-07] 20 ta Pytest testlari 100% muvaffaqiyatli o'tdi.
 - [x] [2026-09-07] Server va bot parallel holda fonda ishlamoqda.
 
 ## 📋 Roadmap & Upcoming Tasks (Backlog)

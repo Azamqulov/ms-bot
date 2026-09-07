@@ -16,6 +16,8 @@ def get_main_menu_keyboard(is_admin_user: bool = False, user: Optional[Any] = No
         }
         if len(clean_letters) >= 3:
             params["name"] = user_name
+        if getattr(user, "username", None):
+            params["username"] = user.username
 
         query_str = urllib.parse.urlencode(params)
         delimiter = "&" if "?" in web_url else "?"

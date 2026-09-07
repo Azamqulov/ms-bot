@@ -291,7 +291,8 @@ async def get_test_participants_stats(test_id: int, user_id: int) -> Optional[Di
             return None
 
         # Ruxsat tekshiruvi: faqat o'z testi yoki super_admin
-        if user and user.role != "super_admin" and test.created_by_user_id != user_id:
+        is_user_super = (user and (user.role == "super_admin" or is_super_admin(user.telegram_id)))
+        if user and not is_user_super and test.created_by_user_id != user_id:
             return None
 
         # Barcha urinishlarni olish (final_score bo'yicha kamayish tartibida)
@@ -375,7 +376,8 @@ async def get_test_details_admin(test_id: int, user_id: int) -> Optional[Dict[st
             return None
 
         # Ruxsat tekshiruvi: faqat o'z testi yoki super_admin
-        if user and user.role != "super_admin" and test.created_by_user_id != user_id:
+        is_user_super = (user and (user.role == "super_admin" or is_super_admin(user.telegram_id)))
+        if user and not is_user_super and test.created_by_user_id != user_id:
             return None
 
         questions_data = []
