@@ -43,8 +43,10 @@ from bot.services.test_service import (
     get_default_test,
 )
 from bot.services.report_service import generate_result_report, generate_teacher_notification
+from bot.services.certificate_service import generate_certificate_image
 from bot.core.validator import check_open_answer
 from bot.web_app.auth import require_admin_user
+from aiogram.types import FSInputFile
 
 logger = logging.getLogger(__name__)
 
@@ -257,12 +259,49 @@ async def api_submit_test(payload: SubmitTestRequest):
 
     completed_attempt, rasch_result = await finish_attempt(attempt.id)
 
+    # 0. Rasmiy Sertifikat Blankasini generatsiya qilish
+    cert_url = None
+    cert_file_path = None
+    try:
+        cert_file_path = generate_certificate_image(
+            attempt_id=completed_attempt.id,
+            telegram_id=payload.telegram_id,
+            full_name=payload.full_name or user.full_name or "Talabgor",
+            final_score=rasch_result.final_score,
+            grade=rasch_result.grade,
+            is_certified=rasch_result.is_certified,
+            subject="Matematika",
+            finished_at=completed_attempt.finished_at,
+        )
+        cert_url = f"/uploads/certificates/cert_{completed_attempt.id}.jpg"
+    except Exception as e:
+        logger.error(f"Sertifikat generatsiyasida xatolik: {e}", exc_info=True)
+
     # Natijani avtomatik Telegram Bot orqali yuborish
     bot = getattr(app.state, "bot", None)
     if bot:
         # 1. Talabgorning o'ziga to'liq natija xabarini yuborish
         if payload.telegram_id:
             try:
+                # Agar sertifikat rasmi mavjud bo'lsa, rasmni alohida yuboramiz
+                if cert_file_path and os.path.exists(cert_file_path):
+                    cert_status_title = "Sertifikat berilsin" if rasch_result.is_certified else "Sertifikat berilmadi"
+                    cert_grade_title = rasch_result.grade if rasch_result.is_certified else "Talabga javob bermadi"
+                    percent_calc = min(100.0, max(0.0, (rasch_result.final_score / 70.0) * 100.0))
+                    cert_caption = (
+                        f"📄 <b>Umumta'lim fanini bilish darajasi to'g'risida sertifikat</b>\n\n"
+                        f"👤 <b>Talabgor:</b> {payload.full_name or user.full_name}\n"
+                        f"📊 <b>To'plangan ball:</b> {rasch_result.final_score:.1f} ball ({percent_calc:.1f}%)\n"
+                        f"🎖 <b>Daraja:</b> {cert_grade_title}\n"
+                        f"📋 <b>Xulosa:</b> {cert_status_title}"
+                    )
+                    await bot.send_photo(
+                        chat_id=payload.telegram_id,
+                        photo=FSInputFile(cert_file_path),
+                        caption=cert_caption,
+                        parse_mode="HTML"
+                    )
+
                 report_text = generate_result_report(user, completed_attempt, rasch_result)
                 await bot.send_message(
                     chat_id=payload.telegram_id,
@@ -281,6 +320,21 @@ async def api_submit_test(payload: SubmitTestRequest):
                 if test_obj and test_obj.created_by_user_id:
                     c_user = await session.get(User, test_obj.created_by_user_id)
                     if c_user and c_user.telegram_id:
+                        if cert_file_path and os.path.exists(cert_file_path):
+                            teacher_caption = (
+                                f"📋 <b>O'quvchi natijasi va sertifikati:</b>\n"
+                                f"👤 <b>Talabgor:</b> {payload.full_name or user.full_name}\n"
+                                f"🏷 <b>Test:</b> {test_obj.title} (#{test_obj.code})\n"
+                                f"📊 <b>Ball:</b> {rasch_result.final_score:.1f} / 70 ({rasch_result.grade if rasch_result.is_certified else 'Talabga javob bermadi'})\n"
+                                f"📌 <b>Holat:</b> {'Sertifikat berilsin' if rasch_result.is_certified else 'Sertifikat berilmadi'}"
+                            )
+                            await bot.send_photo(
+                                chat_id=c_user.telegram_id,
+                                photo=FSInputFile(cert_file_path),
+                                caption=teacher_caption,
+                                parse_mode="HTML"
+                            )
+
                         teacher_text = generate_teacher_notification(
                             student=user,
                             test_title=test_obj.title,
@@ -327,6 +381,7 @@ async def api_submit_test(payload: SubmitTestRequest):
         "final_score": rasch_result.final_score,
         "grade": rasch_result.grade,
         "is_certified": rasch_result.is_certified,
+        "certificate_url": cert_url,
         "details": detailed_results,
     }
 

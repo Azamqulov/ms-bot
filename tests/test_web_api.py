@@ -85,6 +85,8 @@ async def test_web_api_endpoints():
         assert sub_data["raw_score"] == 1
         assert "final_score" in sub_data
         assert "grade" in sub_data
+        assert "certificate_url" in sub_data
+        assert sub_data["certificate_url"] is not None
 
         # 6. User profile endpointi testi
         user_res = await client.get("/api/user/1685356708")
