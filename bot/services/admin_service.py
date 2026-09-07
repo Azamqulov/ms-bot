@@ -277,6 +277,82 @@ async def delete_test_by_id(test_id: int) -> Tuple[bool, str]:
         return True, "Test muvaffaqiyatli o'chirildi"
 
 
+async def get_test_participants_stats(test_id: int, user_id: int) -> Optional[Dict[str, Any]]:
+    """Test bo'yicha barcha qatnashuvchilar natijalari va to'liq statistika"""
+    async with async_session_maker() as session:
+        user_stmt = select(User).where(User.id == user_id)
+        user = (await session.execute(user_stmt)).scalar_one_or_none()
+
+        test_stmt = select(Test).where(Test.id == test_id)
+        test = (await session.execute(test_stmt)).scalar_one_or_none()
+        if not test:
+            return None
+
+        # Ruxsat tekshiruvi: faqat o'z testi yoki super_admin
+        if user and user.role != "super_admin" and test.created_by_user_id != user_id:
+            return None
+
+        # Barcha urinishlarni olish (final_score bo'yicha kamayish tartibida)
+        stmt = (
+            select(Attempt)
+            .options(selectinload(Attempt.user))
+            .where(Attempt.test_id == test_id)
+            .order_by(Attempt.final_score.desc().nullslast(), Attempt.started_at.desc())
+        )
+        attempts = (await session.execute(stmt)).scalars().all()
+
+        participants = []
+        total_score = 0.0
+        completed_count = 0
+        certified_count = 0
+        highest_score = 0.0
+
+        for idx, att in enumerate(attempts, 1):
+            score = att.final_score or 0.0
+            if att.status == "completed":
+                total_score += score
+                completed_count += 1
+                if score > highest_score:
+                    highest_score = score
+                if att.is_certified:
+                    certified_count += 1
+
+            u = att.user
+            participants.append({
+                "rank": idx,
+                "attempt_id": att.id,
+                "user_id": u.id if u else None,
+                "telegram_id": u.telegram_id if u else None,
+                "full_name": u.full_name if u else "Noma'lum",
+                "phone_number": u.phone_number if u else None,
+                "username": u.username if u else None,
+                "raw_score": att.raw_score,
+                "final_score": round(float(score), 1),
+                "grade": att.grade or "Baholanmagan",
+                "is_certified": att.is_certified,
+                "status": att.status,
+                "started_at": att.started_at.strftime("%d.%m.%Y %H:%M") if att.started_at else "",
+                "finished_at": att.finished_at.strftime("%d.%m.%Y %H:%M") if att.finished_at else "",
+            })
+
+        avg_score = round(float(total_score / completed_count), 1) if completed_count > 0 else 0.0
+
+        return {
+            "test_id": test.id,
+            "test_code": test.code,
+            "test_title": test.title,
+            "question_count": test.question_count,
+            "time_limit_min": test.time_limit_min,
+            "total_participants": len(attempts),
+            "completed_count": completed_count,
+            "certified_count": certified_count,
+            "avg_score": avg_score,
+            "highest_score": round(float(highest_score), 1),
+            "participants": participants,
+        }
+
+
+
 async def get_test_details_admin(test_id: int, user_id: int) -> Optional[Dict[str, Any]]:
     """Admin uchun test ma'lumotlari, barcha savollar va to'g'ri javob kalitlarini qaytarish"""
     async with async_session_maker() as session:

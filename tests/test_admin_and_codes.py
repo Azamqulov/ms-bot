@@ -251,3 +251,15 @@ async def test_admin_api_authentication_security():
         assert after_data["time_limit_min"] == 90
         assert after_data["questions"][0]["correct_answer"] == "C"
 
+        # 9. Test statistikasi va natijalari (GET /api/admin/tests/{test_id}/stats)
+        res_stats = await client.get(
+            f"/api/admin/tests/{created_test_id}/stats",
+            headers={"X-Telegram-Init-Data": valid_admin_init_data},
+        )
+        assert res_stats.status_code == 200
+        stats_data = res_stats.json()
+        assert stats_data["test_id"] == created_test_id
+        assert "total_participants" in stats_data
+        assert "avg_score" in stats_data
+        assert "participants" in stats_data
+

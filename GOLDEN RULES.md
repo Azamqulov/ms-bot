@@ -60,6 +60,7 @@
 - [x] 28. Ism-familiya validatsiyasi kuchaytirildi (faqat '.' yoki placeholder bo'lsa bot `/start` da to'liq ismni so'raydi, Web App da ham profilni tahrirlash va sinxronlash to'liq joriy qilindi).
 - [x] 29. Ma'lumotlar bazasi to'liq Supabase (PostgreSQL) bulutiga ko'chirildi: barcha mavjud foydalanuvchilar, testlar, savollar va urinishlar saqlandi, PgBouncer va TIMESTAMPTZ sozlamalari joriy qilindi.
 - [x] 30. Admin panelida test javoblari va savollarini tahrirlash (Edit Mode) funksiyasi to'liq joriy qilindi: har bir kartochkaga [Tahrirlash] tugmasi, formaga ma'lumotlarni avtomatik yuklash, kalitlarni o'zgartirish va backendda xavfsiz saqlash (`PUT /api/admin/tests/{test_id}`).
+- [x] 31. Testlar bo'yicha to'liq statistika va o'quvchilar natijalari tizimi joriy qilindi: har bir kartochkada [Statistika] tugmasi, KPI kartochkalari (qatnashuvchilar, o'rtacha ball, eng yuqori ball, sertifikat foizi), har bir o'quvchining ismi, telefoni, to'plagan balli, darajasi va vaqti bilan reyting jadvali, o'quvchilarni qidirish qatori va `GET /api/admin/tests/{test_id}/stats` endpointi.
 
 
 ## ✅ Completed Checklist (History)

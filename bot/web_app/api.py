@@ -31,6 +31,7 @@ from bot.services.admin_service import (
     is_admin,
     get_test_details_admin,
     update_test_with_questions,
+    get_test_participants_stats,
 )
 from bot.services.test_service import (
     get_or_create_user,
@@ -496,5 +497,18 @@ async def api_update_admin_test(
     if not success:
         raise HTTPException(status_code=400, detail=msg)
     return {"success": True, "message": msg}
+
+
+@app.get("/api/admin/tests/{test_id}/stats")
+async def api_get_test_stats(
+    test_id: int,
+    admin_telegram_id: int = Depends(require_admin_user),
+):
+    """Test qatnashuvchilari va batafsil natijalar statistikasini olish"""
+    user = await get_or_create_user(admin_telegram_id, "Admin")
+    stats = await get_test_participants_stats(test_id, user.id)
+    if not stats:
+        raise HTTPException(status_code=404, detail="Test topilmadi yoki statistikani ko'rishga ruxsat yo'q")
+    return stats
 
 
