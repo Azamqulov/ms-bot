@@ -695,6 +695,13 @@
           Real imtihon formati, geometrik chizmalar va RASH (IRT) ilmiy baholash tizimi.
         </p>
 
+        <!-- Talabgor ma'lumotlari nishoni -->
+        <div id="userProfileBadge" style="display:flex; align-items:center; justify-content:center; gap:8px; background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:10px 14px; margin-bottom:16px; font-size:13px;">
+          <svg class="icon icon-sm" style="color:var(--primary);" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <span style="color:var(--text-muted);">Talabgor:</span>
+          <b id="userDisplayName" style="color:var(--text);">Yuklanmoqda...</b>
+        </div>
+
         <input type="text" id="testCodeInput" class="input-box" placeholder="TEST KODINI KIRITING" value="STANDART">
 
         <button class="btn btn-primary" onclick="startTestWithCode()">
@@ -944,6 +951,35 @@
     let sessionStartTime = null;
     let remainingSeconds = 150 * 60;
     const SESSION_KEY = 'msbot_active_test_session';
+
+    let studentFullName = '';
+    let studentPhone = '';
+
+    async function fetchUserProfile() {
+      const user = tg?.initDataUnsafe?.user;
+      const tgId = user?.id || 1685356708;
+      const defaultName = `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'Talabgor';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/user/${tgId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.registered && data.full_name) {
+            studentFullName = data.full_name;
+            studentPhone = data.phone_number || '';
+            const el = document.getElementById('userDisplayName');
+            if (el) el.innerText = `${studentFullName}${studentPhone ? ' (' + studentPhone + ')' : ''}`;
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("User fetch error:", e);
+      }
+
+      studentFullName = defaultName;
+      const el = document.getElementById('userDisplayName');
+      if (el) el.innerText = studentFullName;
+    }
 
     // ================= SESSIAYANI SAQLASH VA TIKLASH (F5 DA DAVOM ETTIRISH) =================
     function saveActiveSession() {
@@ -1256,19 +1292,21 @@
       }
 
       try {
+        const finalFullName = studentFullName || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Talabgor';
         const res = await fetch(`${API_BASE}/api/test/submit`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
             test_id: currentTest.id,
             telegram_id: user.id,
-            full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Talabgor',
+            full_name: finalFullName,
             username: user.username,
             answers: payloadAnswers
           })
         });
 
         const result = await res.json();
+        showToast("Test yakunlandi! Natijangiz Telegram botingizga yuborildi.");
         displayResult(result);
       } catch (err) {
         showToast("Natijani yuborishda xatolik: " + err.message, true);
@@ -1301,6 +1339,7 @@
 
     // ================= DASTUR ISHGA TUSHGANDA VA F5 BOSILGANDA TIKLASH =================
     window.addEventListener('DOMContentLoaded', () => {
+      fetchUserProfile();
       checkAndRestoreSession();
     });
 
@@ -1310,7 +1349,8 @@
       }
     });
 
-    // Skript yuklanganda darhol sessiyani tiklashga urinish
+    // Skript yuklanganda darhol profilni olish va sessiyani tiklashga urinish
+    fetchUserProfile();
     checkAndRestoreSession();
   </script>
 </body>

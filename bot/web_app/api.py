@@ -6,6 +6,7 @@ Telegram Mini App (TMA) va Admin Web Konstruktori uchun.
 import os
 import shutil
 import uuid
+import logging
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 
@@ -27,12 +28,16 @@ from bot.services.admin_service import (
 )
 from bot.services.test_service import (
     get_or_create_user,
+    get_user_by_telegram_id,
     start_new_attempt,
     save_answer,
     finish_attempt,
     get_default_test,
 )
+from bot.services.report_service import generate_result_report
 from bot.core.validator import check_open_answer
+
+logger = logging.getLogger(__name__)
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -172,10 +177,24 @@ async def api_get_test(code: str):
     }
 
 
+@app.get("/api/user/{telegram_id}")
+async def api_get_user(telegram_id: int):
+    """Foydalanuvchining botda ro'yxatdan o'tganligini tekshirish va profil ma'lumotlarini qaytarish"""
+    user = await get_user_by_telegram_id(telegram_id)
+    if not user:
+        return {"registered": False, "full_name": None, "phone_number": None}
+    return {
+        "registered": bool(user.phone_number),
+        "full_name": user.full_name,
+        "phone_number": user.phone_number,
+    }
+
+
 @app.post("/api/test/submit")
 async def api_submit_test(payload: SubmitTestRequest):
     """
-    Test javoblarini topshirish va RASH (IRT) modeli bo'yicha baholash
+    Test javoblarini topshirish, RASH (IRT) modeli bo'yicha baholash
+    va natijani Telegram bot orqali foydalanuvchiga yuborish.
     """
     user = await get_or_create_user(
         telegram_id=payload.telegram_id,
@@ -196,6 +215,19 @@ async def api_submit_test(payload: SubmitTestRequest):
         )
 
     completed_attempt, rasch_result = await finish_attempt(attempt.id)
+
+    # Natijani avtomatik Telegram Bot orqali foydalanuvchining chatiga yuborish
+    bot = getattr(app.state, "bot", None)
+    if bot and payload.telegram_id:
+        try:
+            report_text = generate_result_report(user, completed_attempt, rasch_result)
+            await bot.send_message(
+                chat_id=payload.telegram_id,
+                text=report_text,
+                parse_mode="HTML"
+            )
+        except Exception as e:
+            logger.warning(f"Telegram orqali natija yuborishda ogohlantirish: {e}")
 
     return {
         "attempt_id": completed_attempt.id,

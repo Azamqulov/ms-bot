@@ -46,7 +46,8 @@
 - [x] 14. Doimiy test tanlanganda pastdagi sana/vaqtlar (Boshlash va Tugash vaqti) hamda "Testga qatnashish turi" (Ochiq/Yopiq test) bloklarini avtomatik yashirish, faqat "Vaqtli test" tanlangandagina ko'rsatish dinamikasi joriy qilindi.
 - [x] 15. Ochiq test tanlanganda "Test kodi (Kupon)" maydonini butunlay yashirish, faqat "Yopiq test" tanlangandagina kod kiritish bloki chiqishi to'liq joriy qilindi.
 - [x] 17. Loyiha xavfsiz holatda (.env, ma'lumotlar bazasi va ortiqcha binarlar tozalanib) git omboriga commit qilindi va `https://github.com/Azamqulov/ms-bot.git` omborining `main` tarmog'iga muvaffaqiyatli push qilindi.
-- [x] 18. GitHub Pages (statik hosting) uchun `index.html` va `admin.html` asosiy ildiz (root) papkaga chiqarildi, backend API'ni avtomatik/dinamik aniqlovchi aqlli `API_BASE` adapteri ulandi.
+- [x] 18. GitHub Pages uchun root papkada faqat `index.html` qoldirildi, `admin.html` faqat `web/admin.html` da saqlandi.
+- [x] 19. Botda birinchi kirganda Ism-familiya va Telefon raqamini so'rash (onboarding), ushbu shaxsiy ma'lumotlar bilan WebApp da test topshirish va natijani avtomatik ravishda talabgorning Telegram botiga batafsil hisobot ko'rinishida yuborish to'liq joriy qilindi.
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.

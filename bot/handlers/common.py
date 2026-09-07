@@ -1,11 +1,13 @@
+import re
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from bot.services.test_service import get_or_create_user
+from bot.services.test_service import get_or_create_user, get_user_by_telegram_id, update_user_profile
 from bot.services.admin_service import is_admin
-from bot.keyboards.reply import get_main_menu_keyboard
+from bot.keyboards.reply import get_main_menu_keyboard, get_phone_request_keyboard
+from bot.states.registration_state import RegistrationState
 
 router = Router(name="common")
 
@@ -15,10 +17,22 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
     user = await get_or_create_user(
         telegram_id=message.from_user.id,
-        full_name=message.from_user.full_name,
+        full_name=message.from_user.full_name or "Talabgor",
         username=message.from_user.username,
     )
     is_adm = await is_admin(message.from_user.id)
+
+    # Agar foydalanuvchi hali telefon raqami bilan ro'yxatdan o'tmagan bo'lsa
+    if not user.phone_number:
+        ask_name_text = (
+            "Assalomu alaykum! 🎓 <b>Milliy Sertifikat — Matematika</b> sinov botiga xush kelibsiz!\n\n"
+            "Test natijalaringizni rasmiy hisoblash va sertifikat ballingizni to'g'ri qayd etish uchun, "
+            "iltimos, to'liq <b>Ism va Familiyangizni</b> kiriting:\n\n"
+            "<i>(Masalan: Rustamov Jasur)</i>"
+        )
+        await state.set_state(RegistrationState.waiting_for_full_name)
+        await message.answer(ask_name_text)
+        return
 
     welcome_text = (
         f"Assalomu alaykum, <b>{user.full_name}</b>!\n\n"
@@ -28,9 +42,76 @@ async def cmd_start(message: Message, state: FSMContext):
         f"• Natijangiz rasmiy <b>RASH (IRT) modeli</b> asosida baholanadi;\n"
         f"• <b>0 dan 75 gacha</b> aniq ball hamda rasmiy darajangizni (<b>A+, A, B+, B, C+, C</b>) olasiz;\n"
         f"• O'z bilimingizni sinab, imtihonga 100% tayyorlanasiz.\n\n"
-        f"Boshlash uchun pastdagi <b>'📝 Test topshirish'</b> tugmasini bosing!"
+        f"Boshlash uchun pastdagi <b>'🚀 Test topshirish (Web App)'</b> tugmasini bosing!"
     )
     await message.answer(welcome_text, reply_markup=get_main_menu_keyboard(is_adm))
+
+
+@router.message(RegistrationState.waiting_for_full_name)
+async def process_full_name(message: Message, state: FSMContext):
+    name_text = (message.text or "").strip()
+    if len(name_text) < 3 or len(name_text) > 100:
+        await message.answer(
+            "⚠️ Iltimos, haqiqiy ism va familiyangizni to'liq kiriting (kamida 3 ta harf).\n"
+            "<i>Masalan: Rustamov Jasur</i>"
+        )
+        return
+
+    await state.update_data(full_name=name_text)
+    await state.set_state(RegistrationState.waiting_for_phone)
+
+    await message.answer(
+        f"Ajoyib, <b>{name_text}</b>!\n\n"
+        "Endi ro'yxatdan o'tishni yakunlash uchun <b>telefon raqamingizni</b> yuboring:\n\n"
+        "<i>(Pastdagi '📱 Telefon raqamimni yuborish' tugmasini bosing yoki +998901234567 shaklida yozing)</i>",
+        reply_markup=get_phone_request_keyboard()
+    )
+
+
+@router.message(RegistrationState.waiting_for_phone, F.contact)
+@router.message(RegistrationState.waiting_for_phone, F.text)
+async def process_phone(message: Message, state: FSMContext):
+    data = await state.get_data()
+    full_name = data.get("full_name") or message.from_user.full_name or "Talabgor"
+
+    phone = None
+    if message.contact and message.contact.phone_number:
+        phone = message.contact.phone_number
+        if not phone.startswith("+"):
+            phone = "+" + phone
+    elif message.text:
+        raw = message.text.strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+        # O'zbekiston yoki xalqaro raqam formati
+        if re.match(r"^\+?\d{9,15}$", raw):
+            phone = raw if raw.startswith("+") else ("+" + raw)
+
+    if not phone:
+        await message.answer(
+            "⚠️ Telefon raqami noto'g'ri kiritildi. Iltimos, pastdagi tugmani bosing yoki raqamingizni quyidagicha yozing:\n"
+            "<code>+998901234567</code>",
+            reply_markup=get_phone_request_keyboard()
+        )
+        return
+
+    # Bazaga profilni saqlash
+    await update_user_profile(
+        telegram_id=message.from_user.id,
+        full_name=full_name,
+        phone_number=phone,
+        username=message.from_user.username,
+    )
+    await state.clear()
+
+    is_adm = await is_admin(message.from_user.id)
+    success_text = (
+        f"🎉 <b>Tabriklaymiz, {full_name}!</b>\n\n"
+        f"Siz muvaffaqiyatli ro'yxatdan o'tdingiz.\n"
+        f"👤 <b>Talabgor:</b> {full_name}\n"
+        f"📱 <b>Telefon:</b> {phone}\n\n"
+        "Endi pastdagi <b>'🚀 Test topshirish (Web App)'</b> tugmasini bosib, to'g'ridan-to'g'ri Milliy Sertifikat mock testini topshirishingiz mumkin!\n"
+        "Test natijalaringiz avtomatik hisoblanib, ushbu botga batafsil hisobot sifatida keladi."
+    )
+    await message.answer(success_text, reply_markup=get_main_menu_keyboard(is_adm))
 
 
 @router.message(F.text == "ℹ️ RASH modeli haqida")

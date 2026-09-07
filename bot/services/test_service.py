@@ -9,7 +9,20 @@ from bot.core.rasch import RaschItem, RaschResult, evaluate_attempt
 from bot.core.validator import check_open_answer, normalize_text_answer
 
 
-async def get_or_create_user(telegram_id: int, full_name: str, username: Optional[str] = None) -> User:
+async def get_user_by_telegram_id(telegram_id: int) -> Optional[User]:
+    """Foydalanuvchini faqat telegram_id bo'yicha olish"""
+    async with async_session_maker() as session:
+        stmt = select(User).where(User.telegram_id == telegram_id)
+        res = await session.execute(stmt)
+        return res.scalar_one_or_none()
+
+
+async def get_or_create_user(
+    telegram_id: int,
+    full_name: str,
+    username: Optional[str] = None,
+    phone_number: Optional[str] = None,
+) -> User:
     """Foydalanuvchini bazadan topish yoki yangisini yaratish"""
     async with async_session_maker() as session:
         stmt = select(User).where(User.telegram_id == telegram_id)
@@ -17,18 +30,63 @@ async def get_or_create_user(telegram_id: int, full_name: str, username: Optiona
         user = res.scalar_one_or_none()
 
         if not user:
-            user = User(telegram_id=telegram_id, full_name=full_name, username=username)
+            user = User(
+                telegram_id=telegram_id,
+                full_name=full_name,
+                username=username,
+                phone_number=phone_number,
+            )
             session.add(user)
             await session.commit()
             await session.refresh(user)
         else:
-            # Ism yoki username o'zgargan bo'lsa yangilash
-            if user.full_name != full_name or user.username != username:
+            changed = False
+            if full_name and user.full_name != full_name:
                 user.full_name = full_name
+                changed = True
+            if username and user.username != username:
                 user.username = username
+                changed = True
+            if phone_number and user.phone_number != phone_number:
+                user.phone_number = phone_number
+                changed = True
+            if changed:
                 await session.commit()
                 await session.refresh(user)
 
+        return user
+
+
+async def update_user_profile(
+    telegram_id: int,
+    full_name: Optional[str] = None,
+    phone_number: Optional[str] = None,
+    username: Optional[str] = None,
+) -> User:
+    """Foydalanuvchi ism-familiyasi va telefon raqamini saqlash/yangilash"""
+    async with async_session_maker() as session:
+        stmt = select(User).where(User.telegram_id == telegram_id)
+        res = await session.execute(stmt)
+        user = res.scalar_one_or_none()
+
+        if not user:
+            user = User(
+                telegram_id=telegram_id,
+                full_name=full_name or "Talabgor",
+                username=username,
+                phone_number=phone_number,
+            )
+            session.add(user)
+        else:
+            if full_name:
+                user.full_name = full_name
+            if phone_number:
+                user.phone_number = phone_number
+            if username:
+                user.username = username
+
+        await session.commit()
+        await session.refresh(user)
         return user
 
 

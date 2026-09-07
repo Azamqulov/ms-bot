@@ -32,3 +32,11 @@ def get_cancel_keyboard() -> ReplyKeyboardMarkup:
         [KeyboardButton(text="❌ Bekor qilish / Orqaga")],
     ]
     return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
+
+
+def get_phone_request_keyboard() -> ReplyKeyboardMarkup:
+    """Telefon raqamini ulashish tugmasi"""
+    kb = [
+        [KeyboardButton(text="📱 Telefon raqamimni yuborish", request_contact=True)],
+    ]
+    return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True, one_time_keyboard=True)

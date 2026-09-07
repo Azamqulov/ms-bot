@@ -26,8 +26,14 @@ async_session_maker = async_sessionmaker(
 
 async def init_db() -> None:
     """Ma'lumotlar bazasi jadvallarini initsializatsiya qilish"""
+    from sqlalchemy import text
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # SQLite uchun yangi ustunlarni avtomatik qo'shish
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN phone_number VARCHAR(32)"))
+        except Exception:
+            pass  # Ustun allaqachon mavjud bo'lsa xatoni e'tiborsiz qoldirish
 
 
 async def get_session() -> AsyncSession:

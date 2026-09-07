@@ -72,6 +72,9 @@ async def main() -> None:
     import uvicorn
     from bot.web_app.api import app as fastapi_app
 
+    # WebApp backendiga Telegram bot nusxasini uzatish (natijalarni botga yuborish uchun)
+    fastapi_app.state.bot = bot
+
     web_config = uvicorn.Config(
         app=fastapi_app,
         host=settings.WEB_SERVER_HOST,
