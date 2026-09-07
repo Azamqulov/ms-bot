@@ -65,6 +65,7 @@
 - [x] 33. Testni yakunlashda ikki tomonlama himoya (single-click guard / debounce) va to'liq ekranli premium Glassmorphic yuklash animatsiyasi (spinner, progress bar va tushunarli holat matni) joriy qilindi. Tugma qayta bosilishi bloklandi, foydalanuvchiga test tekshirilishi va sertifikat yaratilishi jarayoni real vaqtda animatsiya bilan ko'rsatilishi ta'minlandi.
 - [x] 34. Admin boshqaruv panelidan ortiqcha JSON yuklash va JSON shablon olish tugmalari hamda handlerlari butunlay olib tashlandi. "Mening testlarim" bo'limi interaktiv inline tugmalar tizimiga o'tkazildi: admin o'zi yuklagan testlar nomi va kodi bilan alohida tugmalar bo'lib chiqadi, tugma bosilganda ushbu test bo'yicha to'liq statistika (ishtirokchilar, o'rtacha/eng yuqori ball, sertifikat olganlar soni, har bir talabgorning bali, telefoni va sanasi bilan reyting jadvali) chiroyli Telegram natijalar posti sifatida taqdim etiladi.
 - [x] 35. O'quvchi javoblar varaqasida [A] [B] [C] [D] (va 33-35 da A–F) variant tugmalari kartochkaning butun kengligi (100%) bo'yicha teng taqsimlanib, to'liq yoyilishi (`flex: 1`, `width: 100%`) ta'minlandi.
+- [x] 36. WebApp natijalar ekranida rasmiy sertifikat rasmining cross-origin (GitHub Pages -> API tunnel) mutlaq URL manzili to'g'rilandi (404 broken image bartaraf etildi), rasm ramkasiga yuklanish spinneri o'rnatildi, "Yuklab olish (JPG)" va "Kattalashtirish" tugmalari 50/50 teng kenglikda bir tekis qilindi va to'g'ridan-to'g'ri Blob orqali telefon xotirasiga .jpg fayl qilib yuklab olish funksiyasi joriy qilindi.
 
 
 ## ✅ Completed Checklist (History)
