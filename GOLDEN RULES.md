@@ -45,7 +45,7 @@
 - [x] 13. Admin panelining barcha funksiyalarini to'liq ishchi holatga keltirish (Fayl yuklash, Flatpickr sana/vaqt tanlash, Tezkor kalitlarni to'ldirish, KaTeX real vaqtli matematik ko'rinish, 36-45 savollar sharti va chizmasi, Qoralamani avtosaqlash (Draft autosave), Mening testlarim ro'yxati va faollikni boshqarish, Zero native alert/confirm dialoglar).
 - [x] 14. Doimiy test tanlanganda pastdagi sana/vaqtlar (Boshlash va Tugash vaqti) hamda "Testga qatnashish turi" (Ochiq/Yopiq test) bloklarini avtomatik yashirish, faqat "Vaqtli test" tanlangandagina ko'rsatish dinamikasi joriy qilindi.
 - [x] 15. Ochiq test tanlanganda "Test kodi (Kupon)" maydonini butunlay yashirish, faqat "Yopiq test" tanlangandagina kod kiritish bloki chiqishi to'liq joriy qilindi.
-- [x] 16. Ortiqcha "Fanni tanlang" bo'limi butunlay olib tashlandi (bot va tizim faqat Matematika faniga ixtisoslashgani uchun fan doimiy 'Matematika' deb belgilandi).
+- [x] 17. Loyiha xavfsiz holatda (.env, ma'lumotlar bazasi va ortiqcha binarlar tozalanib) git omboriga commit qilindi va `https://github.com/Azamqulov/ms-bot.git` omborining `main` tarmog'iga muvaffaqiyatli push qilindi.
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.
@@ -56,6 +56,7 @@
 - [x] [2026-09-07] Doimiy test / Vaqtli test selektoriga bog'liq holda vaqt va ochiq/yopiq sozlamalarini dinamik ko'rsatish/yashirish to'liq ulandi.
 - [x] [2026-09-07] Ochiq testda "Test kodi"ni yashirish va Yopiq testda ko'rsatish dinamikasi ulandi.
 - [x] [2026-09-07] Ortiqcha "Fanni tanlang" menyusi butunlay olib tashlandi.
+- [x] [2026-09-07] Loyiha to'liq `https://github.com/Azamqulov/ms-bot.git` ga push qilindi.
 - [x] [2026-09-07] 18 ta Pytest testlari 100% muvaffaqiyatli o'tdi.
 - [x] [2026-09-07] Server va bot parallel holda fonda ishlamoqda.
 
