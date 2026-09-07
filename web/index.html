@@ -431,18 +431,19 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-wrap: wrap;
+      width: 100%;
     }
 
     .bubble-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 8px;
+      flex: 1;
+      height: 48px;
+      min-width: 0;
+      border-radius: 10px;
       border: 1.5px solid var(--border);
       background: var(--card-sub-bg);
       color: var(--text-main);
-      font-weight: 600;
-      font-size: 15px;
+      font-weight: 700;
+      font-size: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -461,18 +462,20 @@
       border-color: var(--primary) !important;
       color: #ffffff !important;
       box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
-      font-weight: 700;
+      font-weight: 800;
     }
 
     /* 33-35 6-bubble row */
     .sheet-bubbles-group.six-opts {
       gap: 8px;
+      width: 100%;
     }
 
     .sheet-bubbles-group.six-opts .bubble-btn {
-      width: 40px;
-      height: 40px;
+      flex: 1;
+      height: 44px;
       font-size: 14px;
+      min-width: 0;
     }
 
     /* Ochiq savollar qatori (36-45) */
