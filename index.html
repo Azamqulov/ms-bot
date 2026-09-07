@@ -1055,6 +1055,32 @@
     </div>
   </div>
 
+  <!-- MODAL: TALABGOR ISMINI TAHRIRLASH (CUSTOM MODAL, ZERO PROMPT) -->
+  <div class="modal-overlay" id="nameModal">
+    <div class="modal-box" style="max-width: 420px;">
+      <div class="modal-title">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>Talabgor ma'lumotlari</span>
+      </div>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">
+        Test natijangiz rasmiy shaklda to'g'ri qayd etilishi uchun ism va familiyangizni kiriting:
+      </p>
+
+      <div style="margin-bottom: 12px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:6px;">To'liq ism va familiyangiz:</label>
+        <input type="text" id="nameModalInput" class="input-box" style="text-align:left; text-transform:none; font-weight:600; font-size:15px; margin-bottom:0;" placeholder="Masalan: Rustamov Jasur" onkeydown="if(event.key==='Enter') saveNameFromModal()">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeNameModal()">Bekor qilish</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="saveNameFromModal()">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Saqlash
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Theme Management (Light / Dark)
     let currentTheme = localStorage.getItem('theme') || 'dark';
@@ -1214,19 +1240,28 @@
     }
 
     function editStudentName() {
-      const current = studentFullName || '';
-      const input = prompt("Iltimos, ism va familiyangizni kiriting:\n(Masalan: Jasur Rustamov)", current);
-      if (input !== null) {
-        const clean = input.trim();
-        if (clean.length >= 3) {
-          studentFullName = clean;
-          localStorage.setItem('ms_student_name', studentFullName);
-          updateUserDisplay();
-          showToast("Ismingiz muvaffaqiyatli saqlandi!");
-        } else {
-          showToast("Ism kamida 3 ta belgidan iborat bo'lishi kerak!", true);
-        }
+      const inputEl = document.getElementById('nameModalInput');
+      if (inputEl) inputEl.value = studentFullName || '';
+      document.getElementById('nameModal').classList.add('open');
+      setTimeout(() => { if (inputEl) inputEl.focus(); }, 120);
+    }
+
+    function closeNameModal() {
+      document.getElementById('nameModal').classList.remove('open');
+    }
+
+    function saveNameFromModal() {
+      const inputEl = document.getElementById('nameModalInput');
+      const clean = (inputEl?.value || '').trim();
+      if (clean.length < 3) {
+        showToast("Iltimos, ism va familiyangizni to'liq kiriting (kamida 3 ta harf)!", true);
+        return;
       }
+      studentFullName = clean;
+      localStorage.setItem('ms_student_name', studentFullName);
+      updateUserDisplay();
+      closeNameModal();
+      showToast("Ismingiz muvaffaqiyatli saqlandi!");
     }
 
     // Session Management
