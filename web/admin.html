@@ -2713,7 +2713,9 @@
           if (data.tests.length === 0) {
             container.innerHTML = `
               <div style="text-align:center; padding:40px 16px; color:var(--text-sub);">
-                <div style="font-size:32px; margin-bottom:8px;">📋</div>
+                <div style="margin-bottom:12px; display:flex; justify-content:center;">
+                  <svg class="icon" style="width:36px; height:36px; color:var(--text-sub);" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                </div>
                 <div style="font-weight:600; margin-bottom:4px; color:var(--text);">Hozircha testlar yo'q</div>
                 <p style="font-size:12px;">Birinchi testingizni "Yangi test yaratish" bo'limida yarating!</p>
                 <button type="button" class="btn-action-small" style="margin-top:12px; background:var(--primary); color:#fff; border-color:var(--primary);" onclick="switchAdminTab('create')">
