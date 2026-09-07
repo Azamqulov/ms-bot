@@ -44,7 +44,7 @@ async def cmd_start(message: Message, state: FSMContext):
         f"• O'z bilimingizni sinab, imtihonga 100% tayyorlanasiz.\n\n"
         f"Boshlash uchun pastdagi <b>'🚀 Test topshirish (Web App)'</b> tugmasini bosing!"
     )
-    await message.answer(welcome_text, reply_markup=get_main_menu_keyboard(is_adm))
+    await message.answer(welcome_text, reply_markup=get_main_menu_keyboard(is_adm, user=user))
 
 
 @router.message(RegistrationState.waiting_for_full_name)
@@ -111,7 +111,8 @@ async def process_phone(message: Message, state: FSMContext):
         "Endi pastdagi <b>'🚀 Test topshirish (Web App)'</b> tugmasini bosib, to'g'ridan-to'g'ri Milliy Sertifikat mock testini topshirishingiz mumkin!\n"
         "Test natijalaringiz avtomatik hisoblanib, ushbu botga batafsil hisobot sifatida keladi."
     )
-    await message.answer(success_text, reply_markup=get_main_menu_keyboard(is_adm))
+    db_user = await get_user_by_telegram_id(message.from_user.id)
+    await message.answer(success_text, reply_markup=get_main_menu_keyboard(is_adm, user=db_user))
 
 
 @router.message(F.text == "ℹ️ RASH modeli haqida")

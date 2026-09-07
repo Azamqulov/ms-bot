@@ -154,7 +154,9 @@
       cursor: pointer;
     }
 
+    /* Taymer faqat test boshlanganda chiqadi */
     .timer-badge {
+      display: none;
       background: rgba(239, 68, 68, 0.12);
       border: 1px solid var(--danger);
       color: var(--danger);
@@ -162,7 +164,6 @@
       font-size: 14px;
       padding: 6px 12px;
       border-radius: 20px;
-      display: flex;
       align-items: center;
       gap: 6px;
     }
@@ -201,6 +202,45 @@
       font-size: 14px;
       margin-bottom: 24px;
       line-height: 1.5;
+    }
+
+    .user-badge-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card-sub-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 18px;
+      font-size: 13px;
+    }
+
+    .user-badge-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .user-badge-edit-btn {
+      background: transparent;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 6px;
+      border-radius: 6px;
+    }
+
+    .user-badge-edit-btn:hover {
+      background: var(--primary-soft);
     }
 
     .input-box {
@@ -426,7 +466,7 @@
       box-shadow: 0 0 0 3px var(--primary-soft);
     }
 
-    /* 33-35 6-bubble row on mobile */
+    /* 33-35 6-bubble row */
     .sheet-bubbles-group.six-opts {
       gap: 5px;
     }
@@ -679,7 +719,6 @@
       border-bottom: none;
     }
 
-    /* 45 talik diagnostika kataklari */
     .diag-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -786,8 +825,8 @@
           </svg>
         </button>
 
-        <!-- Taymer -->
-        <div class="timer-badge" id="timerBadge" style="display:none;">
+        <!-- Taymer: Birinchi kirganda yashirin turadi, faqat test ochilganda chiqadi! -->
+        <div class="timer-badge" id="timerBadge">
           <svg class="icon icon-sm" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
@@ -802,31 +841,30 @@
       <div class="hero-card">
         <h1 class="hero-title">Elektron Javoblar Varaqasi</h1>
         <p class="hero-desc">
-          Milliy sertifikat 45 talik test javoblaringizni kiriting va Rash (IRT) ilmiy modeli bo'yicha rasmiy balingizni darhol tekshiring.
+          Test kodini kiriting va Rash (IRT) ilmiy mezoni bo'yicha 45 talik javoblaringizni tekshiring.
         </p>
 
         <!-- Talabgor ma'lumotlari nishoni -->
-        <div id="userProfileBadge" style="display:flex; align-items:center; justify-content:center; gap:8px; background:var(--card-sub-bg); border:1px solid var(--border); border-radius:12px; padding:10px 14px; margin-bottom:16px; font-size:13px;">
-          <svg class="icon icon-sm" style="color:var(--primary);" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          <span style="color:var(--text-muted);">Talabgor:</span>
-          <b id="userDisplayName" style="color:var(--text-main);">Yuklanmoqda...</b>
+        <div class="user-badge-card" id="userProfileBadge">
+          <div class="user-badge-info">
+            <svg class="icon icon-sm" style="color:var(--primary);" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span style="color:var(--text-muted);">Talabgor:</span>
+            <b id="userDisplayName" style="color:var(--text-main);">Yuklanmoqda...</b>
+          </div>
+          <button class="user-badge-edit-btn" onclick="editStudentName()" title="Ismni o'zgartirish">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            <span>Tahrirlash</span>
+          </button>
         </div>
 
-        <input type="text" id="testCodeInput" class="input-box" placeholder="TEST KODINI KIRITING" value="STANDART">
+        <!-- Input: Standart emas, bo'sh placeholder! -->
+        <input type="text" id="testCodeInput" class="input-box" placeholder="TEST KODINI KIRITING" value="">
 
         <button class="btn btn-primary" onclick="startTestWithCode()">
           <svg class="icon" viewBox="0 0 24 24">
             <polygon points="5 3 19 12 5 21 5 3"></polygon>
           </svg>
-          Javoblar varaqasini ochish
-        </button>
-
-        <button class="btn btn-outline" onclick="loadDefaultTest()">
-          <svg class="icon" viewBox="0 0 24 24">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-          </svg>
-          Rasmiy 45 talik STANDART test
+          Testni boshlash
         </button>
 
         <!-- Faqat ruxsat berilgan adminlar uchun havola -->
@@ -955,7 +993,7 @@
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
         <div class="modal-title" id="peekModalTitle" style="margin-bottom:0;">
-          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
           <span>Savol matni</span>
         </div>
         <button onclick="closePeekModal()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;">
@@ -1093,10 +1131,26 @@
     let studentFullName = '';
     let studentPhone = '';
 
+    // ================= TALABGOR PROFILI VA ISMINI ANIQLASH =================
     async function fetchUserProfile() {
-      const user = tg?.initDataUnsafe?.user;
-      const tgId = user?.id || null;
-      const defaultName = `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'Talabgor';
+      const urlParams = new URLSearchParams(window.location.search);
+      const qName = urlParams.get('name');
+      const qPhone = urlParams.get('phone');
+      const qTgId = urlParams.get('tg_id');
+
+      // 1. Agar bot WebApp URL da name uzatgan bo'lsa (eng ishonchli manba)
+      if (qName) {
+        studentFullName = decodeURIComponent(qName).trim();
+        studentPhone = qPhone ? decodeURIComponent(qPhone).trim() : '';
+        localStorage.setItem('ms_student_name', studentFullName);
+        if (studentPhone) localStorage.setItem('ms_student_phone', studentPhone);
+        updateUserDisplay();
+        return;
+      }
+
+      // 2. Telegram WebApp user ma'lumotlari
+      const tgUser = tg?.initDataUnsafe?.user;
+      const tgId = qTgId || tgUser?.id || null;
 
       if (tgId) {
         try {
@@ -1106,8 +1160,9 @@
             if (data.registered && data.full_name) {
               studentFullName = data.full_name;
               studentPhone = data.phone_number || '';
-              const el = document.getElementById('userDisplayName');
-              if (el) el.innerText = `${studentFullName}${studentPhone ? ' (' + studentPhone + ')' : ''}`;
+              localStorage.setItem('ms_student_name', studentFullName);
+              if (studentPhone) localStorage.setItem('ms_student_phone', studentPhone);
+              updateUserDisplay();
             }
             if (data.is_admin) {
               const wrap = document.getElementById('adminPanelLinkWrap');
@@ -1117,16 +1172,61 @@
                 adminLink.href = 'web/admin.html';
               }
             }
-            return;
+            if (studentFullName) return;
           }
         } catch (e) {
           console.warn("User fetch error:", e);
         }
       }
 
-      studentFullName = defaultName;
+      // 3. Telegram user profilidan to'liq ism olish
+      if (tgUser) {
+        const full = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim();
+        if (full) {
+          studentFullName = full;
+          updateUserDisplay();
+          return;
+        }
+      }
+
+      // 4. localStorage dan avval saqlangan ism
+      const savedName = localStorage.getItem('ms_student_name');
+      if (savedName) {
+        studentFullName = savedName;
+        studentPhone = localStorage.getItem('ms_student_phone') || '';
+        updateUserDisplay();
+        return;
+      }
+
+      // 5. Agar hali ham topilmagan bo'lsa
+      studentFullName = '';
+      updateUserDisplay();
+    }
+
+    function updateUserDisplay() {
       const el = document.getElementById('userDisplayName');
-      if (el) el.innerText = studentFullName;
+      if (!el) return;
+      if (studentFullName) {
+        el.innerText = `${studentFullName}${studentPhone ? ' (' + studentPhone + ')' : ''}`;
+      } else {
+        el.innerHTML = '<span style="color:var(--primary); text-decoration:underline; cursor:pointer;" onclick="editStudentName()">Ismingizni kiriting</span>';
+      }
+    }
+
+    function editStudentName() {
+      const current = studentFullName || '';
+      const input = prompt("Iltimos, ism va familiyangizni kiriting:\n(Masalan: Jasur Rustamov)", current);
+      if (input !== null) {
+        const clean = input.trim();
+        if (clean.length >= 3) {
+          studentFullName = clean;
+          localStorage.setItem('ms_student_name', studentFullName);
+          updateUserDisplay();
+          showToast("Ismingiz muvaffaqiyatli saqlandi!");
+        } else {
+          showToast("Ism kamida 3 ta belgidan iborat bo'lishi kerak!", true);
+        }
+      }
     }
 
     // Session Management
@@ -1203,23 +1303,33 @@
       }
     }
 
-    async function loadDefaultTest() {
-      document.getElementById('testCodeInput').value = 'STANDART';
-      await startTestWithCode();
-    }
-
+    // ================= TESTNI BOSHLASH (KOD ORQALI) =================
     async function startTestWithCode() {
-      const code = document.getElementById('testCodeInput').value.trim() || 'STANDART';
+      const codeInput = document.getElementById('testCodeInput');
+      const code = (codeInput?.value || '').trim();
+
+      if (!code) {
+        showToast("Iltimos, test kodini kiriting!", true);
+        if (codeInput) codeInput.focus();
+        return;
+      }
+
       try {
         const res = await fetch(`${API_BASE}/api/test/${encodeURIComponent(code)}`);
         if (!res.ok) {
-          showToast("Kechirasiz, ushbu kodli test topilmadi!", true);
+          showToast(`Kechirasiz, '${code}' kodli test topilmadi!`, true);
           return;
         }
         currentTest = await res.json();
         questions = currentTest.questions;
 
+        if (!questions || questions.length === 0) {
+          showToast("Ushbu testda hali savollar mavjud emas!", true);
+          return;
+        }
+
         sessionStartTime = Date.now();
+        // Har bir testning o'z vaqt chegarasi olinadi
         remainingSeconds = (currentTest.time_limit_min || 150) * 60;
         answers = {};
 
@@ -1229,14 +1339,25 @@
         showScreen('screenQuiz');
         renderAnswerSheet();
       } catch (err) {
-        showToast("Xatolik: " + err.message, true);
+        showToast("Xatolik yuz berdi: " + err.message, true);
       }
     }
 
     function showScreen(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(screenId).classList.add('active');
+      const target = document.getElementById(screenId);
+      if (target) target.classList.add('active');
       window.scrollTo(0, 0);
+
+      // Agar Screen 1 (kod kiritish ekrani) bo'lsa, taymer umuman ko'rinmasin!
+      const timerBadge = document.getElementById('timerBadge');
+      if (timerBadge) {
+        if (screenId === 'screenCode') {
+          timerBadge.style.display = 'none';
+        } else if (screenId === 'screenQuiz') {
+          timerBadge.style.display = 'flex';
+        }
+      }
     }
 
     function startTimer() {
@@ -1409,7 +1530,6 @@
       setTimeout(renderMathInDocument, 40);
     }
 
-    // Doirachani tanlash (Yopiq va Guruhlangan testlar)
     function selectBubble(qId, key, el) {
       if (!answers[qId]) answers[qId] = {};
       answers[qId].choice = key;
@@ -1425,7 +1545,6 @@
       updateAnsweredCounter();
     }
 
-    // Ochiq savol qiymatini saqlash
     function saveOpenSubPart(qId, part, val, inputEl) {
       if (!answers[qId]) answers[qId] = {};
       answers[qId][part] = val.trim();
@@ -1452,7 +1571,6 @@
       updateAnsweredCounter();
     }
 
-    // To'ldirilganlik sonini hisoblash
     function updateAnsweredCounter() {
       let count = 0;
       questions.forEach(q => {
@@ -1655,12 +1773,10 @@
         statusEl.style.color = "var(--danger)";
       }
 
-      // 45 talik diagnostika matritsasi
       const grid = document.getElementById('diagGridContainer');
       grid.innerHTML = '';
 
       if (res.details && res.details.length > 0) {
-        // Savollar bo'yicha guruhlash
         const qMap = {};
         res.details.forEach(item => {
           if (!qMap[item.order_no]) qMap[item.order_no] = [];
@@ -1686,7 +1802,6 @@
               <span class="diag-ans" style="color:${isCor ? 'var(--success)' : 'var(--danger)'};">${it.user_answer || '-'}</span>
             `;
           } else {
-            // Ochiq savol (a va b)
             const allCor = items.every(i => i.is_correct);
             const anyCor = items.some(i => i.is_correct);
             cell.className = 'diag-item ' + (allCor ? 'correct' : (anyCor ? 'correct' : 'incorrect'));
@@ -1703,7 +1818,6 @@
           grid.appendChild(cell);
         });
       } else {
-        // Agar backend details qaytarmasa ham oddiy ko'rinish
         questions.forEach(q => {
           const cell = document.createElement('div');
           cell.className = 'diag-item';
@@ -1717,6 +1831,8 @@
       clearActiveSession();
       answers = {};
       currentTest = null;
+      const codeInput = document.getElementById('testCodeInput');
+      if (codeInput) codeInput.value = '';
       showScreen('screenCode');
     }
 
