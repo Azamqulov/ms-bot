@@ -25,6 +25,7 @@ from bot.services.admin_service import (
     get_admin_tests,
     toggle_test_status,
     delete_test_by_id,
+    is_admin,
 )
 from bot.services.test_service import (
     get_or_create_user,
@@ -179,14 +180,21 @@ async def api_get_test(code: str):
 
 @app.get("/api/user/{telegram_id}")
 async def api_get_user(telegram_id: int):
-    """Foydalanuvchining botda ro'yxatdan o'tganligini tekshirish va profil ma'lumotlarini qaytarish"""
+    """Foydalanuvchining botda ro'yxatdan o'tganligini va adminlik huquqini tekshirish"""
     user = await get_user_by_telegram_id(telegram_id)
+    admin_status = await is_admin(telegram_id)
     if not user:
-        return {"registered": False, "full_name": None, "phone_number": None}
+        return {
+            "registered": False,
+            "full_name": None,
+            "phone_number": None,
+            "is_admin": admin_status,
+        }
     return {
         "registered": bool(user.phone_number),
         "full_name": user.full_name,
         "phone_number": user.phone_number,
+        "is_admin": admin_status,
     }
 
 

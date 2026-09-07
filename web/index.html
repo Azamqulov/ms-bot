@@ -719,7 +719,8 @@
           Rasmiy 45 talik STANDART test
         </button>
 
-        <div style="margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; justify-content: center;">
+        <!-- Faqat tasdiqlangan adminlarga ko'rinadigan havola (sukut bo'yicha yashirin) -->
+        <div id="adminPanelLinkWrap" style="margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--border); display: none; justify-content: center;">
           <a href="/admin" id="btnAdminPanelLink" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); transition: all 0.2s ease;">
             <svg class="icon icon-sm" style="width:16px; height:16px;" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
             <span>Admin panelga o'tish</span>
@@ -964,23 +965,30 @@
 
     async function fetchUserProfile() {
       const user = tg?.initDataUnsafe?.user;
-      const tgId = user?.id || 1685356708;
+      const tgId = user?.id || null;
       const defaultName = `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'Talabgor';
 
-      try {
-        const res = await fetch(`${API_BASE}/api/user/${tgId}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.registered && data.full_name) {
-            studentFullName = data.full_name;
-            studentPhone = data.phone_number || '';
-            const el = document.getElementById('userDisplayName');
-            if (el) el.innerText = `${studentFullName}${studentPhone ? ' (' + studentPhone + ')' : ''}`;
+      if (tgId) {
+        try {
+          const res = await fetch(`${API_BASE}/api/user/${tgId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.registered && data.full_name) {
+              studentFullName = data.full_name;
+              studentPhone = data.phone_number || '';
+              const el = document.getElementById('userDisplayName');
+              if (el) el.innerText = `${studentFullName}${studentPhone ? ' (' + studentPhone + ')' : ''}`;
+            }
+            // Faqat siz admin qilib tayinlagan userlargagina Admin panel tugmasi chiqadi
+            if (data.is_admin) {
+              const wrap = document.getElementById('adminPanelLinkWrap');
+              if (wrap) wrap.style.display = 'flex';
+            }
             return;
           }
+        } catch (e) {
+          console.warn("User fetch error:", e);
         }
-      } catch (e) {
-        console.warn("User fetch error:", e);
       }
 
       studentFullName = defaultName;

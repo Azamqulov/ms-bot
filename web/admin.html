@@ -2872,6 +2872,10 @@
         document.getElementById('calIconEnd')?.addEventListener('click', () => fpEnd.open());
       }
 
+      // Adminlik huquqini tekshirish
+      const isAllowed = await verifyAdminAccess();
+      if (!isAllowed) return;
+
       // Restore saved draft
       restoreDraft();
 
@@ -2885,6 +2889,38 @@
         })
         .catch(() => {});
     });
+
+    async function verifyAdminAccess() {
+      const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+      if (user && user.id) {
+        try {
+          const res = await fetch(`${API_BASE}/api/user/${user.id}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (!data.is_admin) {
+              document.body.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:30px; text-align:center; font-family:Inter,sans-serif; background:var(--bg); color:var(--text);">
+                  <div style="width:60px; height:60px; border-radius:50%; background:var(--danger-light); display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+                    <svg class="icon" style="width:32px; height:32px; color:var(--danger);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                  </div>
+                  <h2 style="font-size:20px; font-weight:700; margin-bottom:8px;">Ruxsat berilmadi</h2>
+                  <p style="color:var(--text-sub); font-size:14px; max-width:340px; line-height:1.6; margin-bottom:24px;">
+                    Kechirasiz, ushbu Admin paneliga faqat siz tayinlagan administratorlar kira oladi.
+                  </p>
+                  <a href="/" style="display:inline-flex; align-items:center; gap:8px; padding:10px 20px; background:var(--primary); color:#fff; border-radius:8px; font-weight:600; text-decoration:none; font-size:14px;">
+                    Bosh sahifaga qaytish
+                  </a>
+                </div>
+              `;
+              return false;
+            }
+          }
+        } catch (e) {
+          console.warn("Admin access check:", e);
+        }
+      }
+      return true;
+    }
   </script>
 </body>
 </html>
