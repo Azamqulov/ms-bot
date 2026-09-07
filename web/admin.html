@@ -2871,7 +2871,18 @@
           })
         });
 
-        const data = await res.json();
+        let data = null;
+        const cType = res.headers.get("content-type") || "";
+        if (cType.includes("application/json")) {
+          data = await res.json();
+        } else {
+          const rawText = await res.text();
+          if (rawText.trim().startsWith("<") && window.location.hostname.includes("github.io")) {
+            throw new Error("GitHub Pages faqat statik sayt, unda backend server ishlamaydi. Iltimos, admin panelni http://localhost:8000/admin orqali oching!");
+          }
+          throw new Error(`Server xatosi (${res.status})`);
+        }
+
         if (res.ok && data.success) {
           lastCreatedTestCode = data.code;
           localStorage.removeItem('admin_draft_test'); // tozalaymiz
@@ -2913,8 +2924,13 @@
       container.innerHTML = '<div style="text-align:center; padding:30px 10px; color:var(--text-sub);">Testlar yuklanmoqda...</div>';
 
       try {
-        const res = await fetch(`${API_BASE}/api/admin/tests/${currentTelegramId}`);
-        const data = await res.json();
+        let data = { tests: [] };
+        const cType = res.headers.get("content-type") || "";
+        if (cType.includes("application/json")) {
+          data = await res.json();
+        } else {
+          return;
+        }
 
         if (res.ok && Array.isArray(data.tests)) {
           document.getElementById('myTestsCount').innerText = data.tests.length;
