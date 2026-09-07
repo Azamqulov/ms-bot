@@ -11,12 +11,16 @@ from bot.services.admin_service import (
     add_admin,
     remove_admin,
     get_all_admins,
-    create_test_with_questions,
     get_admin_tests,
-    get_sample_test_template,
+    get_test_participants_stats,
 )
 from bot.services.test_service import get_or_create_user
-from bot.keyboards.admin import get_admin_dashboard_keyboard, get_admin_back_keyboard
+from bot.keyboards.admin import (
+    get_admin_dashboard_keyboard,
+    get_admin_back_keyboard,
+    get_admin_my_tests_keyboard,
+    get_admin_test_stats_keyboard,
+)
 from bot.keyboards.reply import get_main_menu_keyboard
 from bot.states.admin_state import AdminState
 
@@ -147,119 +151,13 @@ async def process_remove_admin_id(message: Message, state: FSMContext):
     await message.answer(f"{'✅' if success else '❌'} {msg}", reply_markup=get_main_menu_keyboard(True))
 
 
-# ==================== TEST YUKLASH VA TEST SHABLONI ====================
-
-@router.callback_query(F.data == "adm_get_template")
-async def handle_get_template(callback: CallbackQuery):
-    if not await is_admin(callback.from_user.id):
-        await callback.answer("Ruxsat yo'q.", show_alert=True)
-        return
-
-    template_str = get_sample_test_template()
-    file_data = template_str.encode("utf-8")
-    input_file = BufferedInputFile(file_data, filename="test_shablon.json")
-
-    caption = (
-        "📄 <b>TEST YUKLASH SHABLONI (JSON)</b>\n\n"
-        "1. Ushbu JSON faylni yuklab oling va kompyuter yoki telefonda tahrirlang;\n"
-        "2. Unda test kodi (<code>code</code>), nomi (<code>title</code>), vaqt chegarasi (<code>time_limit_min</code>) va savollar ro'yxatini yozing;\n"
-        "3. Savol turlari:\n"
-        "   • <code>Y-1</code> — 4 variantli yopiq savol (options: A, B, C, D)\n"
-        "   • <code>O</code> — ochiq savol (sub_parts: a va b qismlari)\n"
-        "4. Tayyor faylni botga <b>'📤 Yangi test yuklash'</b> bo'limida yuboring!"
-    )
-    await callback.answer()
-    await callback.message.answer_document(input_file, caption=caption)
-
-
-@router.callback_query(F.data == "adm_upload_test_prompt")
-async def handle_upload_test_prompt(callback: CallbackQuery, state: FSMContext):
-    if not await is_admin(callback.from_user.id):
-        await callback.answer("Ruxsat yo'q.", show_alert=True)
-        return
-
-    await state.set_state(AdminState.waiting_test_file)
-    await callback.answer()
-    await callback.message.edit_text(
-        "📤 <b>YANGI TEST YUKLASH</b>\n\n"
-        "Iltimos, to'ldirilgan <b>.json</b> shablon faylingizni hujjat (document) sifatida yuboring, "
-        "yoki to'g'ridan-to'g'ri JSON matnini shu yerga xabar sifatida yozing.\n\n"
-        "<i>(Shablon yo'q bo'lsa, '📄 Shablon fayl' tugmasi orqali oling)</i>",
-        reply_markup=get_admin_back_keyboard()
-    )
-
-
-@router.message(AdminState.waiting_test_file, F.document)
-async def process_test_file_doc(message: Message, state: FSMContext):
-    doc = message.document
-    if not doc.file_name.endswith(".json"):
-        await message.answer("⚠️ Iltimos, faqat <b>.json</b> formatidagi fayl yuboring:")
-        return
-
-    # Faylni yuklab olish
-    bot = message.bot
-    file_io = io.BytesIO()
-    await bot.download(doc, destination=file_io)
-    content = file_io.getvalue().decode("utf-8")
-
-    await parse_and_save_test(message, state, content)
-
-
-@router.message(AdminState.waiting_test_file, F.text)
-async def process_test_file_text(message: Message, state: FSMContext):
-    await parse_and_save_test(message, state, message.text)
-
-
-async def parse_and_save_test(message: Message, state: FSMContext, content_str: str):
-    """JSON matnni parse qilib bazaga saqlash"""
-    try:
-        data = json.loads(content_str)
-    except Exception as e:
-        await message.answer(f"❌ <b>JSON formatida xatolik bor:</b>\n<code>{str(e)}</code>\n\nIltimos, faylni tekshirib qayta yuboring:")
-        return
-
-    code = data.get("code")
-    title = data.get("title")
-    description = data.get("description", "")
-    time_limit = int(data.get("time_limit_min", 150))
-    questions = data.get("questions", [])
-    grouped_ctx = data.get("grouped_context")
-
-    if not code or not title or not questions:
-        await message.answer("❌ Faylda <code>code</code>, <code>title</code> yoki <code>questions</code> maydonlari topilmadi!")
-        return
-
-    admin_user = await get_or_create_user(message.from_user.id, message.from_user.full_name)
-
-    success, msg, test_obj = await create_test_with_questions(
-        creator_user_id=admin_user.id,
-        code=code,
-        title=title,
-        description=description,
-        time_limit_min=time_limit,
-        questions_data=questions,
-        grouped_context=grouped_ctx,
-    )
-
-    if success and test_obj:
-        await state.clear()
-        reply_text = (
-            f"🎉 <b>TEST MUVAFFAQIYATLI YUKLANDI!</b>\n\n"
-            f"📌 <b>Test Kodi:</b> <code>{test_obj.code}</code>\n"
-            f"📝 <b>Nomi:</b> {test_obj.title}\n"
-            f"❓ <b>Savollar soni:</b> {test_obj.question_count} ta\n"
-            f"⏱ <b>Vaqt chegarasi:</b> {test_obj.time_limit_min} daqiqa\n\n"
-            f"💡 <i>Talabgorlar botda '🚀 Javobni tekshirish' bosgach <code>{test_obj.code}</code> kodini kiritib javoblarni tekshirishlari mumkin!</i>"
-        )
-        await message.answer(reply_text, reply_markup=get_main_menu_keyboard(True))
-    else:
-        await message.answer(f"❌ {msg}\n\nIltimos, qayta urinib ko'ring:")
-
+# ==================== MENING TESTLARIM VA STATISTIKA ====================
 
 @router.callback_query(F.data == "adm_my_tests")
 async def handle_my_tests(callback: CallbackQuery):
+    """Admin yaratgan testlarni inline tugmalar ro'yxati shaklida chiqarish"""
     if not await is_admin(callback.from_user.id):
-        await callback.answer("Ruxsat yo'q.", show_alert=True)
+        await callback.answer("Ruxsat berilmagan.", show_alert=True)
         return
 
     admin_user = await get_or_create_user(callback.from_user.id, callback.from_user.full_name)
@@ -268,17 +166,82 @@ async def handle_my_tests(callback: CallbackQuery):
     if not tests:
         text = (
             "📭 <b>Siz hali birorta ham test yuklamagansiz.</b>\n\n"
-            "Yangi test yuklash uchun <b>'📤 Yangi test yuklash'</b> tugmasini bosing."
+            "Yangi test yaratish uchun <b>'🌐 Veb Konstruktorni ochish'</b> tugmasidan foydalaning."
         )
+        await callback.answer()
+        await callback.message.edit_text(text, reply_markup=get_admin_back_keyboard())
+        return
+
+    text = (
+        f"📋 <b>SIZ YUKLAGAN TESTLAR ({len(tests)} ta):</b>\n\n"
+        f"Statistikasini ko'rish uchun quyidagi test tugmalaridan birini bosing:"
+    )
+    await callback.answer()
+    await callback.message.edit_text(text, reply_markup=get_admin_my_tests_keyboard(tests))
+
+
+@router.callback_query(F.data.startswith("adm_tstats_"))
+async def handle_test_stats(callback: CallbackQuery):
+    """Tanlangan testning to'liq natijalari va statistikasini Telegram posti shaklida chiqarish"""
+    if not await is_admin(callback.from_user.id):
+        await callback.answer("Ruxsat berilmagan.", show_alert=True)
+        return
+
+    try:
+        test_id = int(callback.data.split("_")[-1])
+    except (ValueError, IndexError):
+        await callback.answer("Noto'g'ri test tanlandi!", show_alert=True)
+        return
+
+    admin_user = await get_or_create_user(callback.from_user.id, callback.from_user.full_name)
+    stats = await get_test_participants_stats(test_id, admin_user.id)
+
+    if not stats:
+        await callback.answer("Test statistikasi topilmadi yoki ruxsat yo'q!", show_alert=True)
+        return
+
+    total_part = stats.get("total_participants", 0)
+    completed_cnt = stats.get("completed_count", 0)
+    cert_cnt = stats.get("certified_count", 0)
+    cert_pct = round((cert_cnt / completed_cnt * 100), 1) if completed_cnt > 0 else 0.0
+
+    post_lines = [
+        f"📊 <b>NATIJALAR: {stats['test_title']}</b>",
+        f"🔑 <b>Test kodi:</b> <code>#{stats['test_code']}</code>",
+        f"❓ <b>Savollar:</b> {stats['question_count']} ta | ⏱ <b>Vaqt:</b> {stats['time_limit_min']} daqiqa\n",
+        f"━━━━━━━━━━━━━━━━━━━━",
+        f"👥 <b>Jami qatnashuvchilar:</b> {total_part} nafar",
+        f"✅ <b>Tugatganlar:</b> {completed_cnt} nafar",
+        f"📈 <b>O'rtacha ball:</b> {stats['avg_score']:.1f} / 70 ball",
+        f"🏆 <b>Eng yuqori ball:</b> {stats['highest_score']:.1f} ball",
+        f"🎖 <b>Sertifikat olganlar:</b> {cert_cnt} nafar ({cert_pct}%)",
+        f"━━━━━━━━━━━━━━━━━━━━\n",
+    ]
+
+    participants = stats.get("participants", [])
+    if not participants:
+        post_lines.append("ℹ️ <i>Ushbu testni hali birorta ham talabgor topshirmagan.</i>")
     else:
-        lines = ["📋 <b>SIZ YUKLAGAN TESTLAR:</b>\n"]
-        for idx, t in enumerate(tests, start=1):
-            lines.append(
-                f"{idx}. <b>{t['title']}</b>\n"
-                f"   🔑 Kodi: <code>{t['code']}</code> | Savollar: {t['question_count']} ta\n"
-                f"   👥 Talabgorlar: {t['attempts_count']} nafar | O'rtacha ball: {t['avg_score']}/75\n"
+        post_lines.append("🏆 <b>TALABGORLAR NATIJALARI VA REYTINGI:</b>\n")
+        # Telegram xabar limiti (4096 belgi) dan oshib ketmasligi uchun top 25 ta chiqariladi
+        for p in participants[:25]:
+            status_mark = "✅ Sertifikat berildi" if p.get("is_certified") else "❌ Sertifikat berilmadi"
+            grade_str = f"({p['grade']})" if p.get('grade') else ""
+            phone_str = f" | 📞 {p['phone_number']}" if p.get('phone_number') else ""
+            date_str = f" | 📅 {p['finished_at']}" if p.get('finished_at') else ""
+            post_lines.append(
+                f"<b>{p['rank']}. {p['full_name']}</b> — <b>{p['final_score']:.1f} ball</b> {grade_str}\n"
+                f"   └ {status_mark}{phone_str}{date_str}\n"
             )
-        text = "\n".join(lines)
+        if len(participants) > 25:
+            post_lines.append(f"<i>...va yana {len(participants) - 25} nafar talabgor (to'liq ro'yxat Veb Konstruktorda).</i>")
+
+    post_text = "\n".join(post_lines)
 
     await callback.answer()
-    await callback.message.edit_text(text, reply_markup=get_admin_back_keyboard())
+    await callback.message.edit_text(
+        post_text,
+        reply_markup=get_admin_test_stats_keyboard(test_id),
+        parse_mode="HTML"
+    )
+

@@ -40,16 +40,38 @@ def get_admin_dashboard_keyboard(is_super: bool) -> InlineKeyboardMarkup:
         )
 
     builder.row(
-        InlineKeyboardButton(text="📤 Yangi test yuklash (JSON)", callback_data="adm_upload_test_prompt"),
-        InlineKeyboardButton(text="📄 Shablon fayl (JSON)", callback_data="adm_get_template"),
-    )
-    builder.row(
         InlineKeyboardButton(text="📋 Mening testlarim", callback_data="adm_my_tests"),
     )
     builder.row(
         InlineKeyboardButton(text="🔙 Bosh menyu", callback_data="adm_close_panel"),
     )
 
+    return builder.as_markup()
+
+
+def get_admin_my_tests_keyboard(tests: list) -> InlineKeyboardMarkup:
+    """Admin yaratgan testlar tugmalari ro'yxati"""
+    builder = InlineKeyboardBuilder()
+    for t in tests:
+        # Masalan: 📝 Milliy Sertifikat Standart Mock 1 (#12345)
+        title = t.get('title', 'Nomsiz test')
+        if len(title) > 30:
+            title = title[:28] + "..."
+        btn_text = f"📝 {title} (#{t.get('code', '')})"
+        builder.row(InlineKeyboardButton(text=btn_text, callback_data=f"adm_tstats_{t['id']}"))
+
+    builder.row(InlineKeyboardButton(text="🔙 Admin panelga qaytish", callback_data="adm_open_panel"))
+    return builder.as_markup()
+
+
+def get_admin_test_stats_keyboard(test_id: int) -> InlineKeyboardMarkup:
+    """Test statistikasi xabari ostidagi boshqaruv tugmalari"""
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="🔄 Yangilash", callback_data=f"adm_tstats_{test_id}"),
+        InlineKeyboardButton(text="📋 Barcha testlarim", callback_data="adm_my_tests"),
+    )
+    builder.row(InlineKeyboardButton(text="🔙 Admin panelga qaytish", callback_data="adm_open_panel"))
     return builder.as_markup()
 
 
