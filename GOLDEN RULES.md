@@ -56,6 +56,7 @@
 - [x] 25. Admin API endpointlariga Telegram WebApp `initData` HMAC-SHA256 server-side autentifikatsiyasi va RBAC tekshiruvi joriy qilindi (`bot/web_app/auth.py`).
 - [x] 26. `web/admin.html` va `admin.html` fayllaridan `SUPER_ADMIN_ID` fallback olib tashlandi, faqat Telegram ichida ochilishiga cheklov qo'yildi va barcha admin fetch so'rovlariga `X-Telegram-Init-Data` sarlavhasi ulandi.
 - [x] 27. Barcha 19 ta Pytest testlari (xavfsizlik va endpointlar integratsiyasi bilan birga) 100% muvaffaqiyatli o'tdi.
+- [x] 28. Ism-familiya validatsiyasi kuchaytirildi (faqat '.' yoki placeholder bo'lsa bot `/start` da to'liq ismni so'raydi, Web App da ham profilni tahrirlash va sinxronlash to'liq joriy qilindi).
 
 
 ## ✅ Completed Checklist (History)

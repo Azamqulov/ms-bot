@@ -1132,7 +1132,7 @@
     }
 
     // Backend API Base URL Resolver (100% Avtomatik)
-    const DEFAULT_API_BASE = "https://solomon-marie-bloom-trivia.trycloudflare.com";
+    const DEFAULT_API_BASE = "https://mtv-transportation-corn-norfolk.trycloudflare.com";
 
     function getApiBaseUrl() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -1164,23 +1164,37 @@
     let studentPhone = '';
 
     // ================= TALABGOR PROFILI VA ISMINI ANIQLASH =================
+    function isValidPersonName(n) {
+      if (!n || typeof n !== 'string') return false;
+      const lower = n.trim().toLowerCase();
+      if (['talabgor', '.', '-', 'none', 'null', 'undefined'].includes(lower)) return false;
+      const clean = n.replace(/[^a-zA-Zа-яА-ЯўқғҳЎҚҒҲ\s\']/g, '').trim();
+      return clean.length >= 3;
+    }
+
     async function fetchUserProfile() {
       const urlParams = new URLSearchParams(window.location.search);
       const qName = urlParams.get('name');
       const qPhone = urlParams.get('phone');
       const qTgId = urlParams.get('tg_id');
 
-      // 1. Agar bot WebApp URL da name uzatgan bo'lsa (eng ishonchli manba)
-      if (qName) {
-        studentFullName = decodeURIComponent(qName).trim();
-        studentPhone = qPhone ? decodeURIComponent(qPhone).trim() : '';
-        localStorage.setItem('ms_student_name', studentFullName);
-        if (studentPhone) localStorage.setItem('ms_student_phone', studentPhone);
-        updateUserDisplay();
-        return;
+      if (qPhone) {
+        studentPhone = decodeURIComponent(qPhone).trim();
+        localStorage.setItem('ms_student_phone', studentPhone);
       }
 
-      // 2. Telegram WebApp user ma'lumotlari
+      // 1. Agar bot WebApp URL da to'g'ri ism uzatgan bo'lsa
+      if (qName) {
+        const decoded = decodeURIComponent(qName).trim();
+        if (isValidPersonName(decoded)) {
+          studentFullName = decoded;
+          localStorage.setItem('ms_student_name', studentFullName);
+          updateUserDisplay();
+          return;
+        }
+      }
+
+      // 2. Telegram WebApp user ma'lumotlari orqali bazadan olish
       const tgUser = tg?.initDataUnsafe?.user;
       const tgId = qTgId || tgUser?.id || null;
 
@@ -1189,12 +1203,15 @@
           const res = await fetch(`${API_BASE}/api/user/${tgId}`);
           if (res.ok) {
             const data = await res.json();
-            if (data.registered && data.full_name) {
+            if (data.phone_number) {
+              studentPhone = data.phone_number;
+              localStorage.setItem('ms_student_phone', studentPhone);
+            }
+            if (data.full_name && isValidPersonName(data.full_name)) {
               studentFullName = data.full_name;
-              studentPhone = data.phone_number || '';
               localStorage.setItem('ms_student_name', studentFullName);
-              if (studentPhone) localStorage.setItem('ms_student_phone', studentPhone);
               updateUserDisplay();
+              return;
             }
             if (data.is_admin) {
               const wrap = document.getElementById('adminPanelLinkWrap');
@@ -1204,33 +1221,34 @@
                 adminLink.href = 'web/admin.html';
               }
             }
-            if (studentFullName) return;
           }
         } catch (e) {
           console.warn("User fetch error:", e);
         }
       }
 
-      // 3. Telegram user profilidan to'liq ism olish
+      // 3. localStorage dan avval saqlangan ism (agar u yaroqli bo'lsa)
+      const savedName = localStorage.getItem('ms_student_name');
+      if (savedName && isValidPersonName(savedName)) {
+        studentFullName = savedName;
+        studentPhone = localStorage.getItem('ms_student_phone') || studentPhone || '';
+        updateUserDisplay();
+        return;
+      } else {
+        localStorage.removeItem('ms_student_name');
+      }
+
+      // 4. Telegram user profilidan to'liq ism olish (agar faqat '.' bo'lmasa)
       if (tgUser) {
         const full = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim();
-        if (full) {
+        if (isValidPersonName(full)) {
           studentFullName = full;
           updateUserDisplay();
           return;
         }
       }
 
-      // 4. localStorage dan avval saqlangan ism
-      const savedName = localStorage.getItem('ms_student_name');
-      if (savedName) {
-        studentFullName = savedName;
-        studentPhone = localStorage.getItem('ms_student_phone') || '';
-        updateUserDisplay();
-        return;
-      }
-
-      // 5. Agar hali ham topilmagan bo'lsa
+      // 5. Agar hali ham ism topilmagan bo'lsa
       studentFullName = '';
       updateUserDisplay();
     }
@@ -1238,16 +1256,16 @@
     function updateUserDisplay() {
       const el = document.getElementById('userDisplayName');
       if (!el) return;
-      if (studentFullName) {
+      if (studentFullName && isValidPersonName(studentFullName)) {
         el.innerText = `${studentFullName}${studentPhone ? ' (' + studentPhone + ')' : ''}`;
       } else {
-        el.innerHTML = '<span style="color:var(--primary); text-decoration:underline; cursor:pointer;" onclick="editStudentName()">Ismingizni kiriting</span>';
+        el.innerHTML = '<span style="color:var(--primary); font-weight:600; text-decoration:underline; cursor:pointer;" onclick="editStudentName()">Ism-familiyangizni kiriting ✍️</span>' + (studentPhone ? ` (${studentPhone})` : '');
       }
     }
 
     function editStudentName() {
       const inputEl = document.getElementById('nameModalInput');
-      if (inputEl) inputEl.value = studentFullName || '';
+      if (inputEl) inputEl.value = (studentFullName && isValidPersonName(studentFullName)) ? studentFullName : '';
       document.getElementById('nameModal').classList.add('open');
       setTimeout(() => { if (inputEl) inputEl.focus(); }, 120);
     }
@@ -1256,10 +1274,10 @@
       document.getElementById('nameModal').classList.remove('open');
     }
 
-    function saveNameFromModal() {
+    async function saveNameFromModal() {
       const inputEl = document.getElementById('nameModalInput');
       const clean = (inputEl?.value || '').trim();
-      if (clean.length < 3) {
+      if (!isValidPersonName(clean)) {
         showToast("Iltimos, ism va familiyangizni to'liq kiriting (kamida 3 ta harf)!", true);
         return;
       }
@@ -1268,6 +1286,24 @@
       updateUserDisplay();
       closeNameModal();
       showToast("Ismingiz muvaffaqiyatli saqlandi!");
+
+      // Serverda ham foydalanuvchi profilini yangilash
+      const tgId = (new URLSearchParams(window.location.search)).get('tg_id') || tg?.initDataUnsafe?.user?.id;
+      if (tgId && API_BASE) {
+        try {
+          await fetch(`${API_BASE}/api/user/update-profile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              telegram_id: parseInt(tgId),
+              full_name: clean,
+              phone_number: studentPhone || null
+            })
+          });
+        } catch (e) {
+          console.warn("Profilni serverda yangilashda ogohlantirish:", e);
+        }
+      }
     }
 
     // Session Management

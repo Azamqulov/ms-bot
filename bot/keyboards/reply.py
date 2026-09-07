@@ -7,12 +7,16 @@ from bot.config import settings
 def get_main_menu_keyboard(is_admin_user: bool = False, user: Optional[Any] = None) -> ReplyKeyboardMarkup:
     """Asosiy menyu klaviaturasi (Telegram WebApp integratsiyasi bilan)"""
     web_url = settings.WEB_APP_URL
-    if user and getattr(user, 'full_name', None):
+    if user:
+        user_name = getattr(user, 'full_name', '') or ''
+        clean_letters = ''.join(c for c in user_name if c.isalpha())
         params = {
             "tg_id": str(getattr(user, "telegram_id", "")),
-            "name": getattr(user, "full_name", ""),
             "phone": getattr(user, "phone_number", "") or ""
         }
+        if len(clean_letters) >= 3:
+            params["name"] = user_name
+
         query_str = urllib.parse.urlencode(params)
         delimiter = "&" if "?" in web_url else "?"
         web_url = f"{web_url}{delimiter}{query_str}"

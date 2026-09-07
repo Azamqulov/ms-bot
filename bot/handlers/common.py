@@ -12,6 +12,15 @@ from bot.states.registration_state import RegistrationState
 router = Router(name="common")
 
 
+def is_valid_name(name: str | None) -> bool:
+    if not name:
+        return False
+    if name.strip().lower() in ("talabgor", ".", "-", "none"):
+        return False
+    clean = re.sub(r"[^a-zA-Zа-яА-ЯўқғҳЎҚҒҲ\s\']", "", name).strip()
+    return len(clean) >= 3
+
+
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
@@ -23,7 +32,8 @@ async def cmd_start(message: Message, state: FSMContext):
     is_adm = await is_admin(message.from_user.id)
 
     # Agar foydalanuvchi hali telefon raqami bilan ro'yxatdan o'tmagan bo'lsa
-    if not user.phone_number:
+    # yoki ismi yaroqsiz bo'lsa (masalan '.' yoki 3 ta harfdan kam bo'lsa)
+    if not user.phone_number or not is_valid_name(user.full_name):
         ask_name_text = (
             "Assalomu alaykum! 🎓 <b>Milliy Sertifikat — Matematika</b> sinov botiga xush kelibsiz!\n\n"
             "Test natijalaringizni rasmiy hisoblash va sertifikat ballingizni to'g'ri qayd etish uchun, "
@@ -47,13 +57,44 @@ async def cmd_start(message: Message, state: FSMContext):
     await message.answer(welcome_text, reply_markup=get_main_menu_keyboard(is_adm, user=user))
 
 
+@router.message(Command("ism"))
+@router.message(Command("profil"))
+async def cmd_edit_profile(message: Message, state: FSMContext):
+    """Ism va familiyani tahrirlash komandasi"""
+    await state.set_state(RegistrationState.waiting_for_full_name)
+    await message.answer(
+        "Iltimos, to'liq <b>Ism va Familiyangizni</b> kiriting:\n\n"
+        "<i>(Masalan: Rustamov Jasur)</i>"
+    )
+
+
 @router.message(RegistrationState.waiting_for_full_name)
 async def process_full_name(message: Message, state: FSMContext):
     name_text = (message.text or "").strip()
-    if len(name_text) < 3 or len(name_text) > 100:
+    if not is_valid_name(name_text):
         await message.answer(
             "⚠️ Iltimos, haqiqiy ism va familiyangizni to'liq kiriting (kamida 3 ta harf).\n"
             "<i>Masalan: Rustamov Jasur</i>"
+        )
+        return
+
+    # Agar foydalanuvchining telefon raqami allaqachon bazada bo'lsa,
+    # to'g'ridan-to'g'ri ismni yangilab asosiy menyuga o'tkazamiz
+    user = await get_user_by_telegram_id(message.from_user.id)
+    if user and user.phone_number:
+        await update_user_profile(
+            telegram_id=message.from_user.id,
+            full_name=name_text,
+            phone_number=user.phone_number,
+            username=message.from_user.username,
+        )
+        await state.clear()
+        is_adm = await is_admin(message.from_user.id)
+        db_user = await get_user_by_telegram_id(message.from_user.id)
+        await message.answer(
+            f"✅ Ism va familiyangiz muvaffaqiyatli saqlandi: <b>{name_text}</b>\n\n"
+            f"Pastdagi <b>'🚀 Javobni tekshirish'</b> tugmasini bosib testni topshirishingiz mumkin!",
+            reply_markup=get_main_menu_keyboard(is_adm, user=db_user)
         )
         return
 

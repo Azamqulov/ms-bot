@@ -33,6 +33,7 @@ from bot.services.admin_service import (
 from bot.services.test_service import (
     get_or_create_user,
     get_user_by_telegram_id,
+    update_user_profile,
     start_new_attempt,
     save_answer,
     finish_attempt,
@@ -85,6 +86,13 @@ class SubmitTestRequest(BaseModel):
     full_name: str
     username: Optional[str] = None
     answers: List[SubmitAnswerItem]
+
+
+class UpdateProfileRequest(BaseModel):
+    telegram_id: int
+    full_name: str
+    phone_number: Optional[str] = None
+
 
 
 class CreateQuestionItem(BaseModel):
@@ -201,6 +209,23 @@ async def api_get_user(telegram_id: int):
         "phone_number": user.phone_number,
         "is_admin": admin_status,
     }
+
+
+@app.post("/api/user/update-profile")
+async def api_update_user_profile(payload: UpdateProfileRequest):
+    """Talabgor ism-familiyasini Web App orqali yangilash"""
+    clean_name = payload.full_name.strip()
+    clean_letters = ''.join(c for c in clean_name if c.isalpha())
+    if len(clean_letters) < 3:
+        raise HTTPException(status_code=400, detail="Ism kamida 3 ta harfdan iborat bo'lishi kerak.")
+    
+    await update_user_profile(
+        telegram_id=payload.telegram_id,
+        full_name=clean_name,
+        phone_number=payload.phone_number,
+    )
+    return {"success": True, "full_name": clean_name}
+
 
 
 @app.post("/api/test/submit")
