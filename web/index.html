@@ -983,6 +983,10 @@
             if (data.is_admin) {
               const wrap = document.getElementById('adminPanelLinkWrap');
               if (wrap) wrap.style.display = 'flex';
+              const adminLink = document.getElementById('btnAdminPanelLink');
+              if (adminLink && window.location.hostname.includes('github.io')) {
+                adminLink.href = 'web/admin.html';
+              }
             }
             return;
           }

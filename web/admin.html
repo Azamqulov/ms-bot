@@ -1285,18 +1285,25 @@
       </div>
 
 
-      <!-- Testga qatnashish turi -->
-      <div class="form-group" id="accessTypeGroup">
-        <label class="form-label">Testga qatnashish turi</label>
-        <div class="segmented-tabs">
-          <button type="button" class="segmented-tab active" id="tabOpen" onclick="setAccessType('open')">Ochiq test</button>
-          <button type="button" class="segmented-tab" id="tabClosed" onclick="setAccessType('closed')">Yopiq test</button>
-        </div>
-        <p class="form-hint" id="accessTypeHint">Test umumiy ro'yxatda chiqadi va barcha o'quvchilar erkin (kodsiz) kirishi mumkin</p>
+      <!-- Vaqt chegarasi (Doimiy va Vaqtli test uchun) -->
+      <div class="form-group" id="testTimeLimitGroup">
+        <label class="form-label">Vaqt (daqiqa)</label>
+        <input type="number" class="form-input" id="testTimeLimit" value="150" min="5" max="360" oninput="scheduleAutosave()">
       </div>
 
-      <!-- Test kodi & Vaqt chegarasi -->
-      <div id="codeAndTimeRow" style="display:grid; grid-template-columns: 1fr; gap:12px;">
+      <!-- Faqat Vaqtli test tanlanganda chiqadigan bo'lim (Doimiy testda yashiriladi) -->
+      <div id="timedSettingsWrap" style="display:none; flex-direction:column; gap:18px;">
+        <!-- Testga qatnashish turi -->
+        <div class="form-group" id="accessTypeGroup">
+          <label class="form-label">Testga qatnashish turi</label>
+          <div class="segmented-tabs">
+            <button type="button" class="segmented-tab active" id="tabOpen" onclick="setAccessType('open')">Ochiq test</button>
+            <button type="button" class="segmented-tab" id="tabClosed" onclick="setAccessType('closed')">Yopiq test</button>
+          </div>
+          <p class="form-hint" id="accessTypeHint">Test umumiy ro'yxatda chiqadi va barcha o'quvchilar erkin (kodsiz) kirishi mumkin</p>
+        </div>
+
+        <!-- Test kodi (Faqat Yopiq test tanlanganda chiqadi) -->
         <div class="form-group" id="testCodeGroup" style="display:none;">
           <label class="form-label">
             <span>Test kodi (Kupon)</span>
@@ -1304,14 +1311,7 @@
           </label>
           <input type="text" class="form-input" id="testCode" placeholder="MS-2026-A" value="MS-2026-A" style="text-transform:uppercase; font-weight:700;" oninput="this.value = this.value.toUpperCase(); scheduleAutosave();">
         </div>
-        <div class="form-group" id="testTimeLimitGroup">
-          <label class="form-label">Vaqt (daqiqa)</label>
-          <input type="number" class="form-input" id="testTimeLimit" value="150" min="5" max="360" oninput="scheduleAutosave()">
-        </div>
-      </div>
 
-      <!-- Faqat Vaqtli test tanlanganda chiqadigan bo'lim (Doimiy testda yashiriladi) -->
-      <div id="timedSettingsWrap" style="display:none; flex-direction:column; gap:18px;">
         <!-- Boshlash vaqti -->
         <div class="form-group" id="startTimeGroup">
           <label class="form-label">Boshlash vaqti</label>
@@ -2302,20 +2302,17 @@
       const closedBtn = document.getElementById('tabClosed');
       const hint = document.getElementById('accessTypeHint');
       const testCodeGroup = document.getElementById('testCodeGroup');
-      const codeAndTimeRow = document.getElementById('codeAndTimeRow');
 
       if (type === 'open') {
-        openBtn.classList.add('active');
-        closedBtn.classList.remove('active');
-        hint.innerText = "Test umumiy ro'yxatda chiqadi va barcha o'quvchilar erkin (kodsiz) kirishi mumkin";
+        openBtn?.classList.add('active');
+        closedBtn?.classList.remove('active');
+        if (hint) hint.innerText = "Test umumiy ro'yxatda chiqadi va barcha o'quvchilar erkin (kodsiz) kirishi mumkin";
         if (testCodeGroup) testCodeGroup.style.display = 'none';
-        if (codeAndTimeRow) codeAndTimeRow.style.gridTemplateColumns = '1fr';
       } else {
-        openBtn.classList.remove('active');
-        closedBtn.classList.add('active');
-        hint.innerText = "O'quvchilar maxsus test kodini kiritib tizimda qatnashadi";
-        if (testCodeGroup) testCodeGroup.style.display = 'flex';
-        if (codeAndTimeRow) codeAndTimeRow.style.gridTemplateColumns = '1fr 1fr';
+        openBtn?.classList.remove('active');
+        closedBtn?.classList.add('active');
+        if (hint) hint.innerText = "O'quvchilar maxsus test kodini kiritib tizimda qatnashadi";
+        if (testCodeGroup) testCodeGroup.style.display = 'block';
       }
       scheduleAutosave();
     }
@@ -2388,6 +2385,7 @@
         timedWrap.style.display = 'flex';
       } else {
         timedWrap.style.display = 'none';
+        setAccessType('open');
       }
     }
 
@@ -2571,6 +2569,7 @@
       const timeLimit = parseInt(document.getElementById('testTimeLimit').value) || 150;
       const subject = "Matematika";
       const testType = document.querySelector('#selectTestType .custom-option.selected')?.getAttribute('data-value') || 'permanent';
+      const actualAccessType = (testType === 'timed') ? selectedAccessType : 'open';
       const startTime = (testType === 'timed') ? document.getElementById('startTime').value.trim() : null;
       const endTime = (testType === 'timed') ? document.getElementById('endTime').value.trim() : null;
       const reqChannel = document.getElementById('requiredChannelInput').value.trim();
@@ -2580,12 +2579,12 @@
         document.getElementById('testTitle').focus();
         return;
       }
-      if (selectedAccessType === 'closed' && !code) {
+      if (actualAccessType === 'closed' && !code) {
         showToast("Iltimos, Yopiq test uchun Test kodini kiriting!", true);
         document.getElementById('testCode').focus();
         return;
       }
-      if (selectedAccessType === 'open' && !code) {
+      if (actualAccessType === 'open' && !code) {
         code = `MS-OPEN-${Math.floor(1000 + Math.random() * 9000)}`;
       }
 
@@ -2652,7 +2651,7 @@
             description: `${subject} bo'yicha test (1-35 yopiq, 36-45 ochiq).`,
             time_limit_min: timeLimit,
             test_type: testType,
-            access_type: selectedAccessType,
+            access_type: actualAccessType,
             start_time: startTime,
             end_time: endTime,
             auto_check: checkboxStates.autoCheck,
@@ -2845,7 +2844,7 @@
     }
 
     // ================= INITIALIZATION =================
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       initSelect('selectTestType');
       initQuestions1to35();
       initOpenQuestions();
