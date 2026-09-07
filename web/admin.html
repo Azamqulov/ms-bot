@@ -3169,7 +3169,9 @@
 
     function viewCreatedTest() {
       if (!lastCreatedTestCode) return;
-      window.location.href = `/?code=${encodeURIComponent(lastCreatedTestCode)}`;
+      const base = window.location.hostname.includes('github.io') ? '../index.html' : '/';
+      const apiParam = API_BASE ? `&api=${encodeURIComponent(API_BASE)}` : '';
+      window.location.href = `${base}?code=${encodeURIComponent(lastCreatedTestCode)}${apiParam}`;
     }
 
     // ================= MENING TESTLARIM (TAB 2) =================
@@ -3239,7 +3241,7 @@
                   <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                   Kodni nusxalash
                 </button>
-                <button type="button" class="btn-action-small" onclick="window.open('/?code=${encodeURIComponent(t.code)}', '_blank')">
+                <button type="button" class="btn-action-small" onclick="window.open((window.location.hostname.includes('github.io') ? '../index.html' : '/') + '?code=' + encodeURIComponent('${escapeHtml(t.code)}') + (API_BASE ? '&api=' + encodeURIComponent(API_BASE) : ''), '_blank')">
                   <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   Ko'rish
                 </button>
