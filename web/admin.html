@@ -1646,6 +1646,10 @@
       }
       const saved = localStorage.getItem('MS_API_BASE_URL');
       if (saved) return saved;
+      // GitHub Pages bo'lmasa, joriy server URLini ishlatamiz
+      if (!window.location.hostname.includes('github.io')) {
+        return window.location.origin;
+      }
       return '';
     }
     const API_BASE = getApiBaseUrl();

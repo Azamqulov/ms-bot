@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     WEB_SERVER_HOST: str = "0.0.0.0"
     WEB_SERVER_PORT: int = 8000
     WEB_APP_URL: str = "https://azamqulov.github.io/ms-bot/"
+    API_SERVER_URL: str = ""  # cloudflared yoki real server URL (masalan: https://xxxx.trycloudflare.com)
 
     model_config = SettingsConfigDict(
         env_file=".env",

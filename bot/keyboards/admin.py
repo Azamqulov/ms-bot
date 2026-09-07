@@ -7,12 +7,22 @@ def get_admin_dashboard_keyboard(is_super: bool) -> InlineKeyboardMarkup:
     """Admin boshqaruv paneli klaviaturasi"""
     builder = InlineKeyboardBuilder()
 
-    # Veb Konstruktorni ochish tugmasi
-    admin_url = (
+    # Admin URL: GitHub Pages dan HTML, API so'rovlari esa API_SERVER_URL ga
+    base_admin_url = (
         f"{settings.WEB_APP_URL.rstrip('/')}/web/admin.html"
         if "github.io" in settings.WEB_APP_URL
         else f"{settings.WEB_APP_URL.rstrip('/')}/admin"
     )
+
+    # Agar API_SERVER_URL belgilangan bo'lsa, ?api= parametrini qo'shamiz
+    if settings.API_SERVER_URL and "github.io" in settings.WEB_APP_URL:
+        import urllib.parse
+        api_clean = settings.API_SERVER_URL.rstrip('/')
+        delimiter = "&" if "?" in base_admin_url else "?"
+        admin_url = f"{base_admin_url}{delimiter}api={urllib.parse.quote(api_clean, safe=':/')}"
+    else:
+        admin_url = base_admin_url
+
     builder.row(
         InlineKeyboardButton(
             text="🌐 Veb Konstruktorni ochish (TMA)",
