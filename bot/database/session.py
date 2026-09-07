@@ -4,15 +4,22 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from bot.config import settings
 from bot.database.models import Base
 
+import sys
+
+# Agar pytest orqali ishga tushirilayotgan bo'lsa, ishlab turgan ma'lumotlar bazasiga
+# ta'sir qilmaslik uchun avtomatik ravishda alohida test bazasi ishlatiladi
+is_test_env = "pytest" in sys.modules or any("pytest" in arg.lower() for arg in sys.argv)
+effective_db_url = "sqlite+aiosqlite:///./data/test_sandbox.db" if is_test_env else settings.DATABASE_URL
+
 # Agar SQLite ishlatilsa va data papkasi yo'q bo'lsa, yaratamiz
-if "sqlite" in settings.DATABASE_URL:
-    db_path = settings.DATABASE_URL.replace("sqlite+aiosqlite:///", "")
+if "sqlite" in effective_db_url:
+    db_path = effective_db_url.replace("sqlite+aiosqlite:///", "")
     parent_dir = Path(db_path).parent
     if parent_dir and not parent_dir.exists():
         parent_dir.mkdir(parents=True, exist_ok=True)
 
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    effective_db_url,
     echo=False,
     future=True
 )
