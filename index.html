@@ -1030,7 +1030,7 @@
             <svg class="icon" viewBox="0 0 24 24">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Natijani tekshirish</span>
+            <span>Testni yakunlash</span>
           </button>
         </div>
       </div>
@@ -1168,14 +1168,14 @@
           <line x1="12" y1="8" x2="12" y2="12"></line>
           <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
-        Natijani hisoblaymizmi?
+        Testni yakunlaysizmi?
       </div>
       <p class="modal-text" id="finishModalText" style="font-size:14px; color:var(--text-muted); line-height:1.5; margin-bottom:18px;">
-        Javoblar varaqangiz tekshirish uchun yuboriladi va Rash (IRT) modeli asosida rasmiy ballingiz hisoblanadi.
+        Javoblaringiz qabul qilinadi va test yakunlanadi.
       </p>
       <div class="modal-actions">
-        <button class="btn-modal-cancel" onclick="closeFinishModal()">Tekshirib chiqaman</button>
-        <button class="btn-modal-danger" id="btnConfirmSubmit" onclick="executeSubmitTest()">Ha, tekshirilsin</button>
+        <button class="btn-modal-cancel" onclick="closeFinishModal()">Davom ettirish</button>
+        <button class="btn-modal-danger" id="btnConfirmSubmit" onclick="executeSubmitTest()">Ha, tugatish</button>
       </div>
     </div>
   </div>
@@ -1901,9 +1901,9 @@
 
       const descEl = document.getElementById('finishModalText');
       if (emptyCount > 0) {
-        descEl.innerText = `Siz ${count} ta savolni to'ldirdingiz. ${emptyCount} ta savol belgilanmadi (ular xato deb baholanadi). Testni tekshirib natijani chiqaramizmi?`;
+        descEl.innerText = `Siz ${count} ta savolni to'ldirdingiz. ${emptyCount} ta savol belgilanmadi (ular xato deb baholanadi). Testni yakunlab, natijani chiqaramizmi?`;
       } else {
-        descEl.innerText = `Barcha 45 ta savol to'liq to'ldirildi! Natijani hisoblash uchun tekshirishga yuborilsinmi?`;
+        descEl.innerText = `Barcha 45 ta savol to'liq to'ldirildi! Testni yakunlaysizmi?`;
       }
 
       document.getElementById('finishModal').classList.add('open');
@@ -1924,7 +1924,7 @@
         submitBtn.innerHTML = `
           <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
             <div style="width:16px; height:16px; border:2px solid #fff; border-top:2px solid transparent; border-radius:50%; animation:spin 0.6s linear infinite;"></div>
-            <span>Tekshirilmoqda...</span>
+            <span>Yakunlanmoqda...</span>
           </div>
         `;
       }
@@ -1996,7 +1996,7 @@
         if (overlay) overlay.style.display = 'none';
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.innerText = "Ha, tekshirilsin";
+          submitBtn.innerText = "Ha, tugatish";
         }
       }
     }
