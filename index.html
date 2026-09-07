@@ -836,17 +836,6 @@
       </div>
     </header>
 
-    <!-- Server Connection Status Bar -->
-    <div class="api-status-bar" id="apiStatusBar" style="display:flex; align-items:center; justify-content:space-between; padding:8px 14px; background:var(--card-sub-bg); border:1px solid var(--border); border-radius:8px; margin-bottom:14px; font-size:12px;">
-      <div style="display:flex; align-items:center; gap:7px; font-weight:500; color:var(--text-main);">
-        <span class="status-dot warning" id="statusDot" style="width:9px; height:9px; border-radius:50%; display:inline-block; background:#f59e0b;"></span>
-        <span id="statusText">Server holati tekshirilmoqda...</span>
-      </div>
-      <button type="button" onclick="openApiConfigModal()" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); font-size:11px; font-weight:600; padding:4px 10px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:5px;">
-        ⚙️ Sozlash
-      </button>
-    </div>
-
     <!-- SCREEN 1: KOD KIRITISH & BOSHLASH -->
     <div class="screen active" id="screenCode">
       <div class="hero-card">
@@ -1092,31 +1081,6 @@
     </div>
   </div>
 
-  <!-- MODAL: SERVER SOZLAMALARI -->
-  <div class="modal-overlay" id="apiConfigModal">
-    <div class="modal-box" style="max-width: 440px;">
-      <div class="modal-title">
-        <svg class="icon" style="color:var(--primary);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        <span>Server Sozlamasi</span>
-      </div>
-      <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">
-        Test savollari va natijalarni yuklash uchun backend API server manzili:
-      </p>
-      <div style="margin-bottom: 12px;">
-        <label style="display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:6px;">Backend Server URL:</label>
-        <input type="text" id="inputApiUrl" class="input-box" style="text-align:left; text-transform:none; font-size:13px; font-family:monospace; margin-bottom:0;" placeholder="https://xxxx.trycloudflare.com">
-      </div>
-      <div id="apiTestStatusBox" style="font-size:12px; padding:8px 12px; border-radius:6px; margin-bottom:12px; display:none;"></div>
-      <div class="modal-actions" style="display:flex; justify-content:space-between;">
-        <button class="btn-modal-cancel" onclick="resetApiUrlToDefault()">Tozalash</button>
-        <div style="display:flex; gap:8px;">
-          <button class="btn-modal-cancel" onclick="closeModal('apiConfigModal')">Yopish</button>
-          <button class="btn btn-primary" id="btnSaveApiConfig" onclick="saveApiUrlConfig()">Ulash</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script>
     // Theme Management (Light / Dark)
     let currentTheme = localStorage.getItem('theme') || 'dark';
@@ -1135,7 +1099,7 @@
     }
 
     function toggleTheme() {
-      applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+      applyTheme(currentTheme === 'light' ? 'dark' : 'light');
     }
 
     applyTheme(currentTheme);
@@ -1157,17 +1121,19 @@
       }, 3500);
     }
 
-    // Telegram WebApp Setup
+    // Telegram WebApp Initialization
     const tg = window.Telegram?.WebApp;
     if (tg) {
+      tg.ready();
       tg.expand();
-      tg.enableClosingConfirmation();
       if (tg.colorScheme) {
         applyTheme(tg.colorScheme);
       }
     }
 
-    // Backend API Base URL Resolver
+    // Backend API Base URL Resolver (100% Avtomatik)
+    const DEFAULT_API_BASE = "https://solomon-marie-bloom-trivia.trycloudflare.com";
+
     function getApiBaseUrl() {
       const urlParams = new URLSearchParams(window.location.search);
       const queryApi = urlParams.get('api');
@@ -1177,134 +1143,14 @@
         return clean;
       }
       const saved = localStorage.getItem('MS_API_BASE_URL');
-      if (saved) return saved;
-      // GitHub Pages bo'lmasa, joriy server URLini ishlatamiz
+      if (saved && !saved.includes('localhost')) return saved;
       if (!window.location.hostname.includes('github.io')) {
         return window.location.origin;
       }
-      return '';
+      return DEFAULT_API_BASE;
     }
-    let API_BASE = getApiBaseUrl();
+    const API_BASE = getApiBaseUrl(); 
 
-    function updateStatusBarUI(status, message) {
-      const dot = document.getElementById('statusDot');
-      const text = document.getElementById('statusText');
-      if (!dot || !text) return;
-      dot.className = 'status-dot ' + status;
-      if (status === 'online') {
-        dot.style.background = '#10b981';
-      } else if (status === 'offline') {
-        dot.style.background = '#ef4444';
-      } else {
-        dot.style.background = '#f59e0b';
-      }
-      text.innerText = message;
-    }
-
-    async function checkServerConnection(targetUrl) {
-      const testBase = (targetUrl !== undefined ? targetUrl : API_BASE).replace(/\/+$/, '');
-      if (!testBase) {
-        if (window.location.hostname.includes('github.io')) {
-          updateStatusBarUI('offline', "Server ulanmagan! (Sozlashni bosing)");
-        } else {
-          updateStatusBarUI('offline', "Lokal server ulanmagan");
-        }
-        return false;
-      }
-
-      updateStatusBarUI('warning', "Server tekshirilmoqda...");
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
-        const res = await fetch(`${testBase}/api/user/1685356708`, {
-          method: 'GET',
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (res.ok) {
-          try {
-            const hostDisplay = new URL(testBase).host;
-            updateStatusBarUI('online', `Server faol (${hostDisplay})`);
-          } catch(e) {
-            updateStatusBarUI('online', "Server faol");
-          }
-          return true;
-        } else {
-          updateStatusBarUI('offline', `Server xatosi: ${res.status}`);
-          return false;
-        }
-      } catch (err) {
-        updateStatusBarUI('offline', "Server bilan aloqa yo'q! (Sozlashni bosing)");
-        return false;
-      }
-    }
-
-    function openApiConfigModal() {
-      const modal = document.getElementById('apiConfigModal');
-      const inp = document.getElementById('inputApiUrl');
-      const box = document.getElementById('apiTestStatusBox');
-      if (inp) inp.value = API_BASE || '';
-      if (box) box.style.display = 'none';
-      if (modal) modal.classList.add('active');
-    }
-
-    async function saveApiUrlConfig() {
-      const inp = document.getElementById('inputApiUrl');
-      const btn = document.getElementById('btnSaveApiConfig');
-      const box = document.getElementById('apiTestStatusBox');
-      const val = (inp?.value || '').trim().replace(/\/+$/, '');
-
-      if (!val) {
-        box.style.display = 'block';
-        box.style.background = 'rgba(239, 68, 68, 0.15)';
-        box.style.color = '#ef4444';
-        box.innerText = "Iltimos, server URL manzilini kiriting!";
-        return;
-      }
-
-      btn.disabled = true;
-      btn.innerText = "Tekshirilmoqda...";
-      box.style.display = 'block';
-      box.style.background = 'rgba(37, 99, 235, 0.15)';
-      box.style.color = '#2563eb';
-      box.innerText = "Serverga ulanish tekshirilmoqda...";
-
-      const isOk = await checkServerConnection(val);
-      btn.disabled = false;
-      btn.innerText = "Ulash";
-
-      if (isOk) {
-        API_BASE = val;
-        localStorage.setItem('MS_API_BASE_URL', val);
-        box.style.background = 'rgba(16, 185, 129, 0.15)';
-        box.style.color = '#10b981';
-        box.innerText = "✅ Server muvaffaqiyatli ulandi!";
-        showToast("Server muvaffaqiyatli ulandi!");
-        setTimeout(() => {
-          closeModal('apiConfigModal');
-        }, 800);
-      } else {
-        box.style.background = 'rgba(239, 68, 68, 0.15)';
-        box.style.color = '#ef4444';
-        box.innerText = "❌ Ushbu manzilga ulanib bo'lmadi. Bot va tunnel ishlab turganini tekshiring!";
-      }
-    }
-
-    function resetApiUrlToDefault() {
-      localStorage.removeItem('MS_API_BASE_URL');
-      API_BASE = getApiBaseUrl();
-      const inp = document.getElementById('inputApiUrl');
-      if (inp) inp.value = API_BASE || '';
-      const box = document.getElementById('apiTestStatusBox');
-      if (box) {
-        box.style.display = 'block';
-        box.style.background = 'rgba(100, 116, 139, 0.15)';
-        box.style.color = 'var(--text-muted)';
-        box.innerText = "Kesh tozalandi.";
-      }
-      checkServerConnection();
-    }
 
     let currentTest = null;
     let questions = [];
@@ -1509,38 +1355,21 @@
         return;
       }
 
-      if (!API_BASE && window.location.hostname.includes('github.io')) {
-        openApiConfigModal();
-        showToast("Server manzili ulanmagan! Iltimos, sozlashni bosing.", true);
-        return;
-      }
+      showToast("Test yuklanmoqda...");
 
       try {
         const res = await fetch(`${API_BASE}/api/test/${encodeURIComponent(code)}`);
         if (res.status === 404) {
-          const cType = res.headers.get("content-type") || "";
-          if (cType.includes("application/json")) {
-            showToast(`Kechirasiz, '${code}' kodli test topilmadi! Kodni to'g'ri kiritganingizni tekshiring.`, true);
-          } else {
-            showToast("Server bilan aloqa uzildi! Iltimos, server sozlamasini tekshiring.", true);
-            openApiConfigModal();
-          }
+          showToast(`Kechirasiz, '${code}' kodli test topilmadi! Kodni to'g'ri kiritganingizni tekshiring.`, true);
           return;
         }
         if (!res.ok) {
-          showToast(`Server xatosi (${res.status})! Iltimos, server sozlamasini tekshiring.`, true);
-          openApiConfigModal();
+          showToast("Testni yuklab bo'lmadi. Server javob bermadi.", true);
           return;
         }
 
-        const cType = res.headers.get("content-type") || "";
-        if (!cType.includes("application/json")) {
-          showToast("Server bilan ulanish uzildi! Iltimos, server sozlamasini tekshiring.", true);
-          openApiConfigModal();
-          return;
-        }
-
-        currentTest = await res.json();
+        const data = await res.json();
+        currentTest = data;
         questions = currentTest.questions;
 
         if (!questions || questions.length === 0) {
@@ -1549,7 +1378,6 @@
         }
 
         sessionStartTime = Date.now();
-        // Har bir testning o'z vaqt chegarasi olinadi
         remainingSeconds = (currentTest.time_limit_min || 150) * 60;
         answers = {};
 
@@ -1559,8 +1387,7 @@
         showScreen('screenQuiz');
         renderAnswerSheet();
       } catch (err) {
-        showToast("Server bilan ulanishda xatolik: " + err.message, true);
-        openApiConfigModal();
+        showToast("Server bilan aloqa uzildi. Iltimos, qayta urinib ko'ring!", true);
       }
     }
 
@@ -2060,7 +1887,6 @@
 
     // ================= DASTUR ISHGA TUSHGANDA VA F5 BOSILGANDA TIKLASH =================
     window.addEventListener('DOMContentLoaded', () => {
-      checkServerConnection();
       fetchUserProfile();
       updateAdminLink();
       checkAndRestoreSession();
@@ -2072,7 +1898,6 @@
       }
     });
 
-    checkServerConnection();
     fetchUserProfile();
     updateAdminLink();
     checkAndRestoreSession();
