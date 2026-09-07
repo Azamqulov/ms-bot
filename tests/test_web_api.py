@@ -88,3 +88,17 @@ async def test_web_api_endpoints():
         user_data = user_res.json()
         assert "registered" in user_data
         assert "full_name" in user_data
+
+        # 7. Test yaratuvchisi bildirishnoma matnini tekshirish
+        from bot.services.report_service import generate_teacher_notification
+        from bot.database.models import User, Attempt
+        from bot.core.rasch import RaschResult
+        fake_student = User(id=99, telegram_id=999999, full_name="Ali Valiyev", phone_number="+998901234567")
+        fake_attempt = Attempt(id=1, test_id=1, user_id=99)
+        fake_rasch = RaschResult(raw_score=40, total_items=45, theta=1.5, standard_error=0.3, final_score=68.5, grade="A+", is_certified=True)
+        teacher_msg = generate_teacher_notification(fake_student, "Matematika Test 1", "MS-1234-A", fake_attempt, fake_rasch)
+        assert "YANGI TEST NATIJASI QABUL QILINDI" in teacher_msg
+        assert "Ali Valiyev" in teacher_msg
+        assert "+998901234567" in teacher_msg
+        assert "68.5 / 75.0" in teacher_msg
+        assert "MS-1234-A" in teacher_msg

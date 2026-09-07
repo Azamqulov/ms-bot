@@ -90,3 +90,39 @@ def generate_history_report(attempts: List[Attempt]) -> str:
 
     lines.append("\n💡 <i>Har bir test sizning bilim darajangizni oshirishga xizmat qiladi.</i>")
     return "\n".join(lines)
+
+
+def generate_teacher_notification(
+    student: User,
+    test_title: str,
+    test_code: str,
+    attempt: Attempt,
+    rasch_result: RaschResult
+) -> str:
+    """Test yaratgan o'qituvchi/muallif uchun yangi natija haqida bildirishnoma matni"""
+    duration_sec = 0
+    if attempt.finished_at and attempt.started_at:
+        duration_sec = int((attempt.finished_at - attempt.started_at).total_seconds())
+
+    duration_str = format_duration(max(1, duration_sec))
+    grade_badge = get_grade_badge(rasch_result.grade)
+
+    user_tg = f"@{student.username}" if student.username else f"ID: {student.telegram_id}"
+    phone = student.phone_number or "Kiritilmagan"
+
+    return (
+        f"📬 <b>YANGI TEST NATIJASI QABUL QILINDI!</b>\n\n"
+        f"📝 <b>Test:</b> {test_title} (Kod: <code>{test_code}</code>)\n"
+        f"👤 <b>Talabgor (O'quvchi):</b> {student.full_name}\n"
+        f"📱 <b>Telefon raqami:</b> <code>{phone}</code>\n"
+        f"🆔 <b>Telegram:</b> {user_tg}\n"
+        f"⏱ <b>Sarflangan vaqt:</b> {duration_str}\n"
+        f"📅 <b>Sana:</b> {attempt.finished_at.strftime('%Y-%m-%d %H:%M') if attempt.finished_at else datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n"
+        f"➖➖➖➖➖➖➖➖➖➖\n"
+        f"🎯 <b>YAKUNIY BALL:</b> <code>{rasch_result.final_score:.1f} / 75.0</code>\n"
+        f"🎖 <b>DARAJA:</b> <b>{grade_badge}</b>\n"
+        f"📊 <b>To'g'ri javoblar:</b> <code>{rasch_result.raw_score} / {rasch_result.total_items}</code> ta\n"
+        f"🧠 <b>Qobiliyat (θ):</b> <code>{rasch_result.theta:+.2f} logit</code>\n"
+        f"➖➖➖➖➖➖➖➖➖➖\n\n"
+        f"💡 <i>Ushbu testni siz yaratganingiz uchun talabgorning to'liq natijasi sizga yuborildi.</i>"
+    )

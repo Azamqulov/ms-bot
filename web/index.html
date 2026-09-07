@@ -394,58 +394,55 @@
       gap: 8px;
     }
 
+    .sheet-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
     .sheet-row {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--card-sub-bg);
+      flex-direction: column;
+      align-items: flex-start;
+      background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px 12px;
-      transition: border-color 0.15s ease;
+      border-radius: 12px;
+      padding: 14px 16px;
+      gap: 12px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
 
     .sheet-row.has-answer {
-      border-color: rgba(59, 130, 246, 0.4);
+      border-color: rgba(59, 130, 246, 0.45);
     }
 
-    .sheet-q-num-btn {
+    .sheet-q-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-main);
       display: flex;
       align-items: center;
-      gap: 6px;
-      background: transparent;
-      border: none;
-      color: var(--text-main);
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      padding: 4px 6px;
-      border-radius: 6px;
-      flex-shrink: 0;
-      min-width: 48px;
-    }
-
-    .sheet-q-num-btn:hover {
-      background: var(--opt-hover);
-      color: var(--primary);
+      justify-content: space-between;
+      width: 100%;
     }
 
     .sheet-bubbles-group {
       display: flex;
       align-items: center;
-      gap: 8px;
-      flex-wrap: nowrap;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .bubble-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
       border: 1.5px solid var(--border);
-      background: var(--bubble-bg);
-      color: var(--bubble-text);
-      font-weight: 700;
-      font-size: 13px;
+      background: var(--card-sub-bg);
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 15px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -456,40 +453,43 @@
 
     .bubble-btn:hover {
       border-color: var(--primary);
-      color: var(--text-main);
+      background: var(--opt-hover);
     }
 
     .bubble-btn.selected {
       background: var(--primary) !important;
       border-color: var(--primary) !important;
       color: #ffffff !important;
-      box-shadow: 0 0 0 3px var(--primary-soft);
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+      font-weight: 700;
     }
 
     /* 33-35 6-bubble row */
     .sheet-bubbles-group.six-opts {
-      gap: 5px;
+      gap: 8px;
     }
 
     .sheet-bubbles-group.six-opts .bubble-btn {
-      width: 32px;
-      height: 32px;
-      font-size: 12px;
+      width: 40px;
+      height: 40px;
+      font-size: 14px;
     }
 
     /* Ochiq savollar qatori (36-45) */
     .open-sheet-row {
       display: flex;
       flex-direction: column;
-      background: var(--card-sub-bg);
+      background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      gap: 8px;
+      border-radius: 12px;
+      padding: 14px 16px;
+      gap: 12px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
 
     .open-sheet-row.has-answer {
-      border-color: rgba(16, 185, 129, 0.4);
+      border-color: rgba(59, 130, 246, 0.45);
     }
 
     .open-sheet-header {
@@ -1462,11 +1462,9 @@
           });
 
           row.innerHTML = `
-            <button class="sheet-q-num-btn" onclick="peekQuestion(${orderNo})" title="Savolni ko'rish">
-              <span style="color:var(--text-muted); font-size:12px;">#</span>
-              <span>${orderNo}</span>
-              <svg class="icon icon-sm" style="color:var(--text-muted); margin-left:2px;" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            </button>
+            <div class="sheet-q-title">
+              <span>${orderNo}-savol</span>
+            </div>
             <div class="sheet-bubbles-group">
               ${bubblesHtml}
             </div>
@@ -1508,11 +1506,9 @@
           });
 
           row.innerHTML = `
-            <button class="sheet-q-num-btn" onclick="peekQuestion(${orderNo})" title="Savolni ko'rish">
-              <span style="color:var(--text-muted); font-size:12px;">#</span>
-              <span>${orderNo}</span>
-              <svg class="icon icon-sm" style="color:var(--text-muted); margin-left:2px;" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            </button>
+            <div class="sheet-q-title">
+              <span>${orderNo}-savol</span>
+            </div>
             <div class="sheet-bubbles-group six-opts">
               ${bubblesHtml}
             </div>
@@ -1529,13 +1525,8 @@
           row.id = `sheetRow_${qId}`;
 
           row.innerHTML = `
-            <div class="open-sheet-header">
-              <button class="sheet-q-num-btn" onclick="peekQuestion(${orderNo})" title="Savolni ko'rish">
-                <span style="color:var(--text-muted); font-size:12px;">#</span>
-                <span>${orderNo}</span>
-                <span style="font-size:12px; font-weight:500; color:var(--text-muted); margin-left:6px;">(yozma)</span>
-                <svg class="icon icon-sm" style="color:var(--text-muted); margin-left:4px;" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-              </button>
+            <div class="sheet-q-title">
+              <span>${orderNo}-savol (yozma)</span>
             </div>
             <div class="open-inputs-pair">
               <div class="open-sub-field-wrap${ansA ? ' filled' : ''}" id="wrapSubA_${qId}">

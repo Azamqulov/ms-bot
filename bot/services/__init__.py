@@ -9,7 +9,7 @@ from .test_service import (
     finish_attempt,
     get_user_attempts_history,
 )
-from .report_service import generate_result_report, generate_history_report
+from .report_service import generate_result_report, generate_history_report, generate_teacher_notification
 
 __all__ = [
     "get_or_create_user",
@@ -23,4 +23,5 @@ __all__ = [
     "get_user_attempts_history",
     "generate_result_report",
     "generate_history_report",
+    "generate_teacher_notification",
 ]

@@ -38,7 +38,7 @@ from bot.services.test_service import (
     finish_attempt,
     get_default_test,
 )
-from bot.services.report_service import generate_result_report
+from bot.services.report_service import generate_result_report, generate_teacher_notification
 from bot.core.validator import check_open_answer
 
 logger = logging.getLogger(__name__)
@@ -228,18 +228,45 @@ async def api_submit_test(payload: SubmitTestRequest):
 
     completed_attempt, rasch_result = await finish_attempt(attempt.id)
 
-    # Natijani avtomatik Telegram Bot orqali foydalanuvchining chatiga yuborish
+    # Natijani avtomatik Telegram Bot orqali yuborish
     bot = getattr(app.state, "bot", None)
-    if bot and payload.telegram_id:
+    if bot:
+        # 1. Talabgorning o'ziga to'liq natija xabarini yuborish
+        if payload.telegram_id:
+            try:
+                report_text = generate_result_report(user, completed_attempt, rasch_result)
+                await bot.send_message(
+                    chat_id=payload.telegram_id,
+                    text=report_text,
+                    parse_mode="HTML"
+                )
+            except Exception as e:
+                logger.warning(f"Telegram orqali talabgorga natija yuborishda ogohlantirish: {e}")
+
+        # 2. Test yaratgan odam (muallif / o'qituvchi) ning telegramiga natijani yuborish
         try:
-            report_text = generate_result_report(user, completed_attempt, rasch_result)
-            await bot.send_message(
-                chat_id=payload.telegram_id,
-                text=report_text,
-                parse_mode="HTML"
-            )
+            async with async_session_maker() as session:
+                t_stmt = select(Test).where(Test.id == payload.test_id)
+                t_res = await session.execute(t_stmt)
+                test_obj = t_res.scalar_one_or_none()
+                if test_obj and test_obj.created_by_user_id:
+                    c_user = await session.get(User, test_obj.created_by_user_id)
+                    if c_user and c_user.telegram_id:
+                        teacher_text = generate_teacher_notification(
+                            student=user,
+                            test_title=test_obj.title,
+                            test_code=test_obj.code,
+                            attempt=completed_attempt,
+                            rasch_result=rasch_result
+                        )
+                        await bot.send_message(
+                            chat_id=c_user.telegram_id,
+                            text=teacher_text,
+                            parse_mode="HTML"
+                        )
+                        logger.info(f"Natija test yaratuvchisi ({c_user.telegram_id}) ga muvaffaqiyatli yuborildi.")
         except Exception as e:
-            logger.warning(f"Telegram orqali natija yuborishda ogohlantirish: {e}")
+            logger.warning(f"Test yaratuvchisiga Telegram orqali natija yuborishda ogohlantirish: {e}")
 
     detailed_results = []
     try:

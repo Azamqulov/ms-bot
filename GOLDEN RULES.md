@@ -49,6 +49,8 @@
 - [x] 18. GitHub Pages uchun root papkada faqat `index.html` qoldirildi, `admin.html` faqat `web/admin.html` da saqlandi.
 - [x] 19. Botda birinchi kirganda Ism-familiya va Telefon raqamini so'rash (onboarding), ushbu shaxsiy ma'lumotlar bilan WebApp da test topshirish va natijani avtomatik ravishda talabgorning Telegram botiga batafsil hisobot ko'rinishida yuborish to'liq joriy qilindi.
 - [x] 20. Admin panelida 33-35 kontekstli savollar bloki test tekshirish (OMR) tizimiga moslashtirildi: barcha ortiqcha matn/chizma maydonlari yig'ishtirilib, to'g'ridan-to'g'ri 6 ta variantli (A–F) toza kalit tanlash qatorlari joriy qilindi.
+- [x] 21. O'quvchi javoblar varaqasi foydalanuvchi yuborgan andazaga to'liq moslashtirildi: har bir savol alohida kartochkaga olinib (`1-savol` va pastida `[A][B][C][D]` to'rtburchak tugmalar), ko'z ikonkasi yashirildi.
+- [x] 22. Test topshirilganda natijalar nafaqat o'quvchiga, balki ushbu testni yaratgan o'qituvchi/muallifning Telegramiga ham to'liq ma'lumotlar bilan (ism, telefon, ball, daraja) avtomatik yuborilishi ta'minlandi.
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.
