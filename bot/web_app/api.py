@@ -37,8 +37,12 @@ from bot.core.validator import check_open_answer
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-WEB_DIR = Path("web")
-WEB_DIR.mkdir(parents=True, exist_ok=True)
+def get_html_path(filename: str) -> Path:
+    """Faylni root (.) yoki web/ papkasidan qidirish"""
+    for candidate in [Path(filename), Path("web") / filename]:
+        if candidate.exists():
+            return candidate
+    return Path(filename)
 
 app = FastAPI(title="Milliy Sertifikat Matematika API & TMA")
 
@@ -52,14 +56,17 @@ app.add_middleware(
 
 # Rasmlar va Statik fayllarni ulash
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-app.mount("/static", StaticFiles(directory="web"), name="static")
+if Path("web").exists():
+    app.mount("/static", StaticFiles(directory="web"), name="static")
 
 
 # Pydantic modellar
 class SubmitAnswerItem(BaseModel):
     question_id: int
-    user_answer: str
+    user_answer: Optional[str] = ""
     sub_part_label: Optional[str] = None
+    open_sub_key: Optional[str] = None
+    answer_text: Optional[str] = ""
 
 
 class SubmitTestRequest(BaseModel):
@@ -70,11 +77,24 @@ class SubmitTestRequest(BaseModel):
     answers: List[SubmitAnswerItem]
 
 
+class CreateQuestionItem(BaseModel):
+    order_no: int
+    type: str  # Y-1, Guruhlangan, O
+    section: Optional[str] = "Algebra"
+    difficulty_b: Optional[float] = 0.0
+    text: Optional[str] = ""
+    image_url: Optional[str] = None
+    options: Optional[Dict[str, str]] = None
+    correct_answer: Optional[str] = None
+    sub_questions: Optional[List[Dict[str, Any]]] = None
+
+
 class CreateTestPayload(BaseModel):
-    creator_telegram_id: int
+    creator_telegram_id: Optional[int] = None
     code: str
     title: str
     description: Optional[str] = ""
+    subject: Optional[str] = "Matematika"
     time_limit_min: int = 150
     questions: List[Dict[str, Any]]
     grouped_context: Optional[Dict[str, Any]] = None
@@ -91,7 +111,7 @@ class CreateTestPayload(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
-    index_file = WEB_DIR / "index.html"
+    index_file = get_html_path("index.html")
     if index_file.exists():
         return FileResponse(
             index_file,
@@ -102,7 +122,7 @@ async def serve_index():
 
 @app.get("/admin", response_class=HTMLResponse)
 async def serve_admin():
-    admin_file = WEB_DIR / "admin.html"
+    admin_file = get_html_path("admin.html")
     if admin_file.exists():
         return FileResponse(
             admin_file,
