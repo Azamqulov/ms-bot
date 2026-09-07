@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Milliy Sertifikat — Matematika Mock Test</title>
+  <title>Milliy Sertifikat — Test Tekshirish Tizimi (Javoblar Varaqasi)</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -33,10 +33,14 @@
       --primary-hover: #2563eb;
       --primary-soft: rgba(59, 130, 246, 0.15);
       --success: #10b981;
+      --success-soft: rgba(16, 185, 129, 0.15);
       --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.15);
       --danger-hover: #dc2626;
       --border: #22324e;
       --opt-hover: #1c2b46;
+      --bubble-bg: #1c2b46;
+      --bubble-text: #cbd5e1;
       --shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
       --radius: 14px;
     }
@@ -51,14 +55,17 @@
       --primary-hover: #1d4ed8;
       --primary-soft: rgba(37, 99, 235, 0.1);
       --success: #059669;
+      --success-soft: rgba(5, 150, 105, 0.1);
       --danger: #e11d48;
+      --danger-soft: rgba(225, 29, 72, 0.1);
       --danger-hover: #be123c;
       --border: #cbd5e1;
-      --opt-hover: #f1f5f9;
+      --opt-hover: #e2e8f0;
+      --bubble-bg: #f1f5f9;
+      --bubble-text: #334155;
       --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
     }
 
-    /* Universal selectorga transition qo'ymaymiz! (Miltillash va sakrashni yo'qotish uchun) */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -76,7 +83,7 @@
     }
 
     .container {
-      max-width: 650px;
+      max-width: 680px;
       margin: 0 auto;
       padding: 16px;
       width: 100%;
@@ -171,7 +178,7 @@
       display: flex;
     }
 
-    /* Start / Code Screen */
+    /* Hero / Code Screen */
     .hero-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -247,147 +254,306 @@
       margin-top: 10px;
     }
 
-    /* Test Question Screen */
-    .meta-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-      font-weight: 600;
-    }
-
-    .q-card {
+    /* ================= JAVOBLAR VARAQASI (ANSWER SHEET) UI ================= */
+    .sheet-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px;
+      padding: 18px 16px;
       margin-bottom: 16px;
-      line-height: 1.6;
-      font-size: 16px;
       box-shadow: var(--shadow);
     }
 
-    .q-image-container {
-      margin-top: 14px;
-      text-align: center;
-      background: var(--card-sub-bg);
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-    }
-
-    .q-image-container img {
-      max-width: 100%;
-      max-height: 280px;
-      border-radius: 8px;
-      object-fit: contain;
-    }
-
-    /* Options - No Flash / Static Layout */
-    .options-grid {
+    .sheet-meta-bar {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-
-    .option-item {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 16px;
-      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      font-size: 15px;
-      line-height: 1.4;
-      user-select: none;
-    }
-
-    .option-item:hover {
-      background: var(--opt-hover);
-    }
-
-    .option-item.selected {
-      border-color: var(--primary) !important;
-      background: var(--primary-soft) !important;
-    }
-
-    .opt-badge {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
       background: var(--card-sub-bg);
       border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 18px;
+    }
+
+    .sheet-progress-info {
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-weight: 700;
+      gap: 8px;
       font-size: 13px;
-      flex-shrink: 0;
+      font-weight: 700;
       color: var(--text-main);
     }
 
-    .option-item.selected .opt-badge {
+    .sheet-quick-btn {
+      background: var(--primary-soft);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sheet-quick-btn:active {
+      transform: scale(0.96);
+    }
+
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-badge {
       background: var(--primary);
-      border-color: var(--primary);
       color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
     }
 
-    .opt-text {
-      flex: 1;
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
     }
 
-    /* Open question inputs */
-    .open-input-group {
+    .section-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    /* Context box for 33-35 */
+    .context-sheet-box {
+      background: var(--card-sub-bg);
+      border-left: 3px solid var(--primary);
+      border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
       margin-bottom: 14px;
+      font-size: 13px;
+      line-height: 1.5;
     }
 
-    .open-input-group label {
+    /* Sheet Rows (OMR Grid Style) */
+    .sheet-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sheet-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card-sub-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      transition: border-color 0.15s ease;
+    }
+
+    .sheet-row.has-answer {
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+
+    .sheet-q-num-btn {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      font-weight: 600;
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      min-width: 48px;
     }
 
-    .open-field {
-      width: 100%;
-      padding: 12px 14px;
+    .sheet-q-num-btn:hover {
+      background: var(--opt-hover);
+      color: var(--primary);
+    }
+
+    .sheet-bubbles-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+
+    .bubble-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--bubble-bg);
+      color: var(--bubble-text);
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+
+    .bubble-btn:hover {
+      border-color: var(--primary);
+      color: var(--text-main);
+    }
+
+    .bubble-btn.selected {
+      background: var(--primary) !important;
+      border-color: var(--primary) !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    /* 33-35 6-bubble row on mobile */
+    .sheet-bubbles-group.six-opts {
+      gap: 5px;
+    }
+
+    .sheet-bubbles-group.six-opts .bubble-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 12px;
+    }
+
+    /* Ochiq savollar qatori (36-45) */
+    .open-sheet-row {
+      display: flex;
+      flex-direction: column;
       background: var(--card-sub-bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text-main);
-      font-size: 15px;
-      outline: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      gap: 8px;
     }
 
-    .open-field:focus {
+    .open-sheet-row.has-answer {
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    .open-sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .open-inputs-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .open-sub-field-wrap {
+      display: flex;
+      align-items: center;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2px 8px;
+    }
+
+    .open-sub-field-wrap:focus-within {
       border-color: var(--primary);
     }
 
-    /* Action & Navigation Rows */
-    .nav-bar {
-      display: flex;
-      gap: 10px;
-      margin-top: auto;
-      padding-top: 14px;
+    .open-sub-field-wrap.filled {
+      border-color: var(--success);
     }
 
-    .nav-btn {
-      flex: 1;
-      padding: 14px 10px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--card-bg);
+    .open-sub-label {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-right: 6px;
+    }
+
+    .open-sub-input {
+      width: 100%;
+      padding: 8px 4px;
+      background: transparent;
+      border: none;
       color: var(--text-main);
-      font-weight: 600;
       font-size: 14px;
+      font-weight: 600;
+      outline: none;
+    }
+
+    /* Floating bottom submit bar */
+    .floating-bar-spacer {
+      height: 80px;
+    }
+
+    .floating-submit-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+      padding: 12px 16px;
+      z-index: 99;
+      display: flex;
+      justify-content: center;
+    }
+
+    .floating-bar-content {
+      max-width: 680px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .floating-counter {
+      display: flex;
+      flex-direction: column;
+      min-width: 100px;
+    }
+
+    .floating-counter-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .floating-counter-val {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .btn-submit-main {
+      flex: 1;
+      background: #10b981;
+      color: #fff;
+      padding: 13px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -395,49 +561,12 @@
       gap: 8px;
     }
 
-    .nav-btn:active {
+    .btn-submit-main:active {
+      background: #059669;
       transform: scale(0.98);
     }
 
-    .nav-btn-danger {
-      background: var(--danger);
-      border-color: var(--danger);
-      color: #fff;
-    }
-
-    .nav-btn-danger:active {
-      background: var(--danger-hover);
-    }
-
-    /* KATTA XARITA TUGMASI (TUGMALAR TAGIDA) */
-    .map-bar-container {
-      margin-top: 10px;
-      width: 100%;
-    }
-
-    .btn-map-large {
-      width: 100%;
-      padding: 15px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text-main);
-      font-weight: 700;
-      font-size: 15px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: var(--shadow);
-    }
-
-    .btn-map-large:active {
-      background: var(--primary-soft);
-      border-color: var(--primary);
-    }
-
-    /* Question Map (Grid) Modal */
+    /* Modals */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -445,7 +574,7 @@
       background: rgba(0, 0, 0, 0.75);
       backdrop-filter: blur(5px);
       z-index: 9999;
-      padding: 20px;
+      padding: 16px;
       align-items: center;
       justify-content: center;
     }
@@ -458,9 +587,11 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 24px;
-      max-width: 460px;
+      padding: 22px;
+      max-width: 500px;
       width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
       box-shadow: var(--shadow);
       animation: modalFadeIn 0.2s ease-out;
     }
@@ -471,115 +602,50 @@
     }
 
     .modal-title {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 800;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       color: var(--text-main);
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .modal-text {
-      font-size: 14px;
-      color: var(--text-muted);
-      line-height: 1.5;
-      margin-bottom: 20px;
     }
 
     .modal-actions {
       display: flex;
-      gap: 12px;
-      margin-top: 24px;
-      align-items: stretch;
-    }
-
-    .modal-actions .btn {
-      flex: 1 1 0;
-      width: 50%;
-      height: 46px;
-      margin: 0 !important;
-      padding: 0 16px;
-      font-size: 15px;
-      font-weight: 700;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-sizing: border-box;
-      transition: all 0.2s ease;
-      user-select: none;
+      gap: 10px;
+      margin-top: 20px;
     }
 
     .btn-modal-cancel {
-      background: var(--card-sub-bg) !important;
-      border: 1.5px solid var(--border) !important;
-      color: var(--text-main) !important;
-    }
-
-    .btn-modal-cancel:hover, .btn-modal-cancel:active {
-      background: var(--opt-hover) !important;
-      border-color: var(--primary) !important;
-      transform: translateY(-1px);
+      flex: 1;
+      background: var(--card-sub-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
     }
 
     .btn-modal-danger {
-      background: #e11d48 !important;
-      border: 1.5px solid #e11d48 !important;
-      color: #ffffff !important;
-      box-shadow: 0 4px 14px rgba(225, 29, 72, 0.3) !important;
-    }
-
-    .btn-modal-danger:hover, .btn-modal-danger:active {
-      background: #be123c !important;
-      border-color: #be123c !important;
-      transform: translateY(-1px);
-    }
-
-    .q-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      margin: 18px 0;
-      max-height: 55vh;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-
-    .grid-cell {
-      aspect-ratio: 1;
-      background: var(--card-sub-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      color: var(--text-main);
-    }
-
-    .grid-cell.answered {
-      background: var(--success);
+      flex: 1;
+      background: #e11d48;
+      border: none;
       color: #fff;
-      border-color: var(--success);
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
     }
 
-    .grid-cell.active {
-      border: 2px solid var(--primary);
-      box-shadow: 0 0 0 2px var(--primary-soft);
-    }
-
-    /* Result Screen */
+    /* Result Screen & Diagnostic Matrix */
     .result-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 32px 20px;
+      padding: 24px 18px;
       text-align: center;
-      margin: auto 0;
       box-shadow: var(--shadow);
     }
 
@@ -587,18 +653,18 @@
       display: inline-block;
       font-size: 32px;
       font-weight: 900;
-      padding: 10px 26px;
+      padding: 10px 28px;
       border-radius: 16px;
       background: linear-gradient(135deg, #10b981, #059669);
       color: #fff;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .score-number {
-      font-size: 44px;
+      font-size: 42px;
       font-weight: 800;
       color: var(--primary);
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     .stat-row {
@@ -606,13 +672,57 @@
       justify-content: space-between;
       padding: 8px 0;
       border-bottom: 1px solid var(--border);
+      font-size: 14px;
     }
 
     .stat-row:last-child {
       border-bottom: none;
     }
 
-    /* Toast Notification */
+    /* 45 talik diagnostika kataklari */
+    .diag-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin: 16px 0;
+      max-height: 40vh;
+      overflow-y: auto;
+      padding: 4px;
+    }
+
+    .diag-item {
+      background: var(--card-sub-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .diag-item.correct {
+      border-color: var(--success);
+      background: var(--success-soft);
+    }
+
+    .diag-item.incorrect {
+      border-color: var(--danger);
+      background: var(--danger-soft);
+    }
+
+    .diag-num {
+      font-weight: 700;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .diag-ans {
+      font-weight: 800;
+      font-size: 13px;
+    }
+
     .toast-container {
       position: fixed;
       top: 16px;
@@ -621,7 +731,7 @@
       z-index: 10000;
       pointer-events: none;
       width: 90%;
-      max-width: 400px;
+      max-width: 420px;
     }
 
     .toast {
@@ -665,19 +775,19 @@
           <circle cx="12" cy="12" r="10"></circle>
           <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
         </svg>
-        <span>Milliy Sertifikat</span>
+        <span>Test Tekshirish Tizimi</span>
       </div>
 
       <div class="header-actions">
-        <!-- Theme Toggle Button (Light/Dark) -->
+        <!-- Rejim almashtirish -->
         <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" title="Rejimni almashtirish">
           <svg class="icon icon-sm" id="themeIcon" viewBox="0 0 24 24">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
           </svg>
         </button>
 
-        <!-- Timer Badge -->
-        <div class="timer-badge" id="timerBadge">
+        <!-- Taymer -->
+        <div class="timer-badge" id="timerBadge" style="display:none;">
           <svg class="icon icon-sm" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
@@ -687,19 +797,19 @@
       </div>
     </header>
 
-    <!-- SCREEN 1: KOD KIRITISH -->
+    <!-- SCREEN 1: KOD KIRITISH & BOSHLASH -->
     <div class="screen active" id="screenCode">
       <div class="hero-card">
-        <h1 class="hero-title">Matematika Mock Test</h1>
+        <h1 class="hero-title">Elektron Javoblar Varaqasi</h1>
         <p class="hero-desc">
-          Real imtihon formati, geometrik chizmalar va RASH (IRT) ilmiy baholash tizimi.
+          Milliy sertifikat 45 talik test javoblaringizni kiriting va Rash (IRT) ilmiy modeli bo'yicha rasmiy balingizni darhol tekshiring.
         </p>
 
         <!-- Talabgor ma'lumotlari nishoni -->
-        <div id="userProfileBadge" style="display:flex; align-items:center; justify-content:center; gap:8px; background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:10px 14px; margin-bottom:16px; font-size:13px;">
+        <div id="userProfileBadge" style="display:flex; align-items:center; justify-content:center; gap:8px; background:var(--card-sub-bg); border:1px solid var(--border); border-radius:12px; padding:10px 14px; margin-bottom:16px; font-size:13px;">
           <svg class="icon icon-sm" style="color:var(--primary);" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           <span style="color:var(--text-muted);">Talabgor:</span>
-          <b id="userDisplayName" style="color:var(--text);">Yuklanmoqda...</b>
+          <b id="userDisplayName" style="color:var(--text-main);">Yuklanmoqda...</b>
         </div>
 
         <input type="text" id="testCodeInput" class="input-box" placeholder="TEST KODINI KIRITING" value="STANDART">
@@ -708,7 +818,7 @@
           <svg class="icon" viewBox="0 0 24 24">
             <polygon points="5 3 19 12 5 21 5 3"></polygon>
           </svg>
-          Testni boshlash
+          Javoblar varaqasini ochish
         </button>
 
         <button class="btn btn-outline" onclick="loadDefaultTest()">
@@ -719,7 +829,7 @@
           Rasmiy 45 talik STANDART test
         </button>
 
-        <!-- Faqat tasdiqlangan adminlarga ko'rinadigan havola (sukut bo'yicha yashirin) -->
+        <!-- Faqat ruxsat berilgan adminlar uchun havola -->
         <div id="adminPanelLinkWrap" style="margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--border); display: none; justify-content: center;">
           <a href="/admin" id="btnAdminPanelLink" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); transition: all 0.2s ease;">
             <svg class="icon icon-sm" style="width:16px; height:16px;" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
@@ -729,91 +839,81 @@
       </div>
     </div>
 
-    <!-- SCREEN 2: SAVOLLAR OQIMI -->
+    <!-- SCREEN 2: 45 TALIK JAVOBLAR VARAQASI (FULL ANSWER SHEET) -->
     <div class="screen" id="screenQuiz">
-      <div class="meta-bar">
-        <span id="questionOrderLabel">Savol 1 / 45</span>
-        <span id="questionSectionLabel">Algebra</span>
+      <div class="sheet-card">
+
+        <!-- Sheet Top Header -->
+        <div class="sheet-meta-bar">
+          <div class="sheet-progress-info">
+            <svg class="icon icon-sm" style="color:var(--primary);" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            <span>To'ldirildi:</span>
+            <b id="sheetAnsweredCountText" style="color:var(--primary);">0 / 45</b>
+          </div>
+
+          <!-- Tezkor to'ldirish tugmasi -->
+          <button class="sheet-quick-btn" onclick="openQuickPasteModal()">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+            <span>Tezkor to'ldirish</span>
+          </button>
+        </div>
+
+        <!-- 1-BO'LIM: 1–32 SAVOLLAR (4 TA VARIANT: A, B, C, D) -->
+        <div class="section-divider">
+          <span class="section-badge">I BO'LIM</span>
+          <span class="section-title">1–32 Yopiq testlar</span>
+          <span class="section-subtitle">(4 ta variant)</span>
+        </div>
+        <div class="sheet-list" id="sheetListPart1"></div>
+
+        <!-- 2-BO'LIM: 33–35 GURUHLANGAN TESTLAR (6 TA VARIANT: A–F) -->
+        <div class="section-divider">
+          <span class="section-badge">II BO'LIM</span>
+          <span class="section-title">33–35 Guruhlangan testlar</span>
+          <span class="section-subtitle">(6 ta variant: A–F)</span>
+        </div>
+        <div id="sheetGroupContextWrap" class="context-sheet-box" style="display:none;"></div>
+        <div class="sheet-list" id="sheetListPart2"></div>
+
+        <!-- 3-BO'LIM: 36–45 OCHIQ / YOZMA SAVOLLAR (a va b bandlari) -->
+        <div class="section-divider">
+          <span class="section-badge">III BO'LIM</span>
+          <span class="section-title">36–45 Ochiq savollar</span>
+          <span class="section-subtitle">(a va b bandlari)</span>
+        </div>
+        <div class="sheet-list" id="sheetListPart3"></div>
+
       </div>
 
-      <!-- Savol matni va rasm -->
-      <div class="q-card">
-        <div id="groupContextText" style="display:none; margin-bottom:12px; font-weight:600; color:var(--text-muted); border-left: 3px solid var(--primary); padding-left: 10px;"></div>
-        <div id="questionText"></div>
-        <div class="q-image-container" id="qImageWrap" style="display:none;">
-          <img id="qImage" src="" alt="Savol chizmasi">
+      <!-- Pastki oraliq spacer (Floating bar yopib qo'ymasligi uchun) -->
+      <div class="floating-bar-spacer"></div>
+
+      <!-- SUZUVCHI TASDIQLASH VA NATIJANI TEKSHIRISH TUGMASI -->
+      <div class="floating-submit-bar">
+        <div class="floating-bar-content">
+          <div class="floating-counter">
+            <span class="floating-counter-label">Holat</span>
+            <span class="floating-counter-val" id="floatingCounter">0 / 45 ta</span>
+          </div>
+          <button class="btn-submit-main" onclick="openFinishModal()">
+            <svg class="icon" viewBox="0 0 24 24">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Natijani tekshirish</span>
+          </button>
         </div>
       </div>
-
-      <!-- Y-1 / Guruhlangan variantlar -->
-      <div class="options-grid" id="optionsContainer"></div>
-
-      <!-- Ochiq savol (O turi) inputlari -->
-      <div id="openInputsContainer" style="display:none; margin-bottom:16px;">
-        <div class="open-input-group" id="groupPartA">
-          <label>
-            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-            a) bandi uchun javobingiz:
-          </label>
-          <input type="text" class="open-field" id="inputPartA" placeholder="Masalan: 12 yoki 3.5">
-        </div>
-        <div class="open-input-group" id="groupPartB">
-          <label>
-            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-            b) bandi uchun javobingiz:
-          </label>
-          <input type="text" class="open-field" id="inputPartB" placeholder="Masalan: -5 yoki 1/2">
-        </div>
-      </div>
-
-      <!-- 1-QATOR NAVIGATSIYA: [Oldingi] [Keyingi] [Yakunlash] -->
-      <div class="nav-bar">
-        <button class="nav-btn" onclick="prevQuestion()" id="btnPrev">
-          <svg class="icon" viewBox="0 0 24 24">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-          Oldingi
-        </button>
-
-        <button class="nav-btn" onclick="nextQuestion()" id="btnNext">
-          Keyingi
-          <svg class="icon" viewBox="0 0 24 24">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
-
-        <button class="nav-btn nav-btn-danger" onclick="openFinishModal()">
-          <svg class="icon" viewBox="0 0 24 24">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-          </svg>
-          Yakunlash
-        </button>
-      </div>
-
-      <!-- 2-QATOR: TUGMALARNING TAGIDA KATTA QILIB QO'YILGAN XARITA TUGMASI -->
-      <div class="map-bar-container">
-        <button class="btn-map-large" onclick="openGridModal()">
-          <svg class="icon icon-lg" viewBox="0 0 24 24">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-          </svg>
-          Savollar xaritasi (1–45)
-        </button>
-      </div>
-
     </div>
 
-    <!-- SCREEN 3: NATIJA (RASH IRT) -->
+    <!-- SCREEN 3: NATIJA VA DIAGNOSTIKA (RASH IRT) -->
     <div class="screen" id="screenResult">
       <div class="result-card">
         <div class="grade-badge" id="resGrade">A+</div>
-        <div class="score-number" id="resFinalScore">68.5</div>
-        <p style="color:var(--text-muted); margin-bottom: 20px;">0–75 Ballik Rasmiy Shkala bo'yicha</p>
+        <div class="score-number" id="resFinalScore">68.5 / 75</div>
+        <p style="color:var(--text-muted); margin-bottom: 18px; font-size: 13px;">Milliy Sertifikat Rasmiy Shkalasi (0–75 ball)</p>
 
-        <div style="background:var(--card-sub-bg); border:1px solid var(--border); padding:16px; border-radius:10px; margin-bottom:20px; text-align:left; font-size:14px; line-height:1.8;">
+        <!-- Qisqacha ko'rsatkichlar jadvali -->
+        <div style="background:var(--card-sub-bg); border:1px solid var(--border); padding:16px; border-radius:10px; margin-bottom:18px; text-align:left; font-size:14px; line-height:1.8;">
           <div class="stat-row">
             <span>To'g'ri bandlar (Xom ball):</span>
             <b id="resRawScore">42 / 55</b>
@@ -828,20 +928,75 @@
           </div>
         </div>
 
-        <button class="btn btn-primary" onclick="restartApp()">
+        <!-- 45 talik diagnostika sarlavhasi -->
+        <div style="text-align:left; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+          <b style="font-size:14px;">Savollar bo'yicha diagnostika:</b>
+          <span style="font-size:11px; color:var(--text-muted);">Yashil — to'g'ri, Qizil — xato</span>
+        </div>
+
+        <!-- 45 talik diagnostika matritsasi -->
+        <div class="diag-grid" id="diagGridContainer"></div>
+
+        <button class="btn btn-primary" onclick="restartApp()" style="margin-top:16px;">
           <svg class="icon" viewBox="0 0 24 24">
             <polyline points="23 4 23 10 17 10"></polyline>
             <polyline points="1 20 1 14 7 14"></polyline>
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
           </svg>
-          Yana test topshirish
+          Yangi test tekshirish
         </button>
       </div>
     </div>
 
   </div>
 
-  <!-- CUSTOM MODAL: TESTNI YAKUNLASHNI TASDIQLASH (BRAUZER CONFIRM O'RNIGA) -->
+  <!-- MODAL: SAVOLNI KO'RISH (PEEK QUESTION MODAL) -->
+  <div class="modal-overlay" id="peekModal">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
+        <div class="modal-title" id="peekModalTitle" style="margin-bottom:0;">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <span>Savol matni</span>
+        </div>
+        <button onclick="closePeekModal()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div id="peekGroupContext" style="display:none; background:var(--card-sub-bg); border-left:3px solid var(--primary); padding:10px; border-radius:6px; margin-bottom:12px; font-size:13px; line-height:1.5;"></div>
+      <div id="peekQuestionText" style="font-size:15px; line-height:1.6; margin-bottom:12px;"></div>
+      <div id="peekImageWrap" style="display:none; text-align:center; background:var(--card-sub-bg); padding:10px; border-radius:8px; border:1px solid var(--border); margin-bottom:12px;">
+        <img id="peekImage" src="" alt="Chizma" style="max-width:100%; max-height:280px; object-fit:contain;">
+      </div>
+
+      <button class="btn btn-outline" onclick="closePeekModal()">Yopish</button>
+    </div>
+  </div>
+
+  <!-- MODAL: TEZKOR TO'LDIRISH (QUICK PASTE MODAL) -->
+  <div class="modal-overlay" id="quickPasteModal">
+    <div class="modal-box">
+      <div class="modal-title">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+        <span>Tezkor to'ldirish (Qator kalitlar)</span>
+      </div>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px; line-height:1.5;">
+        Qog'ozdagi 1–35 javoblaringiz ketma-ketligini (masalan: <b>ABCDABCD...</b>) bu yerga kiriting yoki nusxalab qo'ying. Tizim avtomatik doirachalarni to'ldirib chiqadi.
+      </p>
+
+      <textarea id="quickPasteInput" class="input-box" style="text-align:left; height:90px; text-transform:uppercase; font-size:15px; font-family:monospace; margin-bottom:14px;" placeholder="Masalan: ABCDABCDABCDABCD..."></textarea>
+
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeQuickPasteModal()">Bekor qilish</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="applyQuickPaste()">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          To'ldirish
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: YAKUNLASHNI TASDIQLASH -->
   <div class="modal-overlay" id="finishModal">
     <div class="modal-box">
       <div class="modal-title">
@@ -850,39 +1005,15 @@
           <line x1="12" y1="8" x2="12" y2="12"></line>
           <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
-        Testni yakunlaysizmi?
+        Natijani hisoblaymizmi?
       </div>
-      <p class="modal-text">
-        Haqiqatan ham testni yakunlamoqchimisiz? Belgilanmagan savollar xato deb hisoblanadi va RASH modeli bo'yicha rasmiy ballingiz hisoblab chiqariladi.
+      <p class="modal-text" id="finishModalText" style="font-size:14px; color:var(--text-muted); line-height:1.5; margin-bottom:18px;">
+        Javoblar varaqangiz tekshirish uchun yuboriladi va Rash (IRT) modeli asosida rasmiy ballingiz hisoblanadi.
       </p>
       <div class="modal-actions">
-        <button class="btn btn-modal-cancel" onclick="closeFinishModal()">Davom ettirish</button>
-        <button class="btn btn-modal-danger" onclick="executeSubmitTest()">Ha, yakunlash</button>
+        <button class="btn-modal-cancel" onclick="closeFinishModal()">Tekshirib chiqaman</button>
+        <button class="btn-modal-danger" onclick="executeSubmitTest()">Ha, tekshirilsin</button>
       </div>
-    </div>
-  </div>
-
-  <!-- SAVOLLAR XARITASI (GRID MODAL) -->
-  <div class="modal-overlay" id="gridModal">
-    <div class="modal-box" style="max-width: 500px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div style="display:flex; align-items:center; gap:8px; font-weight:700; font-size:16px;">
-          <svg class="icon" viewBox="0 0 24 24">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-          </svg>
-          Savollar xaritasi
-        </div>
-        <button onclick="closeGridModal()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;">
-          <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-      </div>
-
-      <p style="font-size:13px; color:var(--text-muted);">Istalgan savol raqamini bosib unga o'ting:</p>
-      <div class="q-grid" id="gridCells"></div>
-      <button class="btn btn-outline" onclick="closeGridModal()">Yopish</button>
     </div>
   </div>
 
@@ -909,7 +1040,7 @@
 
     applyTheme(currentTheme);
 
-    // Custom Toast function (Brauzer alert o'rniga)
+    // Custom Toast function
     function showToast(msg, isError = false) {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
@@ -936,7 +1067,7 @@
       }
     }
 
-    // Backend API Base URL Resolver (Lokal, Server va GitHub Pages uchun)
+    // Backend API Base URL Resolver
     function getApiBaseUrl() {
       const urlParams = new URLSearchParams(window.location.search);
       const queryApi = urlParams.get('api');
@@ -953,7 +1084,6 @@
 
     let currentTest = null;
     let questions = [];
-    let currentIndex = 0;
     let answers = {};
     let timerInterval = null;
     let sessionStartTime = null;
@@ -979,7 +1109,6 @@
               const el = document.getElementById('userDisplayName');
               if (el) el.innerText = `${studentFullName}${studentPhone ? ' (' + studentPhone + ')' : ''}`;
             }
-            // Faqat siz admin qilib tayinlagan userlargagina Admin panel tugmasi chiqadi
             if (data.is_admin) {
               const wrap = document.getElementById('adminPanelLinkWrap');
               if (wrap) wrap.style.display = 'flex';
@@ -1000,7 +1129,7 @@
       if (el) el.innerText = studentFullName;
     }
 
-    // ================= SESSIAYANI SAQLASH VA TIKLASH (F5 DA DAVOM ETTIRISH) =================
+    // Session Management
     function saveActiveSession() {
       if (!currentTest || !sessionStartTime) return;
       try {
@@ -1008,7 +1137,6 @@
           test: currentTest,
           startTime: sessionStartTime,
           timeLimitSeconds: (currentTest.time_limit_min || 150) * 60,
-          currentIndex: currentIndex,
           answers: answers
         };
         localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
@@ -1048,13 +1176,12 @@
         questions = currentTest.questions || [];
         sessionStartTime = session.startTime;
         remainingSeconds = rem;
-        currentIndex = session.currentIndex || 0;
         answers = session.answers || {};
 
         showScreen('screenQuiz');
-        loadQuestion(currentIndex);
+        renderAnswerSheet();
         startTimer();
-        showToast("Test holati muvaffaqiyatli tiklandi! Qolgan vaqt: " + Math.floor(rem / 60) + " daqiqa.");
+        showToast("Test varaqasi tiklandi! Qolgan vaqt: " + Math.floor(rem / 60) + " daqiqa.");
         return true;
       } catch (err) {
         clearActiveSession();
@@ -1094,14 +1221,13 @@
 
         sessionStartTime = Date.now();
         remainingSeconds = (currentTest.time_limit_min || 150) * 60;
-        currentIndex = 0;
         answers = {};
 
         saveActiveSession();
         startTimer();
 
         showScreen('screenQuiz');
-        loadQuestion(0);
+        renderAnswerSheet();
       } catch (err) {
         showToast("Xatolik: " + err.message, true);
       }
@@ -1110,9 +1236,13 @@
     function showScreen(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(screenId).classList.add('active');
+      window.scrollTo(0, 0);
     }
 
     function startTimer() {
+      const timerBadge = document.getElementById('timerBadge');
+      if (timerBadge) timerBadge.style.display = 'flex';
+
       clearInterval(timerInterval);
       const updateTimerDisplay = () => {
         if (sessionStartTime && currentTest) {
@@ -1125,7 +1255,7 @@
 
         if (remainingSeconds <= 0) {
           clearInterval(timerInterval);
-          showToast("Vaqt tugadi! Test natijalari hisoblanmoqda...");
+          showToast("Vaqt tugadi! Natijalar hisoblanmoqda...");
           executeSubmitTest();
           return;
         }
@@ -1139,153 +1269,306 @@
       timerInterval = setInterval(updateTimerDisplay, 1000);
     }
 
-    function loadQuestion(index) {
-      if (index < 0 || index >= questions.length) return;
-      currentIndex = index;
-      saveActiveSession();
-      const q = questions[index];
+    // ================= JAVOBLAR VARAQASINI GENERATSIYA QILISH =================
+    function renderAnswerSheet() {
+      const part1List = document.getElementById('sheetListPart1');
+      const part2List = document.getElementById('sheetListPart2');
+      const part3List = document.getElementById('sheetListPart3');
+      const groupCtxWrap = document.getElementById('sheetGroupContextWrap');
 
-      document.getElementById('questionOrderLabel').innerText = `Savol ${q.order_no} / ${questions.length}`;
-      document.getElementById('questionSectionLabel').innerText = q.section || 'Matematika';
+      part1List.innerHTML = '';
+      part2List.innerHTML = '';
+      part3List.innerHTML = '';
 
-      // Guruhlangan kontekst
-      const groupCtx = document.getElementById('groupContextText');
-      if (q.group_context) {
-        groupCtx.innerHTML = `
-          <div style="display:flex; align-items:center; gap:8px; font-weight:700; color:var(--primary); font-size:13px; margin-bottom:8px;">
-            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-            <span>33–35 testlar uchun umumiy shart:</span>
-          </div>
-          <div style="font-size:14px; line-height:1.6; color:var(--text-main);">${q.group_context}</div>
-          ${q.group_image_url ? `
-            <div style="text-align:center; background:var(--card-sub-bg); padding:10px; border-radius:10px; border:1px solid var(--border); margin-top:10px;">
-              <img src="${(q.group_image_url.startsWith('http') || !API_BASE) ? q.group_image_url : (API_BASE + (q.group_image_url.startsWith('/') ? '' : '/') + q.group_image_url)}" alt="Umumiy chizma" style="max-width:100%; max-height:240px; border-radius:8px; object-fit:contain;">
+      let groupContextHtml = '';
+
+      questions.forEach((q) => {
+        const qId = q.id;
+        const orderNo = q.order_no;
+
+        // I Bo'lim: 1–32 (4 ta variant A, B, C, D)
+        if (orderNo <= 32) {
+          const row = document.createElement('div');
+          const hasAns = !!answers[qId]?.choice;
+          row.className = 'sheet-row' + (hasAns ? ' has-answer' : '');
+          row.id = `sheetRow_${qId}`;
+
+          const opts = ['A', 'B', 'C', 'D'];
+          let bubblesHtml = '';
+          opts.forEach(opt => {
+            const isSel = (answers[qId]?.choice === opt);
+            bubblesHtml += `
+              <div class="bubble-btn${isSel ? ' selected' : ''}" 
+                   onclick="selectBubble(${qId}, '${opt}', this)">
+                ${opt}
+              </div>
+            `;
+          });
+
+          row.innerHTML = `
+            <button class="sheet-q-num-btn" onclick="peekQuestion(${orderNo})" title="Savolni ko'rish">
+              <span style="color:var(--text-muted); font-size:12px;">#</span>
+              <span>${orderNo}</span>
+              <svg class="icon icon-sm" style="color:var(--text-muted); margin-left:2px;" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+            <div class="sheet-bubbles-group">
+              ${bubblesHtml}
             </div>
-          ` : ''}
-        `;
-        groupCtx.style.display = 'block';
+          `;
+          part1List.appendChild(row);
+        }
+        // II Bo'lim: 33–35 (6 ta variant A, B, C, D, E, F)
+        else if (orderNo >= 33 && orderNo <= 35) {
+          if (q.group_context && !groupContextHtml) {
+            groupContextHtml = `
+              <div style="font-weight:700; color:var(--primary); font-size:13px; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                <span>33–35 testlar uchun umumiy shart:</span>
+              </div>
+              <div style="color:var(--text-main);">${q.group_context}</div>
+              ${q.group_image_url ? `
+                <div style="text-align:center; margin-top:8px;">
+                  <img src="${(q.group_image_url.startsWith('http') || !API_BASE) ? q.group_image_url : (API_BASE + (q.group_image_url.startsWith('/') ? '' : '/') + q.group_image_url)}" alt="Umumiy chizma" style="max-width:100%; max-height:200px; border-radius:6px;">
+                </div>
+              ` : ''}
+            `;
+          }
+
+          const row = document.createElement('div');
+          const hasAns = !!answers[qId]?.choice;
+          row.className = 'sheet-row' + (hasAns ? ' has-answer' : '');
+          row.id = `sheetRow_${qId}`;
+
+          const opts = ['A', 'B', 'C', 'D', 'E', 'F'];
+          let bubblesHtml = '';
+          opts.forEach(opt => {
+            const isSel = (answers[qId]?.choice === opt);
+            bubblesHtml += `
+              <div class="bubble-btn${isSel ? ' selected' : ''}" 
+                   onclick="selectBubble(${qId}, '${opt}', this)">
+                ${opt}
+              </div>
+            `;
+          });
+
+          row.innerHTML = `
+            <button class="sheet-q-num-btn" onclick="peekQuestion(${orderNo})" title="Savolni ko'rish">
+              <span style="color:var(--text-muted); font-size:12px;">#</span>
+              <span>${orderNo}</span>
+              <svg class="icon icon-sm" style="color:var(--text-muted); margin-left:2px;" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+            <div class="sheet-bubbles-group six-opts">
+              ${bubblesHtml}
+            </div>
+          `;
+          part2List.appendChild(row);
+        }
+        // III Bo'lim: 36–45 (Ochiq savollar: a va b bandlari)
+        else {
+          const row = document.createElement('div');
+          const ansA = answers[qId]?.a || '';
+          const ansB = answers[qId]?.b || '';
+          const hasAns = (ansA !== '' || ansB !== '');
+          row.className = 'open-sheet-row' + (hasAns ? ' has-answer' : '');
+          row.id = `sheetRow_${qId}`;
+
+          row.innerHTML = `
+            <div class="open-sheet-header">
+              <button class="sheet-q-num-btn" onclick="peekQuestion(${orderNo})" title="Savolni ko'rish">
+                <span style="color:var(--text-muted); font-size:12px;">#</span>
+                <span>${orderNo}</span>
+                <span style="font-size:12px; font-weight:500; color:var(--text-muted); margin-left:6px;">(yozma)</span>
+                <svg class="icon icon-sm" style="color:var(--text-muted); margin-left:4px;" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+            </div>
+            <div class="open-inputs-pair">
+              <div class="open-sub-field-wrap${ansA ? ' filled' : ''}" id="wrapSubA_${qId}">
+                <span class="open-sub-label">a)</span>
+                <input type="text" class="open-sub-input" placeholder="javob" value="${ansA}"
+                       oninput="saveOpenSubPart(${qId}, 'a', this.value, this)">
+              </div>
+              <div class="open-sub-field-wrap${ansB ? ' filled' : ''}" id="wrapSubB_${qId}">
+                <span class="open-sub-label">b)</span>
+                <input type="text" class="open-sub-input" placeholder="javob" value="${ansB}"
+                       oninput="saveOpenSubPart(${qId}, 'b', this.value, this)">
+              </div>
+            </div>
+          `;
+          part3List.appendChild(row);
+        }
+      });
+
+      if (groupContextHtml) {
+        groupCtxWrap.innerHTML = groupContextHtml;
+        groupCtxWrap.style.display = 'block';
       } else {
-        groupCtx.style.display = 'none';
+        groupCtxWrap.style.display = 'none';
       }
 
-      // Savol matni
-      document.getElementById('questionText').innerHTML = q.text;
+      updateAnsweredCounter();
+      setTimeout(renderMathInDocument, 40);
+    }
 
-      // Rasm
-      const imgWrap = document.getElementById('qImageWrap');
-      const qImg = document.getElementById('qImage');
-      if (q.image_url) {
-        qImg.src = (q.image_url.startsWith('http') || !API_BASE) ? q.image_url : (API_BASE + (q.image_url.startsWith('/') ? '' : '/') + q.image_url);
+    // Doirachani tanlash (Yopiq va Guruhlangan testlar)
+    function selectBubble(qId, key, el) {
+      if (!answers[qId]) answers[qId] = {};
+      answers[qId].choice = key;
+
+      const parent = el.parentElement;
+      parent.querySelectorAll('.bubble-btn').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+
+      const row = document.getElementById(`sheetRow_${qId}`);
+      if (row) row.classList.add('has-answer');
+
+      saveActiveSession();
+      updateAnsweredCounter();
+    }
+
+    // Ochiq savol qiymatini saqlash
+    function saveOpenSubPart(qId, part, val, inputEl) {
+      if (!answers[qId]) answers[qId] = {};
+      answers[qId][part] = val.trim();
+
+      const wrap = document.getElementById(`wrapSub${part.toUpperCase()}_${qId}`);
+      if (wrap) {
+        if (val.trim()) {
+          wrap.classList.add('filled');
+        } else {
+          wrap.classList.remove('filled');
+        }
+      }
+
+      const row = document.getElementById(`sheetRow_${qId}`);
+      if (row) {
+        if (answers[qId].a || answers[qId].b) {
+          row.classList.add('has-answer');
+        } else {
+          row.classList.remove('has-answer');
+        }
+      }
+
+      saveActiveSession();
+      updateAnsweredCounter();
+    }
+
+    // To'ldirilganlik sonini hisoblash
+    function updateAnsweredCounter() {
+      let count = 0;
+      questions.forEach(q => {
+        const ans = answers[q.id];
+        if (!ans) return;
+        if (ans.choice) {
+          count++;
+        } else if (ans.a || ans.b) {
+          count++;
+        }
+      });
+
+      const total = questions.length || 45;
+      const text = `${count} / ${total}`;
+      const headerText = document.getElementById('sheetAnsweredCountText');
+      const floatText = document.getElementById('floatingCounter');
+      if (headerText) headerText.innerText = text;
+      if (floatText) floatText.innerText = `${count} / ${total} ta`;
+    }
+
+    // ================= SAVOLNI KO'RISH MODALI (PEEK MODAL) =================
+    function peekQuestion(orderNo) {
+      const q = questions.find(item => item.order_no === orderNo);
+      if (!q) return;
+
+      document.getElementById('peekModalTitle').innerHTML = `
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <span>Savol #${orderNo} (${q.section || 'Matematika'})</span>
+      `;
+
+      const ctxEl = document.getElementById('peekGroupContext');
+      if (q.group_context) {
+        ctxEl.innerHTML = `<b>33–35 umumiy shart:</b><br>${q.group_context}`;
+        ctxEl.style.display = 'block';
+      } else {
+        ctxEl.style.display = 'none';
+      }
+
+      document.getElementById('peekQuestionText').innerHTML = q.text || '(Savol matni mavjud emas)';
+
+      const imgWrap = document.getElementById('peekImageWrap');
+      const imgEl = document.getElementById('peekImage');
+      const targetImg = q.image_url || (q.group_context ? q.group_image_url : null);
+
+      if (targetImg) {
+        imgEl.src = (targetImg.startsWith('http') || !API_BASE) ? targetImg : (API_BASE + (targetImg.startsWith('/') ? '' : '/') + targetImg);
         imgWrap.style.display = 'block';
       } else {
         imgWrap.style.display = 'none';
       }
 
-      // Variantlar yoki Ochiq inputlar
-      const optContainer = document.getElementById('optionsContainer');
-      const openContainer = document.getElementById('openInputsContainer');
-
-      if (q.type === 'Y-1' || q.type === 'GROUPED') {
-        openContainer.style.display = 'none';
-        optContainer.style.display = 'flex';
-        optContainer.innerHTML = '';
-
-        let opts = (q.type === 'GROUPED' && q.group_options && Object.keys(q.group_options).length > 0)
-          ? q.group_options
-          : (q.options || {});
-
-        if (q.type === 'GROUPED' && (!opts || Object.keys(opts).length === 0)) {
-          opts = { A: "A", B: "B", C: "C", D: "D", E: "E", F: "F" };
-        }
-
-        const selected = answers[q.id]?.choice;
-
-        for (const [key, val] of Object.entries(opts)) {
-          const item = document.createElement('div');
-          item.className = 'option-item' + (selected === key ? ' selected' : '');
-          item.dataset.key = key;
-          const displayVal = (val && val !== key) ? val : key;
-          item.innerHTML = `
-            <div class="opt-badge">${key}</div>
-            <div class="opt-text">${displayVal}</div>
-          `;
-          item.onclick = function() {
-            selectOptionDirectly(q.id, key, item);
-          };
-          optContainer.appendChild(item);
-        }
-      } else if (q.type === 'O') {
-        optContainer.style.display = 'none';
-        openContainer.style.display = 'block';
-
-        const currA = answers[q.id]?.a || '';
-        const currB = answers[q.id]?.b || '';
-
-        const inA = document.getElementById('inputPartA');
-        const inB = document.getElementById('inputPartB');
-
-        inA.value = currA;
-        inB.value = currB;
-
-        inA.oninput = (e) => saveOpenAnswer(q.id, 'a', e.target.value);
-        inB.oninput = (e) => saveOpenAnswer(q.id, 'b', e.target.value);
-      }
-
+      document.getElementById('peekModal').classList.add('open');
       setTimeout(renderMathInDocument, 30);
     }
 
-    // VARIANT TANLANGANDA BUTUN DOM QAYTA YUKLANMAYDI — HECH QANDAY SAKRASH / FLICKER BO'LMAYDI!
-    function selectOptionDirectly(qId, key, clickedElement) {
-      if (!answers[qId]) answers[qId] = {};
-      answers[qId].choice = key;
-
-      // Faqatgina option itemlarning selected klassini yangilash
-      const parent = clickedElement.parentElement;
-      const allItems = parent.querySelectorAll('.option-item');
-      allItems.forEach(el => el.classList.remove('selected'));
-      clickedElement.classList.add('selected');
-
-      // Sessiyani bir zumda xotiraga saqlash (F5 bosilganda yo'qolmasligi uchun)
-      saveActiveSession();
+    function closePeekModal() {
+      document.getElementById('peekModal').classList.remove('open');
     }
 
-    function saveOpenAnswer(qId, part, val) {
-      if (!answers[qId]) answers[qId] = {};
-      answers[qId][part] = val.trim();
-      saveActiveSession();
+    // ================= TEZKOR TO'LDIRISH (QUICK PASTE) =================
+    function openQuickPasteModal() {
+      document.getElementById('quickPasteInput').value = '';
+      document.getElementById('quickPasteModal').classList.add('open');
     }
 
-    function prevQuestion() {
-      if (currentIndex > 0) loadQuestion(currentIndex - 1);
+    function closeQuickPasteModal() {
+      document.getElementById('quickPasteModal').classList.remove('open');
     }
 
-    function nextQuestion() {
-      if (currentIndex < questions.length - 1) loadQuestion(currentIndex + 1);
-    }
+    function applyQuickPaste() {
+      const raw = document.getElementById('quickPasteInput').value.toUpperCase().replace(/[^A-F]/g, '');
+      if (!raw) {
+        showToast("Hech qanday harf kiritilmadi!", true);
+        return;
+      }
 
-    function openGridModal() {
-      const grid = document.getElementById('gridCells');
-      grid.innerHTML = '';
+      const keys = raw.split('');
+      let filled = 0;
+
       questions.forEach((q, idx) => {
-        const cell = document.createElement('div');
-        const isAns = answers[q.id] && (answers[q.id].choice || answers[q.id].a || answers[q.id].b);
-        cell.className = 'grid-cell' + (isAns ? ' answered' : '') + (idx === currentIndex ? ' active' : '');
-        cell.innerText = q.order_no;
-        cell.onclick = () => {
-          closeGridModal();
-          loadQuestion(idx);
-        };
-        grid.appendChild(cell);
+        if (q.order_no <= 35 && idx < keys.length) {
+          const letter = keys[idx];
+          if (q.order_no <= 32 && ['A', 'B', 'C', 'D'].includes(letter)) {
+            if (!answers[q.id]) answers[q.id] = {};
+            answers[q.id].choice = letter;
+            filled++;
+          } else if (q.order_no >= 33 && q.order_no <= 35 && ['A', 'B', 'C', 'D', 'E', 'F'].includes(letter)) {
+            if (!answers[q.id]) answers[q.id] = {};
+            answers[q.id].choice = letter;
+            filled++;
+          }
+        }
       });
-      document.getElementById('gridModal').classList.add('open');
+
+      closeQuickPasteModal();
+      saveActiveSession();
+      renderAnswerSheet();
+      showToast(`${filled} ta test kaliti tezkor to'ldirildi!`);
     }
 
-    function closeGridModal() {
-      document.getElementById('gridModal').classList.remove('open');
-    }
-
-    // CUSTOM MODAL OCHISH (Brauzer confirm o'rniga)
+    // ================= YAKUNLASH TASDIQLASH VA SUBMIT =================
     function openFinishModal() {
+      let count = 0;
+      questions.forEach(q => {
+        const ans = answers[q.id];
+        if (ans && (ans.choice || ans.a || ans.b)) count++;
+      });
+      const emptyCount = questions.length - count;
+
+      const descEl = document.getElementById('finishModalText');
+      if (emptyCount > 0) {
+        descEl.innerText = `Siz ${count} ta savolni to'ldirdingiz. ${emptyCount} ta savol belgilanmadi (ular xato deb baholanadi). Testni tekshirib natijani chiqaramizmi?`;
+      } else {
+        descEl.innerText = `Barcha 45 ta savol to'liq to'ldirildi! Natijani hisoblash uchun tekshirishga yuborilsinmi?`;
+      }
+
       document.getElementById('finishModal').classList.add('open');
     }
 
@@ -1343,14 +1626,19 @@
           })
         });
 
+        if (!res.ok) {
+          throw new Error(`Server xatosi: ${res.status}`);
+        }
+
         const result = await res.json();
-        showToast("Test yakunlandi! Natijangiz Telegram botingizga yuborildi.");
+        showToast("Test yakunlandi! Natijangiz hisoblandi.");
         displayResult(result);
       } catch (err) {
-        showToast("Natijani yuborishda xatolik: " + err.message, true);
+        showToast("Natijani tekshirishda xatolik: " + err.message, true);
       }
     }
 
+    // ================= NATIJA VA DIAGNOSTIKANI CHIQARISH =================
     function displayResult(res) {
       showScreen('screenResult');
       document.getElementById('resGrade').innerText = res.grade;
@@ -1365,6 +1653,63 @@
       } else {
         statusEl.innerText = "Sertifikat berilmadi (Minimal 46 ball)";
         statusEl.style.color = "var(--danger)";
+      }
+
+      // 45 talik diagnostika matritsasi
+      const grid = document.getElementById('diagGridContainer');
+      grid.innerHTML = '';
+
+      if (res.details && res.details.length > 0) {
+        // Savollar bo'yicha guruhlash
+        const qMap = {};
+        res.details.forEach(item => {
+          if (!qMap[item.order_no]) qMap[item.order_no] = [];
+          qMap[item.order_no].push(item);
+        });
+
+        questions.forEach(q => {
+          const items = qMap[q.order_no] || [];
+          const cell = document.createElement('div');
+          
+          if (items.length === 0) {
+            cell.className = 'diag-item incorrect';
+            cell.innerHTML = `
+              <span class="diag-num">#${q.order_no}</span>
+              <span class="diag-ans" style="color:var(--danger);">-</span>
+            `;
+          } else if (items.length === 1) {
+            const it = items[0];
+            const isCor = it.is_correct;
+            cell.className = 'diag-item ' + (isCor ? 'correct' : 'incorrect');
+            cell.innerHTML = `
+              <span class="diag-num">#${q.order_no}</span>
+              <span class="diag-ans" style="color:${isCor ? 'var(--success)' : 'var(--danger)'};">${it.user_answer || '-'}</span>
+            `;
+          } else {
+            // Ochiq savol (a va b)
+            const allCor = items.every(i => i.is_correct);
+            const anyCor = items.some(i => i.is_correct);
+            cell.className = 'diag-item ' + (allCor ? 'correct' : (anyCor ? 'correct' : 'incorrect'));
+            const aItem = items.find(i => i.sub_part_label === 'a');
+            const bItem = items.find(i => i.sub_part_label === 'b');
+            cell.innerHTML = `
+              <span class="diag-num">#${q.order_no}</span>
+              <span style="font-size:10px; font-weight:700;">
+                a:<b style="color:${aItem?.is_correct ? 'var(--success)' : 'var(--danger)'};">${aItem?.is_correct ? '✓' : '✗'}</b> 
+                b:<b style="color:${bItem?.is_correct ? 'var(--success)' : 'var(--danger)'};">${bItem?.is_correct ? '✓' : '✗'}</b>
+              </span>
+            `;
+          }
+          grid.appendChild(cell);
+        });
+      } else {
+        // Agar backend details qaytarmasa ham oddiy ko'rinish
+        questions.forEach(q => {
+          const cell = document.createElement('div');
+          cell.className = 'diag-item';
+          cell.innerHTML = `<span class="diag-num">#${q.order_no}</span>`;
+          grid.appendChild(cell);
+        });
       }
     }
 
@@ -1398,7 +1743,6 @@
       }
     });
 
-    // Skript yuklanganda darhol profilni olish va sessiyani tiklashga urinish
     fetchUserProfile();
     updateAdminLink();
     checkAndRestoreSession();

@@ -16,9 +16,12 @@ from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+
 from bot.config import settings
 from bot.database.session import async_session_maker
-from bot.database.models import Test, Question, QuestionGroup, User
+from bot.database.models import Test, Question, QuestionGroup, User, AttemptAnswer
 from bot.services.admin_service import (
     get_test_by_code,
     create_test_with_questions,
@@ -238,6 +241,27 @@ async def api_submit_test(payload: SubmitTestRequest):
         except Exception as e:
             logger.warning(f"Telegram orqali natija yuborishda ogohlantirish: {e}")
 
+    detailed_results = []
+    try:
+        async with async_session_maker() as session:
+            ans_stmt = (
+                select(AttemptAnswer)
+                .options(selectinload(AttemptAnswer.question))
+                .where(AttemptAnswer.attempt_id == completed_attempt.id)
+                .order_by(AttemptAnswer.id)
+            )
+            ans_res = await session.execute(ans_stmt)
+            for a in ans_res.scalars().all():
+                detailed_results.append({
+                    "question_id": a.question_id,
+                    "order_no": a.question.order_no if a.question else None,
+                    "sub_part_label": a.sub_part_label,
+                    "user_answer": a.user_answer,
+                    "is_correct": a.is_correct,
+                })
+    except Exception as e:
+        logger.warning(f"Detailed results fetch error: {e}")
+
     return {
         "attempt_id": completed_attempt.id,
         "raw_score": rasch_result.raw_score,
@@ -247,6 +271,7 @@ async def api_submit_test(payload: SubmitTestRequest):
         "final_score": rasch_result.final_score,
         "grade": rasch_result.grade,
         "is_certified": rasch_result.is_certified,
+        "details": detailed_results,
     }
 
 
