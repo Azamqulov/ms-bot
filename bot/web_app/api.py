@@ -1,0 +1,296 @@
+"""
+FastAPI Web App va REST API moduli:
+Telegram Mini App (TMA) va Admin Web Konstruktori uchun.
+"""
+
+import os
+import shutil
+import uuid
+from typing import Optional, List, Dict, Any
+from pathlib import Path
+
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from bot.config import settings
+from bot.database.session import async_session_maker
+from bot.database.models import Test, Question, QuestionGroup, User
+from bot.services.admin_service import (
+    get_test_by_code,
+    create_test_with_questions,
+    get_admin_tests,
+    toggle_test_status,
+    delete_test_by_id,
+)
+from bot.services.test_service import (
+    get_or_create_user,
+    start_new_attempt,
+    save_answer,
+    finish_attempt,
+    get_default_test,
+)
+from bot.core.validator import check_open_answer
+
+UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+WEB_DIR = Path("web")
+WEB_DIR.mkdir(parents=True, exist_ok=True)
+
+app = FastAPI(title="Milliy Sertifikat Matematika API & TMA")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Rasmlar va Statik fayllarni ulash
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+app.mount("/static", StaticFiles(directory="web"), name="static")
+
+
+# Pydantic modellar
+class SubmitAnswerItem(BaseModel):
+    question_id: int
+    user_answer: str
+    sub_part_label: Optional[str] = None
+
+
+class SubmitTestRequest(BaseModel):
+    test_id: int
+    telegram_id: int
+    full_name: str
+    username: Optional[str] = None
+    answers: List[SubmitAnswerItem]
+
+
+class CreateTestPayload(BaseModel):
+    creator_telegram_id: int
+    code: str
+    title: str
+    description: Optional[str] = ""
+    time_limit_min: int = 150
+    questions: List[Dict[str, Any]]
+    grouped_context: Optional[Dict[str, Any]] = None
+    test_type: Optional[str] = "permanent"
+    access_type: Optional[str] = "closed"
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    auto_check: Optional[bool] = True
+    hide_answers: Optional[bool] = False
+    required_channel: Optional[str] = None
+
+
+# ==================== PUBLIC API: TEST TOPSHIRISH ====================
+
+@app.get("/", response_class=HTMLResponse)
+async def serve_index():
+    index_file = WEB_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(
+            index_file,
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
+        )
+    return HTMLResponse("<h1>Milliy Sertifikat Matematika WebApp ishga tushdi</h1>")
+
+
+@app.get("/admin", response_class=HTMLResponse)
+async def serve_admin():
+    admin_file = WEB_DIR / "admin.html"
+    if admin_file.exists():
+        return FileResponse(
+            admin_file,
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
+        )
+    return HTMLResponse("<h1>Admin Panel</h1>")
+
+
+@app.get("/api/test/{code}")
+async def api_get_test(code: str):
+    """Test ma'lumotlari va barcha 45 ta savolni olish"""
+    test = await get_test_by_code(code)
+    if not test and code.upper() == "STANDART":
+        test = await get_default_test()
+
+    if not test:
+        raise HTTPException(status_code=404, detail="Test topilmadi")
+
+    # Savollarni guruhlari bilan birga yig'ish
+    questions_data = []
+    for q in test.questions:
+        q_item = {
+            "id": q.id,
+            "order_no": q.order_no,
+            "type": q.type,
+            "section": q.section,
+            "text": q.text,
+            "image_url": q.image_url,
+            "options": q.options,
+            "sub_parts": q.sub_parts,
+            "group_context": q.group.shared_context_text if q.group else None,
+            "group_options": q.group.shared_options if q.group else None,
+        }
+        questions_data.append(q_item)
+
+    # order_no bo'yicha saralash
+    questions_data.sort(key=lambda x: x["order_no"])
+
+    return {
+        "id": test.id,
+        "code": test.code,
+        "title": test.title,
+        "description": test.description,
+        "question_count": test.question_count,
+        "time_limit_min": test.time_limit_min,
+        "questions": questions_data,
+    }
+
+
+@app.post("/api/test/submit")
+async def api_submit_test(payload: SubmitTestRequest):
+    """
+    Test javoblarini topshirish va RASH (IRT) modeli bo'yicha baholash
+    """
+    user = await get_or_create_user(
+        telegram_id=payload.telegram_id,
+        full_name=payload.full_name,
+        username=payload.username,
+    )
+
+    attempt = await start_new_attempt(user.id, payload.test_id)
+
+    # Savollarni yuklash (to'g'ri javoblar bilan solishtirish uchun)
+    for ans in payload.answers:
+        await save_answer(
+            attempt_id=attempt.id,
+            question_id=ans.question_id,
+            user_answer=ans.user_answer,
+            is_correct=False, # finish_attempt to'liq qayta tekshiradi
+            sub_part_label=ans.sub_part_label,
+        )
+
+    completed_attempt, rasch_result = await finish_attempt(attempt.id)
+
+    return {
+        "attempt_id": completed_attempt.id,
+        "raw_score": rasch_result.raw_score,
+        "total_items": rasch_result.total_items,
+        "theta": rasch_result.theta,
+        "standard_error": rasch_result.standard_error,
+        "final_score": rasch_result.final_score,
+        "grade": rasch_result.grade,
+        "is_certified": rasch_result.is_certified,
+    }
+
+
+# ==================== ADMIN API: RASM VA TEST YUKLASH ====================
+
+@app.post("/api/admin/upload-image")
+async def api_upload_image(file: UploadFile = File(...)):
+    """Savol uchun rasm (chizma, formula grafikasi) yuklash — HEIC/HEIF avtomatik konvertatsiya bilan"""
+    ext = Path(file.filename or "").suffix.lower()
+    raw_content = await file.read()
+
+    # 1. HEIC / HEIF (iPhone suratlari) tekshiruvi
+    is_heic = (
+        ext in [".heic", ".heif"]
+        or b"ftypheic" in raw_content[:32]
+        or b"ftypmif1" in raw_content[:32]
+    )
+
+    if is_heic:
+        try:
+            import pillow_heif
+            from PIL import Image
+            heif_file = pillow_heif.read_heif(raw_content)
+            img = Image.frombytes(heif_file.mode, heif_file.size, heif_file.data, "raw")
+            filename = f"{uuid.uuid4().hex}.png"
+            filepath = UPLOAD_DIR / filename
+            img.save(filepath, "PNG")
+            return {"url": f"/uploads/{filename}", "filename": filename}
+        except Exception:
+            pass
+
+    # 2. Standart web formatlar (png, jpg, jpeg, webp, svg)
+    if ext in [".png", ".jpg", ".jpeg", ".webp", ".svg"]:
+        filename = f"{uuid.uuid4().hex}{ext}"
+        filepath = UPLOAD_DIR / filename
+        with open(filepath, "wb") as f:
+            f.write(raw_content)
+        return {"url": f"/uploads/{filename}", "filename": filename}
+
+    # 3. Boshqa har qanday formatni PIL bilan PNG ga saqlash
+    try:
+        from PIL import Image
+        import io
+        img = Image.open(io.BytesIO(raw_content))
+        filename = f"{uuid.uuid4().hex}.png"
+        filepath = UPLOAD_DIR / filename
+        img.save(filepath, "PNG")
+        return {"url": f"/uploads/{filename}", "filename": filename}
+    except Exception:
+        filename = f"{uuid.uuid4().hex}.png"
+        filepath = UPLOAD_DIR / filename
+        with open(filepath, "wb") as f:
+            f.write(raw_content)
+        return {"url": f"/uploads/{filename}", "filename": filename}
+
+
+@app.post("/api/admin/create-test")
+async def api_create_test(payload: CreateTestPayload):
+    """Admin tomonidan yangi test yaratish"""
+    admin_user = await get_or_create_user(payload.creator_telegram_id, "Admin")
+
+    success, msg, test_obj = await create_test_with_questions(
+        creator_user_id=admin_user.id,
+        code=payload.code,
+        title=payload.title,
+        description=payload.description or "",
+        time_limit_min=payload.time_limit_min,
+        questions_data=payload.questions,
+        grouped_context=payload.grouped_context,
+    )
+
+    if not success or not test_obj:
+        raise HTTPException(status_code=400, detail=msg)
+
+    return {
+        "success": True,
+        "message": msg,
+        "test_id": test_obj.id,
+        "code": test_obj.code,
+        "question_count": test_obj.question_count,
+    }
+
+
+@app.get("/api/admin/tests/{telegram_id}")
+async def api_get_admin_tests(telegram_id: int):
+    """Admin o'z testlari statistikasini olish"""
+    user = await get_or_create_user(telegram_id, "Admin")
+    tests = await get_admin_tests(user.id)
+    return {"tests": tests}
+
+
+@app.post("/api/admin/tests/{test_id}/toggle")
+async def api_toggle_test(test_id: int):
+    """Test faolligini o'zgartirish (faol / to'xtatilgan)"""
+    success, msg, is_active = await toggle_test_status(test_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=msg)
+    return {"success": True, "message": msg, "is_active": is_active}
+
+
+@app.delete("/api/admin/tests/{test_id}")
+async def api_delete_test(test_id: int):
+    """Testni o'chirish"""
+    success, msg = await delete_test_by_id(test_id)
+    if not success:
+        raise HTTPException(status_code=400, detail=msg)
+    return {"success": True, "message": msg}
+

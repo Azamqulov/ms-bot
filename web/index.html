@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Milliy Sertifikat — Matematika Mock Test</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- KaTeX for Beautiful Math Formula Rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInDocument()"></script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ================= THEME TOKENS ================= */
+    :root {
+      --bg-color: #0b1329;
+      --card-bg: #152238;
+      --card-sub-bg: #0d1829;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --primary-soft: rgba(59, 130, 246, 0.15);
+      --success: #10b981;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --border: #22324e;
+      --opt-hover: #1c2b46;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      --radius: 14px;
+    }
+
+    [data-theme="light"] {
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --card-sub-bg: #f8fafc;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: rgba(37, 99, 235, 0.1);
+      --success: #059669;
+      --danger: #e11d48;
+      --danger-hover: #be123c;
+      --border: #cbd5e1;
+      --opt-hover: #f1f5f9;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Universal selectorga transition qo'ymaymiz! (Miltillash va sakrashni yo'qotish uchun) */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      max-width: 650px;
+      margin: 0 auto;
+      padding: 16px;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* SVG ICONS */
+    .icon {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .icon-sm {
+      width: 16px;
+      height: 16px;
+    }
+
+    .icon-lg {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-main);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .theme-toggle-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .timer-badge {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      font-weight: 700;
+      font-size: 14px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Screens */
+    .screen {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* Start / Code Screen */
+    .hero-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      text-align: center;
+      margin: auto 0;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: var(--text-main);
+    }
+
+    .hero-desc {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .input-box {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--card-sub-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-size: 16px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-align: center;
+      margin-bottom: 16px;
+      outline: none;
+    }
+
+    .input-box:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:active {
+      background: var(--primary-hover);
+      transform: scale(0.98);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      margin-top: 10px;
+    }
+
+    /* Test Question Screen */
+    .meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .q-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      line-height: 1.6;
+      font-size: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .q-image-container {
+      margin-top: 14px;
+      text-align: center;
+      background: var(--card-sub-bg);
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .q-image-container img {
+      max-width: 100%;
+      max-height: 280px;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
+    /* Options - No Flash / Static Layout */
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .option-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1.4;
+      user-select: none;
+    }
+
+    .option-item:hover {
+      background: var(--opt-hover);
+    }
+
+    .option-item.selected {
+      border-color: var(--primary) !important;
+      background: var(--primary-soft) !important;
+    }
+
+    .opt-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--card-sub-bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+      color: var(--text-main);
+    }
+
+    .option-item.selected .opt-badge {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .opt-text {
+      flex: 1;
+    }
+
+    /* Open question inputs */
+    .open-input-group {
+      margin-bottom: 14px;
+    }
+
+    .open-input-group label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .open-field {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--card-sub-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 15px;
+      outline: none;
+    }
+
+    .open-field:focus {
+      border-color: var(--primary);
+    }
+
+    /* Action & Navigation Rows */
+    .nav-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+      padding-top: 14px;
+    }
+
+    .nav-btn {
+      flex: 1;
+      padding: 14px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .nav-btn:active {
+      transform: scale(0.98);
+    }
+
+    .nav-btn-danger {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #fff;
+    }
+
+    .nav-btn-danger:active {
+      background: var(--danger-hover);
+    }
+
+    /* KATTA XARITA TUGMASI (TUGMALAR TAGIDA) */
+    .map-bar-container {
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .btn-map-large {
+      width: 100%;
+      padding: 15px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-map-large:active {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+    }
+
+    /* Question Map (Grid) Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+      z-index: 9999;
+      padding: 20px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      max-width: 460px;
+      width: 100%;
+      box-shadow: var(--shadow);
+      animation: modalFadeIn 0.2s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-text {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      align-items: stretch;
+    }
+
+    .modal-actions .btn {
+      flex: 1 1 0;
+      width: 50%;
+      height: 46px;
+      margin: 0 !important;
+      padding: 0 16px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .btn-modal-cancel {
+      background: var(--card-sub-bg) !important;
+      border: 1.5px solid var(--border) !important;
+      color: var(--text-main) !important;
+    }
+
+    .btn-modal-cancel:hover, .btn-modal-cancel:active {
+      background: var(--opt-hover) !important;
+      border-color: var(--primary) !important;
+      transform: translateY(-1px);
+    }
+
+    .btn-modal-danger {
+      background: #e11d48 !important;
+      border: 1.5px solid #e11d48 !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(225, 29, 72, 0.3) !important;
+    }
+
+    .btn-modal-danger:hover, .btn-modal-danger:active {
+      background: #be123c !important;
+      border-color: #be123c !important;
+      transform: translateY(-1px);
+    }
+
+    .q-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin: 18px 0;
+      max-height: 55vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .grid-cell {
+      aspect-ratio: 1;
+      background: var(--card-sub-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+
+    .grid-cell.answered {
+      background: var(--success);
+      color: #fff;
+      border-color: var(--success);
+    }
+
+    .grid-cell.active {
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-soft);
+    }
+
+    /* Result Screen */
+    .result-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 20px;
+      text-align: center;
+      margin: auto 0;
+      box-shadow: var(--shadow);
+    }
+
+    .grade-badge {
+      display: inline-block;
+      font-size: 32px;
+      font-weight: 900;
+      padding: 10px 26px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      margin-bottom: 16px;
+    }
+
+    .score-number {
+      font-size: 44px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      pointer-events: none;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .toast {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 12px 18px;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      animation: toastIn 0.25s ease-out forwards;
+    }
+
+    .toast-error {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="container">
+
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <svg class="icon icon-lg" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+        </svg>
+        <span>Milliy Sertifikat</span>
+      </div>
+
+      <div class="header-actions">
+        <!-- Theme Toggle Button (Light/Dark) -->
+        <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" title="Rejimni almashtirish">
+          <svg class="icon icon-sm" id="themeIcon" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <!-- Timer Badge -->
+        <div class="timer-badge" id="timerBadge">
+          <svg class="icon icon-sm" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span id="timerText">150:00</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- SCREEN 1: KOD KIRITISH -->
+    <div class="screen active" id="screenCode">
+      <div class="hero-card">
+        <h1 class="hero-title">Matematika Mock Test</h1>
+        <p class="hero-desc">
+          Real imtihon formati, geometrik chizmalar va RASH (IRT) ilmiy baholash tizimi.
+        </p>
+
+        <input type="text" id="testCodeInput" class="input-box" placeholder="TEST KODINI KIRITING" value="STANDART">
+
+        <button class="btn btn-primary" onclick="startTestWithCode()">
+          <svg class="icon" viewBox="0 0 24 24">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          Testni boshlash
+        </button>
+
+        <button class="btn btn-outline" onclick="loadDefaultTest()">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          Rasmiy 45 talik STANDART test
+        </button>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: SAVOLLAR OQIMI -->
+    <div class="screen" id="screenQuiz">
+      <div class="meta-bar">
+        <span id="questionOrderLabel">Savol 1 / 45</span>
+        <span id="questionSectionLabel">Algebra</span>
+      </div>
+
+      <!-- Savol matni va rasm -->
+      <div class="q-card">
+        <div id="groupContextText" style="display:none; margin-bottom:12px; font-weight:600; color:var(--text-muted); border-left: 3px solid var(--primary); padding-left: 10px;"></div>
+        <div id="questionText"></div>
+        <div class="q-image-container" id="qImageWrap" style="display:none;">
+          <img id="qImage" src="" alt="Savol chizmasi">
+        </div>
+      </div>
+
+      <!-- Y-1 / Guruhlangan variantlar -->
+      <div class="options-grid" id="optionsContainer"></div>
+
+      <!-- Ochiq savol (O turi) inputlari -->
+      <div id="openInputsContainer" style="display:none; margin-bottom:16px;">
+        <div class="open-input-group" id="groupPartA">
+          <label>
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            a) bandi uchun javobingiz:
+          </label>
+          <input type="text" class="open-field" id="inputPartA" placeholder="Masalan: 12 yoki 3.5">
+        </div>
+        <div class="open-input-group" id="groupPartB">
+          <label>
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            b) bandi uchun javobingiz:
+          </label>
+          <input type="text" class="open-field" id="inputPartB" placeholder="Masalan: -5 yoki 1/2">
+        </div>
+      </div>
+
+      <!-- 1-QATOR NAVIGATSIYA: [Oldingi] [Keyingi] [Yakunlash] -->
+      <div class="nav-bar">
+        <button class="nav-btn" onclick="prevQuestion()" id="btnPrev">
+          <svg class="icon" viewBox="0 0 24 24">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          Oldingi
+        </button>
+
+        <button class="nav-btn" onclick="nextQuestion()" id="btnNext">
+          Keyingi
+          <svg class="icon" viewBox="0 0 24 24">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+
+        <button class="nav-btn nav-btn-danger" onclick="openFinishModal()">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          Yakunlash
+        </button>
+      </div>
+
+      <!-- 2-QATOR: TUGMALARNING TAGIDA KATTA QILIB QO'YILGAN XARITA TUGMASI -->
+      <div class="map-bar-container">
+        <button class="btn-map-large" onclick="openGridModal()">
+          <svg class="icon icon-lg" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          Savollar xaritasi (1–45)
+        </button>
+      </div>
+
+    </div>
+
+    <!-- SCREEN 3: NATIJA (RASH IRT) -->
+    <div class="screen" id="screenResult">
+      <div class="result-card">
+        <div class="grade-badge" id="resGrade">A+</div>
+        <div class="score-number" id="resFinalScore">68.5</div>
+        <p style="color:var(--text-muted); margin-bottom: 20px;">0–75 Ballik Rasmiy Shkala bo'yicha</p>
+
+        <div style="background:var(--card-sub-bg); border:1px solid var(--border); padding:16px; border-radius:10px; margin-bottom:20px; text-align:left; font-size:14px; line-height:1.8;">
+          <div class="stat-row">
+            <span>To'g'ri bandlar (Xom ball):</span>
+            <b id="resRawScore">42 / 55</b>
+          </div>
+          <div class="stat-row">
+            <span>Qobiliyat darajasi (θ):</span>
+            <b id="resTheta">+1.82 logit</b>
+          </div>
+          <div class="stat-row">
+            <span>Sertifikat holati:</span>
+            <b id="resCertStatus" style="color:var(--success);">Sertifikat berildi</b>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="restartApp()">
+          <svg class="icon" viewBox="0 0 24 24">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          Yana test topshirish
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CUSTOM MODAL: TESTNI YAKUNLASHNI TASDIQLASH (BRAUZER CONFIRM O'RNIGA) -->
+  <div class="modal-overlay" id="finishModal">
+    <div class="modal-box">
+      <div class="modal-title">
+        <svg class="icon" style="color:var(--danger);" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        Testni yakunlaysizmi?
+      </div>
+      <p class="modal-text">
+        Haqiqatan ham testni yakunlamoqchimisiz? Belgilanmagan savollar xato deb hisoblanadi va RASH modeli bo'yicha rasmiy ballingiz hisoblab chiqariladi.
+      </p>
+      <div class="modal-actions">
+        <button class="btn btn-modal-cancel" onclick="closeFinishModal()">Davom ettirish</button>
+        <button class="btn btn-modal-danger" onclick="executeSubmitTest()">Ha, yakunlash</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVOLLAR XARITASI (GRID MODAL) -->
+  <div class="modal-overlay" id="gridModal">
+    <div class="modal-box" style="max-width: 500px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div style="display:flex; align-items:center; gap:8px; font-weight:700; font-size:16px;">
+          <svg class="icon" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          Savollar xaritasi
+        </div>
+        <button onclick="closeGridModal()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <p style="font-size:13px; color:var(--text-muted);">Istalgan savol raqamini bosib unga o'ting:</p>
+      <div class="q-grid" id="gridCells"></div>
+      <button class="btn btn-outline" onclick="closeGridModal()">Yopish</button>
+    </div>
+  </div>
+
+  <script>
+    // Theme Management (Light / Dark)
+    let currentTheme = localStorage.getItem('theme') || 'dark';
+
+    function applyTheme(theme) {
+      currentTheme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+
+      const icon = document.getElementById('themeIcon');
+      if (theme === 'light') {
+        icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+      } else {
+        icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+      }
+    }
+
+    function toggleTheme() {
+      applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    }
+
+    applyTheme(currentTheme);
+
+    // Custom Toast function (Brauzer alert o'rniga)
+    function showToast(msg, isError = false) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast' + (isError ? ' toast-error' : '');
+      toast.innerHTML = `
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <span>${msg}</span>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Telegram WebApp Setup
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.expand();
+      tg.enableClosingConfirmation();
+      if (tg.colorScheme) {
+        applyTheme(tg.colorScheme);
+      }
+    }
+
+    let currentTest = null;
+    let questions = [];
+    let currentIndex = 0;
+    let answers = {};
+    let timerInterval = null;
+    let sessionStartTime = null;
+    let remainingSeconds = 150 * 60;
+    const SESSION_KEY = 'msbot_active_test_session';
+
+    // ================= SESSIAYANI SAQLASH VA TIKLASH (F5 DA DAVOM ETTIRISH) =================
+    function saveActiveSession() {
+      if (!currentTest || !sessionStartTime) return;
+      try {
+        const sessionData = {
+          test: currentTest,
+          startTime: sessionStartTime,
+          timeLimitSeconds: (currentTest.time_limit_min || 150) * 60,
+          currentIndex: currentIndex,
+          answers: answers
+        };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+      } catch (err) {
+        console.warn("Sessiyani saqlashda xatolik:", err);
+      }
+    }
+
+    function clearActiveSession() {
+      try {
+        localStorage.removeItem(SESSION_KEY);
+      } catch (err) {}
+    }
+
+    function checkAndRestoreSession() {
+      try {
+        const saved = localStorage.getItem(SESSION_KEY);
+        if (!saved) return false;
+
+        const session = JSON.parse(saved);
+        if (!session || !session.test || !session.startTime) {
+          clearActiveSession();
+          return false;
+        }
+
+        const totalSec = session.timeLimitSeconds || (session.test.time_limit_min || 150) * 60;
+        const elapsed = Math.floor((Date.now() - session.startTime) / 1000);
+        const rem = totalSec - elapsed;
+
+        if (rem <= 0) {
+          clearActiveSession();
+          showToast("Avvalgi test vaqti tugagan!", true);
+          return false;
+        }
+
+        currentTest = session.test;
+        questions = currentTest.questions || [];
+        sessionStartTime = session.startTime;
+        remainingSeconds = rem;
+        currentIndex = session.currentIndex || 0;
+        answers = session.answers || {};
+
+        showScreen('screenQuiz');
+        loadQuestion(currentIndex);
+        startTimer();
+        showToast("Test holati muvaffaqiyatli tiklandi! Qolgan vaqt: " + Math.floor(rem / 60) + " daqiqa.");
+        return true;
+      } catch (err) {
+        clearActiveSession();
+        return false;
+      }
+    }
+
+    function renderMathInDocument() {
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\]', display: true}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    async function loadDefaultTest() {
+      document.getElementById('testCodeInput').value = 'STANDART';
+      await startTestWithCode();
+    }
+
+    async function startTestWithCode() {
+      const code = document.getElementById('testCodeInput').value.trim() || 'STANDART';
+      try {
+        const res = await fetch(`/api/test/${encodeURIComponent(code)}`);
+        if (!res.ok) {
+          showToast("Kechirasiz, ushbu kodli test topilmadi!", true);
+          return;
+        }
+        currentTest = await res.json();
+        questions = currentTest.questions;
+
+        sessionStartTime = Date.now();
+        remainingSeconds = (currentTest.time_limit_min || 150) * 60;
+        currentIndex = 0;
+        answers = {};
+
+        saveActiveSession();
+        startTimer();
+
+        showScreen('screenQuiz');
+        loadQuestion(0);
+      } catch (err) {
+        showToast("Xatolik: " + err.message, true);
+      }
+    }
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      const updateTimerDisplay = () => {
+        if (sessionStartTime && currentTest) {
+          const totalSec = (currentTest.time_limit_min || 150) * 60;
+          const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+          remainingSeconds = totalSec - elapsed;
+        } else {
+          remainingSeconds--;
+        }
+
+        if (remainingSeconds <= 0) {
+          clearInterval(timerInterval);
+          showToast("Vaqt tugadi! Test natijalari hisoblanmoqda...");
+          executeSubmitTest();
+          return;
+        }
+        const m = Math.floor(remainingSeconds / 60);
+        const s = remainingSeconds % 60;
+        document.getElementById('timerText').innerText = 
+          `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      };
+
+      updateTimerDisplay();
+      timerInterval = setInterval(updateTimerDisplay, 1000);
+    }
+
+    function loadQuestion(index) {
+      if (index < 0 || index >= questions.length) return;
+      currentIndex = index;
+      saveActiveSession();
+      const q = questions[index];
+
+      document.getElementById('questionOrderLabel').innerText = `Savol ${q.order_no} / ${questions.length}`;
+      document.getElementById('questionSectionLabel').innerText = q.section || 'Matematika';
+
+      // Guruhlangan kontekst
+      const groupCtx = document.getElementById('groupContextText');
+      if (q.group_context) {
+        groupCtx.innerText = q.group_context;
+        groupCtx.style.display = 'block';
+      } else {
+        groupCtx.style.display = 'none';
+      }
+
+      // Savol matni
+      document.getElementById('questionText').innerHTML = q.text;
+
+      // Rasm
+      const imgWrap = document.getElementById('qImageWrap');
+      const qImg = document.getElementById('qImage');
+      if (q.image_url) {
+        qImg.src = q.image_url;
+        imgWrap.style.display = 'block';
+      } else {
+        imgWrap.style.display = 'none';
+      }
+
+      // Variantlar yoki Ochiq inputlar
+      const optContainer = document.getElementById('optionsContainer');
+      const openContainer = document.getElementById('openInputsContainer');
+
+      if (q.type === 'Y-1' || q.type === 'GROUPED') {
+        openContainer.style.display = 'none';
+        optContainer.style.display = 'flex';
+        optContainer.innerHTML = '';
+
+        const opts = q.options || q.group_options || {};
+        const selected = answers[q.id]?.choice;
+
+        for (const [key, val] of Object.entries(opts)) {
+          const item = document.createElement('div');
+          item.className = 'option-item' + (selected === key ? ' selected' : '');
+          item.dataset.key = key;
+          item.innerHTML = `
+            <div class="opt-badge">${key}</div>
+            <div class="opt-text">${val}</div>
+          `;
+          item.onclick = function() {
+            selectOptionDirectly(q.id, key, item);
+          };
+          optContainer.appendChild(item);
+        }
+      } else if (q.type === 'O') {
+        optContainer.style.display = 'none';
+        openContainer.style.display = 'block';
+
+        const currA = answers[q.id]?.a || '';
+        const currB = answers[q.id]?.b || '';
+
+        const inA = document.getElementById('inputPartA');
+        const inB = document.getElementById('inputPartB');
+
+        inA.value = currA;
+        inB.value = currB;
+
+        inA.oninput = (e) => saveOpenAnswer(q.id, 'a', e.target.value);
+        inB.oninput = (e) => saveOpenAnswer(q.id, 'b', e.target.value);
+      }
+
+      setTimeout(renderMathInDocument, 30);
+    }
+
+    // VARIANT TANLANGANDA BUTUN DOM QAYTA YUKLANMAYDI — HECH QANDAY SAKRASH / FLICKER BO'LMAYDI!
+    function selectOptionDirectly(qId, key, clickedElement) {
+      if (!answers[qId]) answers[qId] = {};
+      answers[qId].choice = key;
+
+      // Faqatgina option itemlarning selected klassini yangilash
+      const parent = clickedElement.parentElement;
+      const allItems = parent.querySelectorAll('.option-item');
+      allItems.forEach(el => el.classList.remove('selected'));
+      clickedElement.classList.add('selected');
+
+      // Sessiyani bir zumda xotiraga saqlash (F5 bosilganda yo'qolmasligi uchun)
+      saveActiveSession();
+    }
+
+    function saveOpenAnswer(qId, part, val) {
+      if (!answers[qId]) answers[qId] = {};
+      answers[qId][part] = val.trim();
+      saveActiveSession();
+    }
+
+    function prevQuestion() {
+      if (currentIndex > 0) loadQuestion(currentIndex - 1);
+    }
+
+    function nextQuestion() {
+      if (currentIndex < questions.length - 1) loadQuestion(currentIndex + 1);
+    }
+
+    function openGridModal() {
+      const grid = document.getElementById('gridCells');
+      grid.innerHTML = '';
+      questions.forEach((q, idx) => {
+        const cell = document.createElement('div');
+        const isAns = answers[q.id] && (answers[q.id].choice || answers[q.id].a || answers[q.id].b);
+        cell.className = 'grid-cell' + (isAns ? ' answered' : '') + (idx === currentIndex ? ' active' : '');
+        cell.innerText = q.order_no;
+        cell.onclick = () => {
+          closeGridModal();
+          loadQuestion(idx);
+        };
+        grid.appendChild(cell);
+      });
+      document.getElementById('gridModal').classList.add('open');
+    }
+
+    function closeGridModal() {
+      document.getElementById('gridModal').classList.remove('open');
+    }
+
+    // CUSTOM MODAL OCHISH (Brauzer confirm o'rniga)
+    function openFinishModal() {
+      document.getElementById('finishModal').classList.add('open');
+    }
+
+    function closeFinishModal() {
+      document.getElementById('finishModal').classList.remove('open');
+    }
+
+    async function executeSubmitTest() {
+      closeFinishModal();
+      clearInterval(timerInterval);
+      clearActiveSession();
+
+      const user = tg?.initDataUnsafe?.user || {
+        id: 1685356708,
+        first_name: "Talabgor",
+        username: "test_user"
+      };
+
+      const payloadAnswers = [];
+      for (const [qId, ansObj] of Object.entries(answers)) {
+        if (ansObj.choice) {
+          payloadAnswers.push({
+            question_id: parseInt(qId),
+            user_answer: ansObj.choice,
+            sub_part_label: null
+          });
+        }
+        if (ansObj.a) {
+          payloadAnswers.push({
+            question_id: parseInt(qId),
+            user_answer: ansObj.a,
+            sub_part_label: 'a'
+          });
+        }
+        if (ansObj.b) {
+          payloadAnswers.push({
+            question_id: parseInt(qId),
+            user_answer: ansObj.b,
+            sub_part_label: 'b'
+          });
+        }
+      }
+
+      try {
+        const res = await fetch('/api/test/submit', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            test_id: currentTest.id,
+            telegram_id: user.id,
+            full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Talabgor',
+            username: user.username,
+            answers: payloadAnswers
+          })
+        });
+
+        const result = await res.json();
+        displayResult(result);
+      } catch (err) {
+        showToast("Natijani yuborishda xatolik: " + err.message, true);
+      }
+    }
+
+    function displayResult(res) {
+      showScreen('screenResult');
+      document.getElementById('resGrade').innerText = res.grade;
+      document.getElementById('resFinalScore').innerText = `${res.final_score.toFixed(1)} / 75`;
+      document.getElementById('resRawScore').innerText = `${res.raw_score} / ${res.total_items}`;
+      document.getElementById('resTheta').innerText = `${res.theta >= 0 ? '+' : ''}${res.theta.toFixed(2)} logit`;
+      
+      const statusEl = document.getElementById('resCertStatus');
+      if (res.is_certified) {
+        statusEl.innerText = "Tabriklaymiz, Sertifikat berildi!";
+        statusEl.style.color = "var(--success)";
+      } else {
+        statusEl.innerText = "Sertifikat berilmadi (Minimal 46 ball)";
+        statusEl.style.color = "var(--danger)";
+      }
+    }
+
+    function restartApp() {
+      clearActiveSession();
+      answers = {};
+      currentTest = null;
+      showScreen('screenCode');
+    }
+
+    // ================= DASTUR ISHGA TUSHGANDA VA F5 BOSILGANDA TIKLASH =================
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAndRestoreSession();
+    });
+
+    window.addEventListener('beforeunload', () => {
+      if (currentTest && document.getElementById('screenQuiz').classList.contains('active')) {
+        saveActiveSession();
+      }
+    });
+
+    // Skript yuklanganda darhol sessiyani tiklashga urinish
+    checkAndRestoreSession();
+  </script>
+</body>
+</html>
