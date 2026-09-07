@@ -463,6 +463,16 @@
       gap: 8px;
     }
 
+    .key-options-grid.six-options {
+      grid-template-columns: repeat(6, 1fr);
+    }
+
+    @media (max-width: 480px) {
+      .key-options-grid.six-options {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
     .key-option-btn {
       height: 40px;
       border: 1px solid var(--border);
@@ -1335,20 +1345,107 @@
 
       <div class="divider"></div>
 
-      <!-- 1–35 SAVOLLAR: KALITLAR RO'YXATI -->
+      <!-- 1–32 SAVOLLAR: BIR TO'G'RI JAVOBLI TESTLAR -->
       <div class="section-title">
         <div>
-          <span>1–35 Savollar (Variantli testlar kalitlari)</span>
-          <div style="font-size:12px; color:var(--text-sub); font-weight:500;">Har biri 1 tadan variant</div>
+          <span>1–32 Savollar (Klassik variantli testlar)</span>
+          <div style="font-size:12px; color:var(--text-sub); font-weight:500;">Har biri 4 ta variant (A, B, C, D)</div>
         </div>
         <button type="button" class="btn-quick-keys" onclick="openQuickKeysModal()">
           <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-          Tezkor kalitlarni to'ldirish
+          Tezkor kalitlar (1–35)
         </button>
       </div>
 
-      <div class="keys-container" id="keysList1to35">
-        <!-- 1 dan 35 gacha dinamik generatsiya qilinadi -->
+      <div class="keys-container" id="keysList1to32">
+        <!-- 1 dan 32 gacha dinamik generatsiya qilinadi -->
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 33–35 SAVOLLAR: KONTEKSTLI GURUHLANGAN TESTLAR (A–F) -->
+      <div class="section-title">
+        <div>
+          <span>33–35 Savollar (Kontekstli testlar guruhi)</span>
+          <div style="font-size:12px; color:var(--text-sub); font-weight:500;">Bitta umumiy masala sharti, chizma va 6 ta variant (A–F)</div>
+        </div>
+      </div>
+
+      <!-- Kontekstli test maxsus bloki -->
+      <div class="grouped-context-card" style="background:var(--card-sub); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:18px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--primary);">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          <span>33–35-savollar uchun umumiy shart / masala bayoni</span>
+        </div>
+
+        <div class="answer-field-wrap">
+          <input type="text" class="form-input" id="groupContextTextInput" style="height:40px; font-size:13px;" placeholder="Masalan: Parallelepiped shaklidagi yopiq quti asosining eni bo'yiga nisbatan ikki baravar uzun. Qutining hajmi 72 cm³ ga teng..." onfocus="registerActiveInput(this)" oninput="saveGroupContextText(this.value)">
+          <div class="answer-tools">
+            <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('groupContextTextInput', 'symbols')" title="Formula">Σ</button>
+            <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('groupContextTextInput', 'greek')" title="Klaviatura">⌨️</button>
+          </div>
+        </div>
+        <div class="katex-preview" id="katexPreview_groupContext" style="font-size:12px;">
+          Formula ko'rinishi shu yerda chiqadi...
+        </div>
+
+        <div style="font-size:12px; font-weight:600; color:var(--text-sub);">Umumiy chizma yoki masala rasmi:</div>
+        <div class="upload-action-row">
+          <button type="button" class="btn-upload" onclick="triggerFileUpload('groupContext')">
+            <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Chizmani yuklash
+          </button>
+          <input type="text" class="form-input" id="groupImgUrlInput" style="flex:1; height:34px; font-size:12px;" placeholder="Yoki rasm URL havolasi..." oninput="saveGroupImage(this.value)">
+        </div>
+        <div id="imgPreviewBox_group" style="display:none;">
+          <div class="img-preview-wrap">
+            <img class="image-preview-thumbnail" id="imgThumb_group" src="" alt="Umumiy chizma">
+            <span style="font-size:12px; flex:1; color:var(--text-sub); word-break:break-all;" id="imgName_group"></span>
+            <button type="button" class="del-btn" onclick="removeGroupImage()" title="Rasmni o'chirish">
+              <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 6 ta umumiy variant qiymatlari (A–F) -->
+        <div style="margin-top:4px;">
+          <div style="font-size:12px; font-weight:700; color:var(--text); margin-bottom:6px;">
+            Umumiy javob variantlari matnlari (A–F) (ixtiyoriy):
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:8px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-weight:700; font-size:12px; width:18px;">A)</span>
+              <input type="text" class="form-input" id="sharedOpt_A" placeholder="Masalan: 72" style="height:32px; font-size:12px;" oninput="saveSharedOption('A', this.value)">
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-weight:700; font-size:12px; width:18px;">B)</span>
+              <input type="text" class="form-input" id="sharedOpt_B" placeholder="Masalan: 4" style="height:32px; font-size:12px;" oninput="saveSharedOption('B', this.value)">
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-weight:700; font-size:12px; width:18px;">C)</span>
+              <input type="text" class="form-input" id="sharedOpt_C" placeholder="Masalan: 108" style="height:32px; font-size:12px;" oninput="saveSharedOption('C', this.value)">
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-weight:700; font-size:12px; width:18px;">D)</span>
+              <input type="text" class="form-input" id="sharedOpt_D" placeholder="Masalan: 124" style="height:32px; font-size:12px;" oninput="saveSharedOption('D', this.value)">
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-weight:700; font-size:12px; width:18px;">E)</span>
+              <input type="text" class="form-input" id="sharedOpt_E" placeholder="Masalan: 40" style="height:32px; font-size:12px;" oninput="saveSharedOption('E', this.value)">
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-weight:700; font-size:12px; width:18px;">F)</span>
+              <input type="text" class="form-input" id="sharedOpt_F" placeholder="Masalan: 118" style="height:32px; font-size:12px;" oninput="saveSharedOption('F', this.value)">
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size:12px; font-weight:700; color:var(--text); margin-top:8px;">
+          33, 34 va 35-savollarning to'g'ri kalitlari (A–F):
+        </div>
+        <div class="keys-container" id="keysList33to35">
+          <!-- 33, 34, 35 dinamik generatsiya qilinadi -->
+        </div>
       </div>
 
       <div class="divider"></div>
@@ -1565,6 +1662,7 @@
     const questionsMeta = {}; // {1: {text: '', image: '', options: {A:'', B:'', C:'', D:''}}}
     const openQuestionsData = {}; // {36: {a: [''], b: ['']}, ...}
     const openQuestionsMeta = {}; // {36: {text: '', image: ''}}
+    const groupContextData = { text: '', image: '', options: { A: '', B: '', C: '', D: '', E: '', F: '' } };
 
     let currentActiveInput = null;
     // Backend API Base URL Resolver (Lokal, Server va GitHub Pages uchun)
@@ -1637,12 +1735,13 @@
       }
     }
 
-    // ================= 1–35 SAVOLLARNI GENERATSIYA QILISH =================
-    function initQuestions1to35() {
-      const container = document.getElementById('keysList1to35');
+    // ================= 1–32 SAVOLLAR (KLASSIK VARIANTLI TESTLAR) =================
+    function initQuestions1to32() {
+      const container = document.getElementById('keysList1to32');
+      if (!container) return;
       container.innerHTML = '';
 
-      for (let i = 1; i <= 35; i++) {
+      for (let i = 1; i <= 32; i++) {
         if (!answers1to35[i]) answers1to35[i] = 'A';
         if (!questionsMeta[i]) questionsMeta[i] = { text: '', image: '', options: { A: '', B: '', C: '', D: '' } };
 
@@ -1702,6 +1801,115 @@
         `;
         container.appendChild(row);
       }
+    }
+
+    // ================= 33–35 SAVOLLAR (KONTEKSTLI TESTLAR GURUHI — A dan F gacha) =================
+    function initGroupedQuestions33to35() {
+      const container = document.getElementById('keysList33to35');
+      if (!container) return;
+      container.innerHTML = '';
+
+      for (let i = 33; i <= 35; i++) {
+        if (!answers1to35[i]) answers1to35[i] = 'A';
+        if (!questionsMeta[i]) questionsMeta[i] = { text: '', image: '', options: {} };
+
+        const row = document.createElement('div');
+        row.className = 'key-row';
+        row.id = `keyRow_${i}`;
+
+        const hasMeta = Boolean(questionsMeta[i].text || questionsMeta[i].image);
+
+        row.innerHTML = `
+          <div class="key-row-header">
+            <span class="key-row-label">
+              ${i}-savol
+              <span class="key-has-meta-badge" id="badge_q_${i}" style="display:${hasMeta ? 'inline-block' : 'none'};">Savol matni kiritilgan</span>
+            </span>
+            <button type="button" class="key-attach-btn" onclick="toggleDetailsDrawer(${i})">
+              <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              Savol matni / rasm qo'shish
+            </button>
+          </div>
+          <div class="key-options-grid six-options">
+            ${['A', 'B', 'C', 'D', 'E', 'F'].map(opt => `
+              <button type="button" class="key-option-btn ${answers1to35[i] === opt ? 'selected' : ''}" onclick="selectKeyOption(${i}, '${opt}')">${opt}</button>
+            `).join('')}
+          </div>
+          <div class="key-details-drawer" id="detailsDrawer_${i}">
+            <div style="font-size:12px; font-weight:600; color:var(--text-sub);">${i}-savolning alohida matni:</div>
+            <div class="answer-field-wrap">
+              <input type="text" class="form-input" id="qTextInput_${i}" style="height:38px; font-size:13px;" placeholder="${i}-savol matni..." value="${escapeHtml(questionsMeta[i].text || '')}" onfocus="registerActiveInput(this)" oninput="saveQuestionText(${i}, this.value)">
+              <div class="answer-tools">
+                <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('qTextInput_${i}', 'symbols')" title="Formula">Σ</button>
+                <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('qTextInput_${i}', 'greek')" title="Klaviatura">⌨️</button>
+              </div>
+            </div>
+            <div class="katex-preview" id="katexPreview_q_${i}">
+              ${renderKatexString(questionsMeta[i].text || "Formula ko'rinishi shu yerda chiqadi...")}
+            </div>
+
+            <div style="font-size:12px; font-weight:600; color:var(--text-sub); margin-top:4px;">Qo'shimcha rasm (ixtiyoriy):</div>
+            <div class="upload-action-row">
+              <button type="button" class="btn-upload" onclick="triggerFileUpload('q1to35', ${i})">
+                <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                Fayl yuklash
+              </button>
+              <input type="text" class="form-input" id="qImgUrlInput_${i}" style="flex:1; height:34px; font-size:12px;" placeholder="Yoki rasm URL..." value="${escapeHtml(questionsMeta[i].image || '')}" oninput="saveQuestionImage(${i}, this.value)">
+            </div>
+            <div id="imgPreviewBox_q_${i}" style="display:${questionsMeta[i].image ? 'block' : 'none'};">
+              <div class="img-preview-wrap">
+                <img class="image-preview-thumbnail" id="imgThumb_q_${i}" src="${questionsMeta[i].image || ''}" alt="Savol rasmi">
+                <span style="font-size:12px; flex:1; color:var(--text-sub); word-break:break-all;" id="imgName_q_${i}">${questionsMeta[i].image || ''}</span>
+                <button type="button" class="del-btn" onclick="removeQuestionImage(${i})" title="Rasmni o'chirish">
+                  <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(row);
+      }
+    }
+
+    function initQuestions1to35() {
+      initQuestions1to32();
+      initGroupedQuestions33to35();
+    }
+
+    function saveGroupContextText(val) {
+      groupContextData.text = val;
+      const prev = document.getElementById('katexPreview_groupContext');
+      if (prev) {
+        prev.innerHTML = renderKatexString(val || "Formula ko'rinishi shu yerda chiqadi...");
+      }
+      scheduleAutosave();
+    }
+
+    function saveGroupImage(val) {
+      groupContextData.image = val.trim();
+      const pBox = document.getElementById('imgPreviewBox_group');
+      const thumb = document.getElementById('imgThumb_group');
+      const nameElem = document.getElementById('imgName_group');
+      if (val.trim()) {
+        pBox.style.display = 'block';
+        thumb.src = val.trim();
+        nameElem.innerText = val.trim();
+      } else {
+        pBox.style.display = 'none';
+      }
+      scheduleAutosave();
+    }
+
+    function removeGroupImage() {
+      const inp = document.getElementById('groupImgUrlInput');
+      if (inp) inp.value = '';
+      saveGroupImage('');
+    }
+
+    function saveSharedOption(letter, val) {
+      if (!groupContextData.options) groupContextData.options = {};
+      groupContextData.options[letter] = val.trim();
+      scheduleAutosave();
     }
 
     function selectKeyOption(qNum, opt) {
@@ -2006,7 +2214,11 @@
         const data = await res.json();
         if (res.ok && data.url) {
           showToast("Rasm muvaffaqiyatli yuklandi!");
-          if (activeUploadTarget.type === 'q1to35') {
+          if (activeUploadTarget.type === 'groupContext') {
+            const urlInp = document.getElementById('groupImgUrlInput');
+            if (urlInp) urlInp.value = data.url;
+            saveGroupImage(data.url);
+          } else if (activeUploadTarget.type === 'q1to35') {
             const qNum = activeUploadTarget.qNum;
             const urlInp = document.getElementById(`qImgUrlInput_${qNum}`);
             if (urlInp) urlInp.value = data.url;
@@ -2040,16 +2252,20 @@
 
     function applyQuickKeys() {
       const raw = document.getElementById('quickKeysInput').value.toUpperCase();
-      // Faqat A, B, C, D harflarini terib olamiz
-      const matched = raw.match(/[ABCD]/g);
+      // 1-32 uchun A-D, 33-35 uchun A-F qabul qilinadi
+      const matched = raw.match(/[A-F]/g);
       if (!matched || matched.length === 0) {
-        showToast("Hech qanday A, B, C, D harfi topilmadi!", true);
+        showToast("Hech qanday A–F harfi topilmadi!", true);
         return;
       }
 
       const count = Math.min(35, matched.length);
       for (let i = 1; i <= count; i++) {
-        selectKeyOption(i, matched[i - 1]);
+        let key = matched[i - 1];
+        if (i <= 32 && !['A', 'B', 'C', 'D'].includes(key)) {
+          key = 'A';
+        }
+        selectKeyOption(i, key);
       }
 
       closeModal('quickKeysModal');
@@ -2472,6 +2688,7 @@
             checkboxStates,
             channelInput: document.getElementById('requiredChannelInput')?.value || '',
             answers1to35,
+            groupContextData,
             questionsMeta,
             openQuestionsData,
             openQuestionsMeta
@@ -2533,6 +2750,25 @@
         }
 
         if (draft.answers1to35) Object.assign(answers1to35, draft.answers1to35);
+        if (draft.groupContextData) {
+          Object.assign(groupContextData, draft.groupContextData);
+          if (groupContextData.text) {
+            const el = document.getElementById('groupContextTextInput');
+            if (el) el.value = groupContextData.text;
+            saveGroupContextText(groupContextData.text);
+          }
+          if (groupContextData.image) {
+            const el = document.getElementById('groupImgUrlInput');
+            if (el) el.value = groupContextData.image;
+            saveGroupImage(groupContextData.image);
+          }
+          if (groupContextData.options) {
+            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(letter => {
+              const el = document.getElementById(`sharedOpt_${letter}`);
+              if (el) el.value = groupContextData.options[letter] || '';
+            });
+          }
+        }
         if (draft.questionsMeta) Object.assign(questionsMeta, draft.questionsMeta);
         if (draft.openQuestionsData) Object.assign(openQuestionsData, draft.openQuestionsData);
         if (draft.openQuestionsMeta) Object.assign(openQuestionsMeta, draft.openQuestionsMeta);
@@ -2595,8 +2831,8 @@
       // 45 ta savol massivini yig'amiz:
       const questionsPayload = [];
 
-      // 1-35 Variantli testlar:
-      for (let i = 1; i <= 35; i++) {
+      // 1-32 Variantli klassik testlar:
+      for (let i = 1; i <= 32; i++) {
         const correct = answers1to35[i] || 'A';
         const meta = questionsMeta[i] || {};
         questionsPayload.push({
@@ -2607,6 +2843,27 @@
           text: meta.text || `${i}-savol: To'g'ri javob variantini tanlang.`,
           image_url: meta.image || null,
           options: { "A": "A", "B": "B", "C": "C", "D": "D" },
+          correct_answer: correct
+        });
+      }
+
+      // 33-35 Kontekstli / Guruhlangan testlar (6 ta variant A–F):
+      const sharedOpts = {};
+      ['A', 'B', 'C', 'D', 'E', 'F'].forEach(lettr => {
+        sharedOpts[lettr] = (groupContextData.options && groupContextData.options[lettr]) || lettr;
+      });
+
+      for (let i = 33; i <= 35; i++) {
+        const correct = answers1to35[i] || 'A';
+        const meta = questionsMeta[i] || {};
+        questionsPayload.push({
+          order_no: i,
+          type: "GROUPED",
+          section: subject,
+          difficulty_b: 1.0 + ((i - 32) * 0.3),
+          text: meta.text || `${i}-savol: Mos to'g'ri javobni tanlang.`,
+          image_url: meta.image || null,
+          options: sharedOpts,
           correct_answer: correct
         });
       }
@@ -2648,7 +2905,7 @@
             creator_telegram_id: currentTelegramId,
             code: code,
             title: title,
-            description: `${subject} bo'yicha test (1-35 yopiq, 36-45 ochiq).`,
+            description: `${subject} bo'yicha test (1-32 yopiq, 33-35 guruhlangan, 36-45 ochiq).`,
             time_limit_min: timeLimit,
             test_type: testType,
             access_type: actualAccessType,
@@ -2657,7 +2914,12 @@
             auto_check: checkboxStates.autoCheck,
             hide_answers: checkboxStates.hideAnswers,
             required_channel: checkboxStates.reqSub ? reqChannel : null,
-            questions: questionsPayload
+            questions: questionsPayload,
+            grouped_context: {
+              shared_context_text: groupContextData.text || "33–35-savollar uchun umumiy shart:",
+              shared_image_url: groupContextData.image || null,
+              shared_options: sharedOpts
+            }
           })
         });
 

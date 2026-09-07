@@ -1151,7 +1151,18 @@
       // Guruhlangan kontekst
       const groupCtx = document.getElementById('groupContextText');
       if (q.group_context) {
-        groupCtx.innerText = q.group_context;
+        groupCtx.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px; font-weight:700; color:var(--primary); font-size:13px; margin-bottom:8px;">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <span>33–35 testlar uchun umumiy shart:</span>
+          </div>
+          <div style="font-size:14px; line-height:1.6; color:var(--text-main);">${q.group_context}</div>
+          ${q.group_image_url ? `
+            <div style="text-align:center; background:var(--card-sub-bg); padding:10px; border-radius:10px; border:1px solid var(--border); margin-top:10px;">
+              <img src="${(q.group_image_url.startsWith('http') || !API_BASE) ? q.group_image_url : (API_BASE + (q.group_image_url.startsWith('/') ? '' : '/') + q.group_image_url)}" alt="Umumiy chizma" style="max-width:100%; max-height:240px; border-radius:8px; object-fit:contain;">
+            </div>
+          ` : ''}
+        `;
         groupCtx.style.display = 'block';
       } else {
         groupCtx.style.display = 'none';
@@ -1179,16 +1190,24 @@
         optContainer.style.display = 'flex';
         optContainer.innerHTML = '';
 
-        const opts = q.options || q.group_options || {};
+        let opts = (q.type === 'GROUPED' && q.group_options && Object.keys(q.group_options).length > 0)
+          ? q.group_options
+          : (q.options || {});
+
+        if (q.type === 'GROUPED' && (!opts || Object.keys(opts).length === 0)) {
+          opts = { A: "A", B: "B", C: "C", D: "D", E: "E", F: "F" };
+        }
+
         const selected = answers[q.id]?.choice;
 
         for (const [key, val] of Object.entries(opts)) {
           const item = document.createElement('div');
           item.className = 'option-item' + (selected === key ? ' selected' : '');
           item.dataset.key = key;
+          const displayVal = (val && val !== key) ? val : key;
           item.innerHTML = `
             <div class="opt-badge">${key}</div>
-            <div class="opt-text">${val}</div>
+            <div class="opt-text">${displayVal}</div>
           `;
           item.onclick = function() {
             selectOptionDirectly(q.id, key, item);

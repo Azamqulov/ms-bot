@@ -157,11 +157,13 @@ async def create_test_with_questions(
         group_id = None
         if grouped_context:
             shared_text = grouped_context.get("shared_context_text", "")
+            shared_img = grouped_context.get("shared_image_url")
             shared_opts = grouped_context.get("shared_options", {})
-            if shared_text:
+            if shared_text or shared_img or shared_opts:
                 q_group = QuestionGroup(
                     test_id=new_test.id,
-                    shared_context_text=shared_text,
+                    shared_context_text=shared_text or "33–35-savollar uchun umumiy shart:",
+                    shared_image_url=shared_img,
                     shared_options=shared_opts,
                 )
                 session.add(q_group)

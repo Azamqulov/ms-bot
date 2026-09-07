@@ -160,6 +160,7 @@ async def api_get_test(code: str):
             "options": q.options,
             "sub_parts": q.sub_parts,
             "group_context": q.group.shared_context_text if q.group else None,
+            "group_image_url": q.group.shared_image_url if q.group else None,
             "group_options": q.group.shared_options if q.group else None,
         }
         questions_data.append(q_item)
