@@ -3177,13 +3177,27 @@
       const container = document.getElementById('testsListContainer');
       container.innerHTML = '<div style="text-align:center; padding:30px 10px; color:var(--text-sub);">Testlar yuklanmoqda...</div>';
 
+      if (!API_BASE && window.location.hostname.includes('github.io')) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:30px 16px; color:var(--danger);">
+            <p style="font-weight:600; margin-bottom:8px;">Server manzili ulanmagan!</p>
+            <p style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">Testlar ro'yxatini yuklash uchun server manzilini kiriting.</p>
+            <button type="button" class="btn-action-small" style="background:var(--primary); color:#fff; border-color:var(--primary);" onclick="openApiConfigModal()">
+              ⚙️ Server sozlamasi
+            </button>
+          </div>
+        `;
+        return;
+      }
+
       try {
+        const res = await fetch(`${API_BASE}/api/admin/tests/${currentTelegramId}`);
         let data = { tests: [] };
         const cType = res.headers.get("content-type") || "";
         if (cType.includes("application/json")) {
           data = await res.json();
         } else {
-          return;
+          throw new Error("Server noto'g'ri format qaytardi");
         }
 
         if (res.ok && Array.isArray(data.tests)) {
@@ -3243,7 +3257,19 @@
           `).join('');
         }
       } catch (err) {
-        container.innerHTML = `<div style="color:var(--danger); padding:20px; text-align:center;">Yuklashda xatolik: ${err.message}</div>`;
+        if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+          container.innerHTML = `
+            <div style="text-align:center; padding:30px 16px; color:var(--danger);">
+              <p style="font-weight:600; margin-bottom:8px;">Server bilan aloqa uzildi!</p>
+              <p style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">Bot va tunnel ishlab turganini tekshiring.</p>
+              <button type="button" class="btn-action-small" style="background:var(--primary); color:#fff; border-color:var(--primary);" onclick="openApiConfigModal()">
+                ⚙️ Server sozlamasi
+              </button>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `<div style="color:var(--danger); padding:20px; text-align:center;">Yuklashda xatolik: ${err.message}</div>`;
+        }
       }
     }
 
