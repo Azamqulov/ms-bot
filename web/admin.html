@@ -1376,25 +1376,25 @@
                onblur="if(!this.value || parseInt(this.value) < 1) this.value = 150;">
       </div>
 
+      <!-- Test kodi (Har doim ko'rsatiladi, barcha testlar kodli) -->
+      <div class="form-group" id="testCodeGroup">
+        <label class="form-label">
+          <span>Test kodi (Kupon)</span>
+          <button type="button" style="background:none; border:none; color:var(--primary); font-size:11px; font-weight:600; cursor:pointer;" onclick="generateRandomCode()">Tasodifiy kod</button>
+        </label>
+        <input type="text" class="form-input" id="testCode" placeholder="MS-2026-A" value="MS-2026-A" style="text-transform:uppercase; font-weight:700;" oninput="this.value = this.value.toUpperCase(); scheduleAutosave();">
+      </div>
+
       <!-- Faqat Vaqtli test tanlanganda chiqadigan bo'lim (Doimiy testda yashiriladi) -->
       <div id="timedSettingsWrap" style="display:none; flex-direction:column; gap:18px;">
         <!-- Testga qatnashish turi -->
         <div class="form-group" id="accessTypeGroup">
           <label class="form-label">Testga qatnashish turi</label>
           <div class="segmented-tabs">
-            <button type="button" class="segmented-tab active" id="tabOpen" onclick="setAccessType('open')">Ochiq test</button>
-            <button type="button" class="segmented-tab" id="tabClosed" onclick="setAccessType('closed')">Yopiq test</button>
+            <button type="button" class="segmented-tab" id="tabOpen" style="opacity:0.4; pointer-events:none; cursor:not-allowed;" title="Hozircha faol emas">Ochiq test (Noaktiv)</button>
+            <button type="button" class="segmented-tab active" id="tabClosed" onclick="setAccessType('closed')">Yopiq test</button>
           </div>
-          <p class="form-hint" id="accessTypeHint">Test umumiy ro'yxatda chiqadi va barcha o'quvchilar erkin (kodsiz) kirishi mumkin</p>
-        </div>
-
-        <!-- Test kodi (Faqat Yopiq test tanlanganda chiqadi) -->
-        <div class="form-group" id="testCodeGroup" style="display:none;">
-          <label class="form-label">
-            <span>Test kodi (Kupon)</span>
-            <button type="button" style="background:none; border:none; color:var(--primary); font-size:11px; font-weight:600; cursor:pointer;" onclick="generateRandomCode()">Tasodifiy kod</button>
-          </label>
-          <input type="text" class="form-input" id="testCode" placeholder="MS-2026-A" value="MS-2026-A" style="text-transform:uppercase; font-weight:700;" oninput="this.value = this.value.toUpperCase(); scheduleAutosave();">
+          <p class="form-hint" id="accessTypeHint">Faqat maxsus test kodi (kupon) orqali kirish mumkin</p>
         </div>
 
         <!-- Boshlash vaqti -->
@@ -1492,17 +1492,6 @@
 
       <div class="divider"></div>
 
-      <!-- 36–45 SAVOLLAR: OCHIQ / YOZMA JAVOBLAR -->
-      <div class="section-title">
-        <span>36–45 savollar uchun javob berish usuli</span>
-      </div>
-
-      <div class="segmented-tabs">
-        <button type="button" class="segmented-tab active" id="tabModeWrite" onclick="setAnswerMode('write')">Yozish</button>
-        <button type="button" class="segmented-tab" id="tabModePhoto" onclick="setAnswerMode('photo')">Rasmga olish</button>
-      </div>
-      <p class="form-hint" id="answerModeHint">O'quvchi har bir savol uchun javobni matn/formula orqali yozib jo'natadi</p>
-
       <!-- Checkbox: Yozma javoblarni avtomatik tekshirish -->
       <div class="feature-card" onclick="toggleCheckbox('autoCheck')">
         <div class="custom-checkbox checked" id="cb_autoCheck">
@@ -1517,32 +1506,15 @@
         </div>
       </div>
 
-      <!-- Checkbox: Test yakunlangandan keyin javoblarni yashirish -->
+      <!-- Checkbox: Test yakunlangandan keyin natijalarni yashirish -->
       <div class="feature-card plain" onclick="toggleCheckbox('hideAnswers')">
         <div class="custom-checkbox" id="cb_hideAnswers">
           <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </div>
         <div class="feature-info">
-          <div class="feature-title">Test yakunlangandan keyin javoblarni yashirish</div>
+          <div class="feature-title">Test yakunlangandan keyin natijalarni yashirish</div>
           <div class="feature-desc">
-            Bu funksiya yoqilgan bo'lsa, o'quvchilar javob yuborganlaridan keyin to'g'ri javoblar ko'rsatilmaydi. Ular faqat umumiy natijalarini ko'rishadi.
-          </div>
-        </div>
-      </div>
-
-      <!-- Checkbox: Telegram kanalga majburiy obuna -->
-      <div class="feature-card purple" onclick="toggleCheckbox('reqSub')">
-        <div class="custom-checkbox" id="cb_reqSub">
-          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-        <div class="feature-info">
-          <div class="feature-title">Telegram kanalga majburiy obuna</div>
-          <div class="feature-desc">
-            Bu funksiya yoqilgan bo'lsa, o'quvchilar testga qatnashishdan oldin sizning Telegram kanalingizga a'zo bo'lishlari shart.
-            <br><b>Eslatma:</b> Bot kanalingizda administrator bo'lishi kerak.
-          </div>
-          <div class="channel-input-wrap" id="channelInputWrap" onclick="event.stopPropagation()">
-            <input type="text" class="form-input" id="requiredChannelInput" placeholder="Kanal usernamesi (@kanalim) yoki havolasi..." style="margin-top:6px; height:38px; font-size:13px;" oninput="scheduleAutosave()">
+            Bu funksiya yoqilgan bo'lsa, o'quvchilar testni yakunlaganda natijalar va to'g'ri javoblar ko'rsatilmaydi ("Natijalarni ustozingiz e'lon qiladi" xabari beriladi). Natijalar faqat ustozning o'ziga boradi.
           </div>
         </div>
       </div>
@@ -2695,7 +2667,6 @@
         timedWrap.style.display = 'flex';
       } else {
         timedWrap.style.display = 'none';
-        setAccessType('open');
       }
     }
 
@@ -3022,6 +2993,7 @@
             body: JSON.stringify({
               title: title,
               time_limit_min: timeLimit,
+              hide_answers: checkboxStates.hideAnswers,
               questions: questionsPayload,
               grouped_context: {
                 shared_context_text: groupContextData.text || "33–35-savollar uchun umumiy shart:",
@@ -3407,6 +3379,11 @@
 
         const timeInput = document.getElementById('testTimeLimit');
         if (timeInput) timeInput.value = test.time_limit_min || 150;
+        if (test.hide_answers !== undefined) {
+          checkboxStates.hideAnswers = !!test.hide_answers;
+          const cb = document.getElementById('cb_hideAnswers');
+          if (cb) cb.classList.toggle('checked', checkboxStates.hideAnswers);
+        }
 
         // 1-35 savollar
         if (test.questions && Array.isArray(test.questions)) {

@@ -1133,6 +1133,23 @@
       </div>
     </div>
 
+    <!-- SCREEN: NATIJALAR YASHIRILGAN TEST YAKUNLANDI -->
+    <div class="screen" id="screenHiddenResult">
+      <div class="hero-card" style="text-align:center; padding:36px 20px;">
+        <div style="width:72px; height:72px; border-radius:50%; background:var(--success-soft); color:var(--success); display:flex; align-items:center; justify-content:center; margin:0 auto 18px;">
+          <svg class="icon" style="width:40px; height:40px;" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        </div>
+        <h2 style="font-size:20px; font-weight:800; color:var(--text-main); margin-bottom:12px;">Test muvaffaqiyatli yakunlandi!</h2>
+        <p style="font-size:15px; color:var(--text-muted); line-height:1.6; max-width:380px; margin:0 auto 24px;" id="hiddenResultMsg">
+          Sizning barcha javoblaringiz qabul qilindi. Ushbu testda natijalar yashirilgan bo'lib, <b>natijalarni ustozingiz e'lon qiladi.</b>
+        </p>
+        <button type="button" class="btn btn-primary" onclick="closeTelegramAppOrRestart()" style="width:100%; max-width:320px; margin:0 auto; padding:14px; font-weight:700; font-size:15px; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>Botga qaytish</span>
+        </button>
+      </div>
+    </div>
+
   </div>
 
   <!-- MODAL: SAVOLNI KO'RISH (PEEK QUESTION MODAL) -->
@@ -1625,8 +1642,8 @@
 
         if (remainingSeconds <= 0) {
           clearInterval(timerInterval);
-          showToast("Vaqt tugadi! Natijalar hisoblanmoqda...");
-          executeSubmitTest();
+          showToast("Vaqtingiz tugadi! Test avtomatik yakunlanmoqda...", true);
+          executeSubmitTest(true);
           return;
         }
         const m = Math.floor(remainingSeconds / 60);
@@ -1939,7 +1956,7 @@
       document.getElementById('finishModal').classList.remove('open');
     }
 
-    async function executeSubmitTest() {
+    async function executeSubmitTest(isTimeout = false) {
       if (isSubmittingTest) return;
       isSubmittingTest = true;
 
@@ -1957,7 +1974,18 @@
       closeFinishModal();
 
       const overlay = document.getElementById('submitLoadingOverlay');
-      if (overlay) overlay.style.display = 'flex';
+      if (overlay) {
+        const titleEl = overlay.querySelector('.submit-loading-title');
+        const descEl = overlay.querySelector('.submit-loading-desc');
+        if (isTimeout) {
+          if (titleEl) titleEl.innerText = "Vaqtingiz tugadi!";
+          if (descEl) descEl.innerText = "Ajratilgan vaqt yakunlandi. Barcha belgilangan javoblaringiz avtomatik qabul qilinmoqda...";
+        } else {
+          if (titleEl) titleEl.innerText = "Natijangiz hisoblanmoqda...";
+          if (descEl) descEl.innerText = "RASH (IRT) modeli asosida javoblaringiz baholanmoqda va rasmiy sertifikat blankasi shakllantirilmoqda. Iltimos, bir oz kuting.";
+        }
+        overlay.style.display = 'flex';
+      }
 
       clearInterval(timerInterval);
       clearActiveSession();
@@ -2012,8 +2040,12 @@
         }
 
         const result = await res.json();
-        showToast("Test yakunlandi! Natijangiz hisoblandi.");
-        displayResult(result);
+        if (result.hide_answers) {
+          showHiddenResultScreen(result.message);
+        } else {
+          showToast("Test yakunlandi! Natijangiz hisoblandi.");
+          displayResult(result);
+        }
       } catch (err) {
         showToast("Natijani tekshirishda xatolik: " + err.message, true);
       } finally {
@@ -2024,6 +2056,34 @@
           submitBtn.innerText = "Ha, tugatish";
         }
       }
+    }
+
+    function showHiddenResultScreen(customMsg) {
+      clearInterval(timerInterval);
+      clearActiveSession();
+
+      const timerBadge = document.getElementById('timerBadge');
+      if (timerBadge) timerBadge.style.display = 'none';
+
+      const bar = document.getElementById('floatingSubmitBar');
+      if (bar) bar.style.display = 'none';
+
+      if (customMsg) {
+        const msgEl = document.getElementById('hiddenResultMsg');
+        if (msgEl) msgEl.innerHTML = `Sizning barcha javoblaringiz qabul qilindi. <b>${customMsg}</b>`;
+      }
+
+      showScreen('screenHiddenResult');
+    }
+
+    function closeTelegramAppOrRestart() {
+      if (window.Telegram?.WebApp?.close) {
+        try {
+          window.Telegram.WebApp.close();
+          return;
+        } catch (e) {}
+      }
+      window.location.reload();
     }
 
     // ================= NATIJA VA DIAGNOSTIKANI CHIQARISH =================

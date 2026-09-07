@@ -263,3 +263,74 @@ async def test_admin_api_authentication_security():
         assert "avg_score" in stats_data
         assert "participants" in stats_data
 
+
+@pytest.mark.asyncio
+async def test_hide_answers_submission_flow():
+    """hide_answers=True bo'lganda talabgorga natijalar yashirilishi va 'Natijalarni ustozingiz chiqaradi' qaytarilishini tekshirish"""
+    from httpx import AsyncClient, ASGITransport
+    from bot.web_app.api import app
+
+    await init_db()
+    admin_user = await get_or_create_user(1685356708, "Super Admin")
+
+    sample_questions = [
+        {
+            "order_no": 1,
+            "type": "Y-1",
+            "section": "Algebra",
+            "difficulty_b": 0.0,
+            "text": "1-savol",
+            "options": {"A": "A", "B": "B", "C": "C", "D": "D"},
+            "correct_answer": "B",
+        }
+    ]
+
+    import uuid
+    test_code = f"TEST_HIDE_{uuid.uuid4().hex[:6].upper()}"
+
+    success, msg, test_obj = await create_test_with_questions(
+        creator_user_id=admin_user.id,
+        code=test_code,
+        title="Yashirin Natijali Test",
+        description="",
+        time_limit_min=120,
+        questions_data=sample_questions,
+        hide_answers=True,
+    )
+    assert success is True, f"Create test failed: {msg}"
+    assert test_obj.hide_answers is True
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # 1. API dan testni olishda hide_answers=True ekanligi
+        res_get = await client.get(f"/api/test/{test_code}")
+        assert res_get.status_code == 200
+        get_data = res_get.json()
+        assert get_data["hide_answers"] is True
+        q_id = get_data["questions"][0]["id"]
+
+        # 2. Testni topshirganda faqat xabar qaytishi (natija va ballar yashiriladi)
+        res_sub = await client.post(
+            "/api/test/submit",
+            json={
+                "test_id": test_obj.id,
+                "telegram_id": 999111222,
+                "full_name": "O'quvchi Test",
+                "answers": [
+                    {
+                        "question_id": q_id,
+                        "user_answer": "B",
+                        "sub_part_label": None,
+                    }
+                ]
+            }
+        )
+        assert res_sub.status_code == 200
+        sub_data = res_sub.json()
+        assert sub_data["hide_answers"] is True
+        assert "ustozingiz" in sub_data["message"].lower()
+        # raw_score va cert_url talabgorga qaytarilmasligi
+        assert "raw_score" not in sub_data
+        assert "certificate_url" not in sub_data
+
+

@@ -123,6 +123,7 @@ async def create_test_with_questions(
     time_limit_min: int,
     questions_data: List[Dict[str, Any]],
     grouped_context: Optional[Dict[str, Any]] = None,
+    hide_answers: bool = False,
 ) -> Tuple[bool, str, Optional[Test]]:
     """
     Admin tomonidan yangi test va uning savollarini bazaga yuklash.
@@ -149,6 +150,7 @@ async def create_test_with_questions(
             time_limit_min=time_limit_min,
             created_by_user_id=creator_user_id,
             is_active=True,
+            hide_answers=hide_answers,
         )
         session.add(new_test)
         await session.flush()
@@ -411,6 +413,7 @@ async def get_test_details_admin(test_id: int, user_id: int) -> Optional[Dict[st
             "time_limit_min": test.time_limit_min,
             "question_count": test.question_count,
             "is_active": test.is_active,
+            "hide_answers": getattr(test, "hide_answers", False),
             "questions": questions_data,
             "grouped_context": grouped_context,
         }
@@ -424,6 +427,7 @@ async def update_test_with_questions(
     time_limit_min: Optional[int] = None,
     questions_data: Optional[List[Dict[str, Any]]] = None,
     grouped_context: Optional[Dict[str, Any]] = None,
+    hide_answers: Optional[bool] = None,
 ) -> Tuple[bool, str]:
     """Test ma'lumotlari va uning savollari/to'g'ri javob kalitlarini yangilash"""
     async with async_session_maker() as session:
@@ -451,6 +455,8 @@ async def update_test_with_questions(
             test.description = description.strip() if description else None
         if time_limit_min is not None and time_limit_min > 0:
             test.time_limit_min = time_limit_min
+        if hide_answers is not None:
+            test.hide_answers = hide_answers
 
         # Guruh kontekstini yangilash
         if grouped_context and test.question_groups:

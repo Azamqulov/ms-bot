@@ -68,6 +68,12 @@
 - [x] 36. WebApp natijalar ekranida rasmiy sertifikat rasmining cross-origin (GitHub Pages -> API tunnel) mutlaq URL manzili to'g'rilandi (404 broken image bartaraf etildi), rasm ramkasiga yuklanish spinneri o'rnatildi, "Yuklab olish (JPG)" va "Kattalashtirish" tugmalari 50/50 teng kenglikda bir tekis qilindi va to'g'ridan-to'g'ri Blob orqali telefon xotirasiga .jpg fayl qilib yuklab olish funksiyasi joriy qilindi.
 - [x] 37. Test yakunlash interfeysi matnlari foydalanuvchi talabiga ko'ra tabiiy va rasmiy o'zbek tiliga o'tkazildi: suzuvchi panel tugmasi "Testni yakunlash", tasdiqlash modali sarlavhasi "Testni yakunlaysizmi?", bekor qilish "Davom ettirish" va asosiy yakunlash tugmasi "Ha, tugatish" deb qayta nomlandi.
 - [x] 38. O'quvchi javoblar varaqasi (Web App) boshlang'ich mavzusi (default theme) foydalanuvchi talabiga asosan Dark rejimidan Light rejimiga o'tkazildi: `:root` tokenlari Light rejimga moslandi, HTML `data-theme="light"` qilindi, quyosh/oy ikonkasi to'g'rilandi va mavzu tanlash xotirasi (`ms_theme_v2`) sinxronlashtirildi.
+- [x] 39. Foydalanuvchi talabiga asosan 5 ta muhim biznes logika va interfeys sozlamalari joriy qilindi:
+  - 1) "Telegram kanalga majburiy obuna" bloki admin interfeysidan butunlay olib tashlandi.
+  - 2) "36–45 savollar uchun javob berish usuli" (Yozish / Rasmga olish) ortiqcha segmenti olib tashlandi, standart faqat 'write' rejimida qoldirildi.
+  - 3) "Testga qatnashish turi"da "Ochiq test" noaktiv qilindi, faqat "Yopiq test" faol qoldirildi; "Test kodi (Kupon)" doimiy ko'rinadigan qilib chiqarildi.
+  - 4) "Test yakunlangandan keyin natijalarni yashirish" (`hide_answers`) funksiyasi to'liq ulandi: agar bu yoqilgan bo'lsa, o'quvchi testni yakunlaganda bal va to'g'ri javoblar ko'rsatilmaydi, "Test muvaffaqiyatli yakunlandi! Natijalarni ustozingiz e'lon qiladi" xabari beriladi; agar o'chiq bo'lsa natija darhol sertifikat bilan chiqadi. Natijalar ustozga har doim to'liq yetib boradi.
+  - 5) Vaqt tugaganda (`remainingSeconds <= 0`) avtomatik testni yakunlash (auto-submit timeout) to'liq ishchi holatga keltirildi.
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.

@@ -192,6 +192,7 @@ async def api_get_test(code: str):
         "description": test.description,
         "question_count": test.question_count,
         "time_limit_min": test.time_limit_min,
+        "hide_answers": getattr(test, "hide_answers", False),
         "questions": questions_data,
     }
 
@@ -259,6 +260,18 @@ async def api_submit_test(payload: SubmitTestRequest):
 
     completed_attempt, rasch_result = await finish_attempt(attempt.id)
 
+    # Test ob'ektini va uning hide_answers holatini aniqlash
+    test_obj = None
+    try:
+        async with async_session_maker() as session:
+            t_stmt = select(Test).where(Test.id == payload.test_id)
+            t_res = await session.execute(t_stmt)
+            test_obj = t_res.scalar_one_or_none()
+    except Exception as e:
+        logger.warning(f"Test fetch error in submit: {e}")
+
+    hide_answers = getattr(test_obj, "hide_answers", False) if test_obj else False
+
     # 0. Rasmiy Sertifikat Blankasini generatsiya qilish
     cert_url = None
     cert_file_path = None
@@ -280,44 +293,55 @@ async def api_submit_test(payload: SubmitTestRequest):
     # Natijani avtomatik Telegram Bot orqali yuborish
     bot = getattr(app.state, "bot", None)
     if bot:
-        # 1. Talabgorning o'ziga to'liq natija xabarini yuborish
+        # 1. Talabgorning o'ziga natija xabarini yuborish
         if payload.telegram_id:
             try:
-                # Agar sertifikat rasmi mavjud bo'lsa, rasmni alohida yuboramiz
-                if cert_file_path and os.path.exists(cert_file_path):
-                    cert_status_title = "Sertifikat berilsin" if rasch_result.is_certified else "Sertifikat berilmadi"
-                    cert_grade_title = rasch_result.grade if rasch_result.is_certified else "Talabga javob bermadi"
-                    percent_calc = min(100.0, max(0.0, (rasch_result.final_score / 70.0) * 100.0))
-                    cert_caption = (
-                        f"📄 <b>Umumta'lim fanini bilish darajasi to'g'risida sertifikat</b>\n\n"
-                        f"👤 <b>Talabgor:</b> {payload.full_name or user.full_name}\n"
-                        f"📊 <b>To'plangan ball:</b> {rasch_result.final_score:.1f} ball ({percent_calc:.1f}%)\n"
-                        f"🎖 <b>Daraja:</b> {cert_grade_title}\n"
-                        f"📋 <b>Xulosa:</b> {cert_status_title}"
-                    )
-                    await bot.send_photo(
+                if hide_answers:
+                    # Agar natijalar yashirilgan bo'lsa: talabgorga faqat qabul qilingani bildiriladi
+                    test_title_str = test_obj.title if test_obj else "Milliy Sertifikat"
+                    await bot.send_message(
                         chat_id=payload.telegram_id,
-                        photo=FSInputFile(cert_file_path),
-                        caption=cert_caption,
+                        text=(
+                            "✅ <b>Test muvaffaqiyatli yakunlandi!</b>\n\n"
+                            f"🏷 <b>Test:</b> {test_title_str}\n"
+                            "📥 Sizning barcha javoblaringiz qabul qilindi.\n\n"
+                            "🔒 <i>Ushbu testda natijalar yashirilgan. Natijalarni ustozingiz e'lon qiladi.</i>"
+                        ),
                         parse_mode="HTML"
                     )
+                else:
+                    # Agar natijalar ochiq bo'lsa: to'liq sertifikat va hisobot yuboriladi
+                    if cert_file_path and os.path.exists(cert_file_path):
+                        cert_status_title = "Sertifikat berilsin" if rasch_result.is_certified else "Sertifikat berilmadi"
+                        cert_grade_title = rasch_result.grade if rasch_result.is_certified else "Talabga javob bermadi"
+                        percent_calc = min(100.0, max(0.0, (rasch_result.final_score / 70.0) * 100.0))
+                        cert_caption = (
+                            f"📄 <b>Umumta'lim fanini bilish darajasi to'g'risida sertifikat</b>\n\n"
+                            f"👤 <b>Talabgor:</b> {payload.full_name or user.full_name}\n"
+                            f"📊 <b>To'plangan ball:</b> {rasch_result.final_score:.1f} ball ({percent_calc:.1f}%)\n"
+                            f"🎖 <b>Daraja:</b> {cert_grade_title}\n"
+                            f"📋 <b>Xulosa:</b> {cert_status_title}"
+                        )
+                        await bot.send_photo(
+                            chat_id=payload.telegram_id,
+                            photo=FSInputFile(cert_file_path),
+                            caption=cert_caption,
+                            parse_mode="HTML"
+                        )
 
-                report_text = generate_result_report(user, completed_attempt, rasch_result)
-                await bot.send_message(
-                    chat_id=payload.telegram_id,
-                    text=report_text,
-                    parse_mode="HTML"
-                )
+                    report_text = generate_result_report(user, completed_attempt, rasch_result)
+                    await bot.send_message(
+                        chat_id=payload.telegram_id,
+                        text=report_text,
+                        parse_mode="HTML"
+                    )
             except Exception as e:
                 logger.warning(f"Telegram orqali talabgorga natija yuborishda ogohlantirish: {e}")
 
-        # 2. Test yaratgan odam (muallif / o'qituvchi) ning telegramiga natijani yuborish
+        # 2. Test yaratgan odam (muallif / o'qituvchi) ning telegramiga natijani yuborish (har doim to'liq)
         try:
-            async with async_session_maker() as session:
-                t_stmt = select(Test).where(Test.id == payload.test_id)
-                t_res = await session.execute(t_stmt)
-                test_obj = t_res.scalar_one_or_none()
-                if test_obj and test_obj.created_by_user_id:
+            if test_obj and test_obj.created_by_user_id:
+                async with async_session_maker() as session:
                     c_user = await session.get(User, test_obj.created_by_user_id)
                     if c_user and c_user.telegram_id:
                         if cert_file_path and os.path.exists(cert_file_path):
@@ -351,6 +375,14 @@ async def api_submit_test(payload: SubmitTestRequest):
         except Exception as e:
             logger.warning(f"Test yaratuvchisiga Telegram orqali natija yuborishda ogohlantirish: {e}")
 
+    # Agar o'quvchidan natijalar yashirilgan bo'lsa, WebApp ga faqat xabar qaytaramiz
+    if hide_answers:
+        return {
+            "attempt_id": completed_attempt.id,
+            "hide_answers": True,
+            "message": "Test muvaffaqiyatli yakunlandi! Natijalarni ustozingiz e'lon qiladi.",
+        }
+
     detailed_results = []
     try:
         async with async_session_maker() as session:
@@ -374,6 +406,7 @@ async def api_submit_test(payload: SubmitTestRequest):
 
     return {
         "attempt_id": completed_attempt.id,
+        "hide_answers": False,
         "raw_score": rasch_result.raw_score,
         "total_items": rasch_result.total_items,
         "theta": rasch_result.theta,
@@ -461,6 +494,7 @@ async def api_create_test(
         time_limit_min=max(1, payload.time_limit_min),
         questions_data=payload.questions,
         grouped_context=payload.grouped_context,
+        hide_answers=payload.hide_answers or False,
     )
 
     if not success or not test_obj:
@@ -504,6 +538,7 @@ class UpdateTestPayload(BaseModel):
     time_limit_min: Optional[int] = None
     questions: Optional[List[Dict[str, Any]]] = None
     grouped_context: Optional[Dict[str, Any]] = None
+    hide_answers: Optional[bool] = None
 
 
 @app.delete("/api/admin/tests/{test_id}")
@@ -548,6 +583,7 @@ async def api_update_admin_test(
         time_limit_min=payload.time_limit_min,
         questions_data=payload.questions,
         grouped_context=payload.grouped_context,
+        hide_answers=payload.hide_answers,
     )
     if not success:
         raise HTTPException(status_code=400, detail=msg)

@@ -43,6 +43,7 @@ class Test(Base):
     time_limit_min: Mapped[int] = mapped_column(Integer, default=150, nullable=False)
     created_by_user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    hide_answers: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
     questions: Mapped[List["Question"]] = relationship("Question", back_populates="test", cascade="all, delete-orphan", order_by="Question.order_no")

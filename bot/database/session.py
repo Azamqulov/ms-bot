@@ -50,6 +50,14 @@ async def init_db() -> None:
         except Exception:
             pass  # Ustun allaqachon mavjud bo'lsa e'tiborsiz qoldirish
 
+        try:
+            if "sqlite" in effective_db_url:
+                await conn.execute(text("ALTER TABLE tests ADD COLUMN hide_answers BOOLEAN DEFAULT 0"))
+            else:
+                await conn.execute(text("ALTER TABLE tests ADD COLUMN IF NOT EXISTS hide_answers BOOLEAN DEFAULT FALSE"))
+        except Exception:
+            pass
+
 
 async def get_session() -> AsyncSession:
     """Dependency yoki kontekst menejeri uchun sessiya olish"""
