@@ -18,7 +18,8 @@
     <!-- Header -->
     <header class="calc-header">
       <h1>
-        <span>📐 Milliy Sertifikat — Rasch Modeli Baholash Tizimi</span>
+        <svg class="icon" style="width:24px; height:24px; color:#60a5fa;" viewBox="0 0 24 24"><path d="M21.3 15.3l-8.6-8.6a2 2 0 0 0-2.8 0L2.7 13.9a2 2 0 0 0 0 2.8l4.6 4.6a2 2 0 0 0 2.8 0l11.2-11.2a2 2 0 0 0 0-2.8z"></path></svg>
+        <span>Milliy Sertifikat — Rasch Modeli Baholash Tizimi</span>
         <span class="model-badge">1PL IRT Model</span>
       </h1>
       <p>
@@ -27,14 +28,56 @@
       </p>
     </header>
 
-    <!-- Formula Information Box -->
+    <!-- Formula Information Box (Qisqa va tushunarli) -->
     <div class="formula-box">
-      <div class="formula-text">
-        P(X_ni = 1) = exp(θ_n - b_i) / (1 + exp(θ_n - b_i))
+      <div class="formula-top-row">
+        <div class="formula-text">
+          P(X_ni = 1) = exp(θ_n - b_i) / (1 + exp(θ_n - b_i))
+        </div>
+        <div class="formula-desc">
+          <strong>Oddiy qilib aytganda:</strong> Bilimi <code>θ</code> bo'lgan o'quvchining qiyinligi <code>b</code> bo'lgan savolga to'g'ri javob berish ehtimoli qanchaga tengligini hisoblaydi.
+        </div>
       </div>
-      <div class="formula-desc">
-        <strong>Asosiy qoida:</strong> Yakuniy ball oddiy to'g'ri javoblar foizi (X × 70 / 45) orqali hisoblanmaydi!
-        Rasch modelida har bir topshiriqning qiyinligi va qaysi savollarga javob berilgani to'liq inobatga olinadi.
+
+      <div class="formula-guide-grid">
+        <div class="guide-item">
+          <span class="guide-badge">θ (theta)</span>
+          <div><strong>O'quvchining bilimi:</strong> Savollarni qanchalik ko'p va to'g'ri yechsa, qobiliyat darajasi shunchalik baland (logit) bo'ladi.</div>
+        </div>
+        <div class="guide-item">
+          <span class="guide-badge">b_i</span>
+          <div><strong>Savolning qiyinligi:</strong> Easy (-1.0), Medium (0.0), Hard (+1.0) yoki administrator belgilagan real float qiymati.</div>
+        </div>
+        <div class="guide-item">
+          <span class="guide-badge">P</span>
+          <div><strong>To'g'ri topish ehtimoli:</strong> 0% dan 100% gacha bo'lgan ehtimollik ko'rsatkichi.</div>
+        </div>
+      </div>
+
+      <div class="formula-scenarios">
+        <div class="scenario-pill">
+          <div class="scenario-title" style="color:var(--primary);">
+            <svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            1. θ = b (Bilim va qiyinlik teng)
+          </div>
+          <div class="scenario-prob">O'quvchi o'z darajasidagi savolga duch kelganda: <strong>P = 50%</strong></div>
+        </div>
+
+        <div class="scenario-pill">
+          <div class="scenario-title" style="color:var(--success);">
+            <svg class="icon icon-xs" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            2. θ &gt; b (Bilim qiyinlikdan baland)
+          </div>
+          <div class="scenario-prob">Kuchli o'quvchiga osonroq savol tushganda: <strong>P &gt; 50% (80–95%)</strong></div>
+        </div>
+
+        <div class="scenario-pill">
+          <div class="scenario-title" style="color:var(--danger);">
+            <svg class="icon icon-xs" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            3. θ &lt; b (Savol bilimdan murakkab)
+          </div>
+          <div class="scenario-prob">O'ta murakkab savolga duch kelganda: <strong>P &lt; 50% (5–20%)</strong></div>
+        </div>
       </div>
     </div>
 
@@ -52,17 +95,32 @@
       </div>
 
       <div class="quick-actions">
-        <button type="button" class="btn-secondary" onclick="fillRandomAnswers()">🎲 Tasodifiy to'ldirish</button>
-        <button type="button" class="btn-secondary" onclick="fillAllCorrect()">✅ Barchasini to'g'ri qilish</button>
-        <button type="button" class="btn-secondary" onclick="resetAllAnswers()">🔄 Tozalash</button>
-        <button type="button" class="btn-primary" onclick="runEvaluation()">🚀 Rasch Bo'yicha Baholash</button>
+        <button type="button" class="btn-secondary" onclick="fillRandomAnswers()">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle></svg>
+          Tasodifiy to'ldirish
+        </button>
+        <button type="button" class="btn-secondary" onclick="fillAllCorrect()">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          Barchasini to'g'ri qilish
+        </button>
+        <button type="button" class="btn-secondary" onclick="resetAllAnswers()">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          Tozalash
+        </button>
+        <button type="button" class="btn-primary" onclick="runEvaluation()">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-3.05 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4.5c1.2-1.2 3-1.5 3-1.5"></path><path d="M15 9v5s3.03-.55 4.5-2c1.2-1.2 1.5-3 1.5-3"></path></svg>
+          Rasch Bo'yicha Baholash
+        </button>
       </div>
     </div>
 
     <!-- Results Panel (Dinamik chiqadi) -->
     <div class="results-card" id="resultsPanel" style="display: none;">
       <div class="results-header">
-        <h2>📊 Baholash Natijalari (Rasch Measurement Report)</h2>
+        <h2 style="display:flex; align-items:center; gap:8px;">
+          <svg class="icon" style="color:var(--primary);" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          Baholash Natijalari (Rasch Measurement Report)
+        </h2>
         <span class="model-badge" id="certBadge">Sertifikat</span>
       </div>
 
@@ -94,7 +152,7 @@
       </div>
 
       <div class="disclaimer-alert">
-        <span style="font-size: 18px;">⚠️</span>
+        <svg class="icon" style="width:20px; height:20px; color:#d97706; flex-shrink:0;" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         <div>
           <strong>Muhim eslatma:</strong> Ushbu baholash natijasi Milliy sertifikat metodikasiga o'xshash
           <strong>simulyatsion Rasch modeli</strong> asosida hisoblangan bo'lib, BBA (Bilim va malakalarni baholash agentligi)
@@ -252,8 +310,8 @@
 
         const tdStatus = document.createElement('td');
         tdStatus.innerHTML = isCorr
-          ? `<span class="status-badge correct">✓ To'g'ri</span>`
-          : `<span class="status-badge wrong">✗ Noto'g'ri</span>`;
+          ? `<span class="status-badge correct"><svg class="icon icon-xs" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> To'g'ri</span>`
+          : `<span class="status-badge wrong"><svg class="icon icon-xs" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Noto'g'ri</span>`;
         tr.appendChild(tdStatus);
 
         // Qiyinlik ustuni

@@ -78,30 +78,61 @@ body {
   margin-left: 8px;
 }
 
-/* Formula Callout */
+/* SVG Icons */
+.icon {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.icon-sm {
+  width: 15px;
+  height: 15px;
+}
+
+.icon-xs {
+  width: 13px;
+  height: 13px;
+}
+
+/* Formula Callout & Explainer */
 .formula-box {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
-  padding: 16px 20px;
+  padding: 20px 22px;
   margin-bottom: 24px;
   box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formula-top-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
 }
 
 .formula-text {
   font-family: 'Courier New', Courier, monospace;
   background: var(--bg-sub);
-  padding: 6px 12px;
+  padding: 8px 14px;
   border-radius: 8px;
   font-weight: 700;
   font-size: 14px;
   color: var(--primary);
   border: 1px solid #cbd5e1;
+  display: inline-block;
 }
 
 .formula-desc {
@@ -109,6 +140,66 @@ body {
   color: var(--text-muted);
   flex: 1;
   min-width: 280px;
+}
+
+.formula-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  background: var(--bg-sub);
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.guide-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-main);
+}
+
+.guide-badge {
+  font-family: monospace;
+  font-weight: 800;
+  font-size: 12px;
+  background: white;
+  border: 1px solid var(--border-color);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.formula-scenarios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.scenario-pill {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.scenario-title {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scenario-prob {
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 /* Control Toolbar */
