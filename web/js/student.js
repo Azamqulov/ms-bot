@@ -536,13 +536,27 @@
             <div class="open-inputs-pair">
               <div class="open-sub-field-wrap${ansA ? ' filled' : ''}" id="wrapSubA_${qId}">
                 <span class="open-sub-label">a)</span>
-                <input type="text" class="open-sub-input" placeholder="javob" value="${ansA}"
-                       oninput="saveOpenSubPart(${qId}, 'a', this.value, this)">
+                <input type="text" class="open-sub-input" id="openInput_${qId}_a" placeholder="javob" value="${escapeHtml(ansA)}"
+                       oninput="saveOpenSubPart(${qId}, 'a', this.value, this)"
+                       onfocus="registerStudentActiveInput(this)">
+                <div class="open-sub-tools">
+                  <button type="button" class="tool-icon-btn" onclick="openStudentKeyboard('openInput_${qId}_a', 'symbols')" title="Formula / Matematik belgilar">Σ</button>
+                  <button type="button" class="tool-icon-btn" onclick="openStudentKeyboard('openInput_${qId}_a', '123')" title="Klaviatura">
+                    <svg class="icon icon-sm" style="width:14px; height:14px;" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6.01" y2="8"></line><line x1="10" y1="8" x2="10.01" y2="8"></line><line x1="14" y1="8" x2="14.01" y2="8"></line><line x1="18" y1="8" x2="18.01" y2="8"></line><line x1="6" y1="12" x2="6.01" y2="12"></line><line x1="10" y1="12" x2="10.01" y2="12"></line><line x1="14" y1="12" x2="14.01" y2="12"></line><line x1="18" y1="12" x2="18.01" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg>
+                  </button>
+                </div>
               </div>
               <div class="open-sub-field-wrap${ansB ? ' filled' : ''}" id="wrapSubB_${qId}">
                 <span class="open-sub-label">b)</span>
-                <input type="text" class="open-sub-input" placeholder="javob" value="${ansB}"
-                       oninput="saveOpenSubPart(${qId}, 'b', this.value, this)">
+                <input type="text" class="open-sub-input" id="openInput_${qId}_b" placeholder="javob" value="${escapeHtml(ansB)}"
+                       oninput="saveOpenSubPart(${qId}, 'b', this.value, this)"
+                       onfocus="registerStudentActiveInput(this)">
+                <div class="open-sub-tools">
+                  <button type="button" class="tool-icon-btn" onclick="openStudentKeyboard('openInput_${qId}_b', 'symbols')" title="Formula / Matematik belgilar">Σ</button>
+                  <button type="button" class="tool-icon-btn" onclick="openStudentKeyboard('openInput_${qId}_b', '123')" title="Klaviatura">
+                    <svg class="icon icon-sm" style="width:14px; height:14px;" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6.01" y2="8"></line><line x1="10" y1="8" x2="10.01" y2="8"></line><line x1="14" y1="8" x2="14.01" y2="8"></line><line x1="18" y1="8" x2="18.01" y2="8"></line><line x1="6" y1="12" x2="6.01" y2="12"></line><line x1="10" y1="12" x2="10.01" y2="12"></line><line x1="14" y1="12" x2="14.01" y2="12"></line><line x1="18" y1="12" x2="18.01" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg>
+                  </button>
+                </div>
               </div>
             </div>
           `;
@@ -1101,11 +1115,230 @@
       link.href = getAdminPanelUrl();
     }
 
+    // ================= YORDAMCHI: ESCAPE HTML =================
+    function escapeHtml(str) {
+      return (str || '')
+        .toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // ================= VIRTUAL FORMULA KEYBOARD (STUDENT) =================
+    let currentStudentActiveInput = null;
+    let currentStudentKbTab = 'symbols';
+    let isStudentGreekShiftActive = false;
+    const studentInputHistory = new Map();
+
+    const studentNumKeysLayout = [
+      [{ key: '7' }, { key: '8' }, { key: '9' }, { key: '+' }, { key: '-' }, { key: '/' }, { key: '*' }, { key: '=' }],
+      [{ key: '4' }, { key: '5' }, { key: '6' }, { key: '(' }, { key: ')' }, { key: '[' }, { key: ']' }, { key: '^' }],
+      [{ key: '1' }, { key: '2' }, { key: '3' }, { key: '<' }, { key: '>' }, { key: '|' }, { key: '%' }, { key: '⌫', action: 'backspace', special: true }],
+      [{ key: '0' }, { key: '.' }, { key: ',' }, { key: 'x' }, { key: 'y' }, { key: ' ', sub: 'bo\'shliq', special: true }, { key: '↵', action: 'enter', special: true }]
+    ];
+
+    const studentSymbolKeysLayout = [
+      [{ key: '∞' }, { key: '≠' }, { key: '≤' }, { key: '≥' }, { key: '∈' }, { key: '∉' }, { key: '⊂' }, { key: '⊃' }],
+      [{ key: '∪' }, { key: '∩' }, { key: '±' }, { key: '∓' }, { key: '⊥' }, { key: '∥' }, { key: '∠' }, { key: '°' }],
+      [{ key: '√' }, { key: '∛' }, { key: '∫' }, { key: '∑' }, { key: '∏' }, { key: '≈' }, { key: '≡' }, { key: '⌫', action: 'backspace', special: true }],
+      [{ key: 'sin' }, { key: 'cos' }, { key: 'tan' }, { key: 'cot' }, { key: 'log' }, { key: 'ln' }, { key: 'lim' }, { key: '↵', action: 'enter', special: true }]
+    ];
+
+    const studentAbcKeysLayout = [
+      [{ key: 'q' }, { key: 'w' }, { key: 'e' }, { key: 'r' }, { key: 't' }, { key: 'y' }, { key: 'u' }, { key: 'i' }, { key: 'o' }, { key: 'p' }],
+      [{ key: 'a' }, { key: 's' }, { key: 'd' }, { key: 'f' }, { key: 'g' }, { key: 'h' }, { key: 'j' }, { key: 'k' }, { key: 'l' }],
+      [{ key: 'z' }, { key: 'x' }, { key: 'c' }, { key: 'v' }, { key: 'b' }, { key: 'n' }, { key: 'm' }, { key: '⌫', action: 'backspace', special: true }],
+      [{ key: ' ', sub: 'bo\'shliq', special: true }, { key: '↵', action: 'enter', special: true }]
+    ];
+
+    const studentGreekLower = [
+      [{ key: 'α' }, { key: 'β' }, { key: 'γ' }, { key: 'δ' }, { key: 'ε' }, { key: 'ζ' }, { key: 'η' }, { key: 'θ' }],
+      [{ key: 'ι' }, { key: 'κ' }, { key: 'λ' }, { key: 'μ' }, { key: 'ν' }, { key: 'ξ' }, { key: 'ο' }, { key: 'π' }],
+      [{ key: 'ρ' }, { key: 'σ' }, { key: 'τ' }, { key: 'υ' }, { key: 'φ' }, { key: 'χ' }, { key: 'ψ' }, { key: 'ω' }],
+      [{ key: '⇧', action: 'shift', special: true }, { key: ' ', sub: 'bo\'shliq', special: true }, { key: '⌫', action: 'backspace', special: true }, { key: '↵', action: 'enter', special: true }]
+    ];
+
+    const studentGreekUpper = [
+      [{ key: 'Α' }, { key: 'Β' }, { key: 'Γ' }, { key: 'Δ' }, { key: 'Ε' }, { key: 'Ζ' }, { key: 'Η' }, { key: 'Θ' }],
+      [{ key: 'Ι' }, { key: 'Κ' }, { key: 'Λ' }, { key: 'Μ' }, { key: 'Ν' }, { key: 'Ξ' }, { key: 'Ο' }, { key: 'Π' }],
+      [{ key: 'Ρ' }, { key: 'Σ' }, { key: 'Τ' }, { key: 'Υ' }, { key: 'Φ' }, { key: 'Χ' }, { key: 'Ψ' }, { key: 'Ω' }],
+      [{ key: '⇧', action: 'shift', special: true }, { key: ' ', sub: 'bo\'shliq', special: true }, { key: '⌫', action: 'backspace', special: true }, { key: '↵', action: 'enter', special: true }]
+    ];
+
+    function trackStudentInputHistory(inp) {
+      if (!inp) return;
+      if (!studentInputHistory.has(inp)) {
+        studentInputHistory.set(inp, { history: [inp.value || ''], pointer: 0 });
+      } else {
+        const data = studentInputHistory.get(inp);
+        if (data.history[data.pointer] !== inp.value) {
+          data.history = data.history.slice(0, data.pointer + 1);
+          data.history.push(inp.value);
+          if (data.history.length > 30) data.history.shift();
+          data.pointer = data.history.length - 1;
+        }
+      }
+    }
+
+    function registerStudentActiveInput(inp) {
+      if (currentStudentActiveInput && currentStudentActiveInput !== inp) {
+        currentStudentActiveInput.closest('.open-sub-field-wrap')?.classList.remove('active-focus');
+      }
+      currentStudentActiveInput = inp;
+      if (inp) {
+        inp.closest('.open-sub-field-wrap')?.classList.add('active-focus');
+        trackStudentInputHistory(inp);
+      }
+    }
+
+    function openStudentKeyboard(inputId, tab) {
+      const inp = document.getElementById(inputId);
+      if (inp) {
+        registerStudentActiveInput(inp);
+        inp.focus();
+      }
+      const kb = document.getElementById('mathKeyboard');
+      if (kb) kb.classList.add('active');
+      if (tab) switchStudentKbTab(tab);
+    }
+
+    function closeStudentKeyboard() {
+      const kb = document.getElementById('mathKeyboard');
+      if (kb) kb.classList.remove('active');
+      if (currentStudentActiveInput) {
+        currentStudentActiveInput.closest('.open-sub-field-wrap')?.classList.remove('active-focus');
+      }
+    }
+
+    function switchStudentKbTab(tabName) {
+      currentStudentKbTab = tabName;
+      document.querySelectorAll('#mathKeyboard .kb-tab').forEach(t => {
+        if (t.getAttribute('data-tab') === tabName) {
+          t.classList.add('active');
+        } else {
+          t.classList.remove('active');
+        }
+      });
+      renderStudentKeyboard(tabName);
+    }
+
+    function renderStudentKeyboard(tabName) {
+      const container = document.getElementById('studentKbKeysBody');
+      if (!container) return;
+      container.innerHTML = '';
+
+      let layout = isStudentGreekShiftActive ? studentGreekUpper : studentGreekLower;
+      if (tabName === '123') layout = studentNumKeysLayout;
+      else if (tabName === 'symbols') layout = studentSymbolKeysLayout;
+      else if (tabName === 'abc') layout = studentAbcKeysLayout;
+
+      layout.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'kb-row';
+        row.forEach(item => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `kb-key ${item.special ? 'kb-key-special' : ''}`;
+
+          if (item.action) {
+            btn.innerHTML = `<span>${item.key}</span>`;
+            btn.onmousedown = (e) => { e.preventDefault(); handleStudentKbAction(item.action); };
+          } else {
+            btn.innerHTML = `
+              <span>${item.key}</span>
+              ${item.sub ? `<span class="kb-key-sub">${item.sub}</span>` : ''}
+            `;
+            btn.onmousedown = (e) => { e.preventDefault(); insertCharIntoStudentInput(item.key); };
+          }
+          rowDiv.appendChild(btn);
+        });
+        container.appendChild(rowDiv);
+      });
+    }
+
+    function insertCharIntoStudentInput(char) {
+      if (!currentStudentActiveInput) {
+        const any = document.querySelector('.open-sub-input');
+        if (any) registerStudentActiveInput(any);
+      }
+      if (!currentStudentActiveInput) return;
+
+      const start = currentStudentActiveInput.selectionStart ?? currentStudentActiveInput.value.length;
+      const end = currentStudentActiveInput.selectionEnd ?? currentStudentActiveInput.value.length;
+      const oldVal = currentStudentActiveInput.value;
+
+      currentStudentActiveInput.value = oldVal.substring(0, start) + char + oldVal.substring(end);
+      const newPos = start + char.length;
+      currentStudentActiveInput.setSelectionRange(newPos, newPos);
+      currentStudentActiveInput.focus();
+      currentStudentActiveInput.dispatchEvent(new Event('input', { bubbles: true }));
+      trackStudentInputHistory(currentStudentActiveInput);
+    }
+
+    function handleStudentKbAction(act) {
+      if (act === 'shift') {
+        isStudentGreekShiftActive = !isStudentGreekShiftActive;
+        renderStudentKeyboard(currentStudentKbTab);
+        return;
+      }
+      if (!currentStudentActiveInput) return;
+
+      const start = currentStudentActiveInput.selectionStart ?? currentStudentActiveInput.value.length;
+      const end = currentStudentActiveInput.selectionEnd ?? currentStudentActiveInput.value.length;
+      const oldVal = currentStudentActiveInput.value;
+
+      if (act === 'backspace') {
+        if (start === end && start > 0) {
+          currentStudentActiveInput.value = oldVal.substring(0, start - 1) + oldVal.substring(end);
+          currentStudentActiveInput.setSelectionRange(start - 1, start - 1);
+        } else if (start !== end) {
+          currentStudentActiveInput.value = oldVal.substring(0, start) + oldVal.substring(end);
+          currentStudentActiveInput.setSelectionRange(start, start);
+        }
+        currentStudentActiveInput.dispatchEvent(new Event('input', { bubbles: true }));
+        trackStudentInputHistory(currentStudentActiveInput);
+      } else if (act === 'enter') {
+        closeStudentKeyboard();
+      }
+      currentStudentActiveInput.focus();
+    }
+
+    function kbUndoStudent() {
+      if (!currentStudentActiveInput || !studentInputHistory.has(currentStudentActiveInput)) return;
+      const data = studentInputHistory.get(currentStudentActiveInput);
+      if (data.pointer > 0) {
+        data.pointer--;
+        currentStudentActiveInput.value = data.history[data.pointer];
+        currentStudentActiveInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+
+    function kbRedoStudent() {
+      if (!currentStudentActiveInput || !studentInputHistory.has(currentStudentActiveInput)) return;
+      const data = studentInputHistory.get(currentStudentActiveInput);
+      if (data.pointer < data.history.length - 1) {
+        data.pointer++;
+        currentStudentActiveInput.value = data.history[data.pointer];
+        currentStudentActiveInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+
+    // Global eksportlar
+    window.openStudentKeyboard = openStudentKeyboard;
+    window.closeStudentKeyboard = closeStudentKeyboard;
+    window.switchStudentKbTab = switchStudentKbTab;
+    window.registerStudentActiveInput = registerStudentActiveInput;
+    window.kbUndoStudent = kbUndoStudent;
+    window.kbRedoStudent = kbRedoStudent;
+
     // ================= DASTUR ISHGA TUSHGANDA VA F5 BOSILGANDA TIKLASH =================
     window.addEventListener('DOMContentLoaded', () => {
       fetchUserProfile();
       updateAdminLink();
       checkAndRestoreSession();
+      renderStudentKeyboard('symbols');
     });
 
     window.addEventListener('beforeunload', () => {
@@ -1117,3 +1350,5 @@
     fetchUserProfile();
     updateAdminLink();
     checkAndRestoreSession();
+    renderStudentKeyboard('symbols');
+

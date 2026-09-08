@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/student.css">
+  <link rel="stylesheet" href="css/student.css?v=20260908_5">
 </head>
 <body>
 
@@ -371,7 +371,34 @@
     </div>
   </div>
 
-  <script src="js/config.js?v=20260908_2"></script>
-  <script src="js/student.js?v=20260908_2"></script>
+  <!-- ================= VIRTUAL FORMULA KEYBOARD ================= -->
+  <div class="keyboard-drawer" id="mathKeyboard">
+    <div class="kb-header">
+      <div class="kb-tabs">
+        <button type="button" class="kb-tab" data-tab="123" onclick="switchStudentKbTab('123')">123</button>
+        <button type="button" class="kb-tab active" data-tab="symbols" onclick="switchStudentKbTab('symbols')">∞≠∈</button>
+        <button type="button" class="kb-tab" data-tab="abc" onclick="switchStudentKbTab('abc')">abc</button>
+        <button type="button" class="kb-tab" data-tab="greek" onclick="switchStudentKbTab('greek')">αβγ</button>
+      </div>
+      <div class="kb-actions">
+        <button type="button" class="kb-action-btn" onclick="kbUndoStudent()" title="Ortga">
+          <svg class="icon" style="width:16px; height:16px;" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+        </button>
+        <button type="button" class="kb-action-btn" onclick="kbRedoStudent()" title="Oldinga">
+          <svg class="icon" style="width:16px; height:16px;" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        </button>
+        <button type="button" class="kb-action-btn" onclick="closeStudentKeyboard()" title="Yopish" style="color:var(--danger); margin-left:6px;">
+          <svg class="icon" style="width:18px; height:18px;" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="kb-keys-layout" id="studentKbKeysBody">
+      <!-- Dinamik tabga qarab tugmalar chiqadi -->
+    </div>
+  </div>
+
+  <script src="js/config.js?v=20260908_5"></script>
+  <script src="js/student.js?v=20260908_5"></script>
 </body>
 </html>

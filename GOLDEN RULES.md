@@ -104,6 +104,10 @@
   - Tizim BBA rasmiy bahosi emas, simulyatsion model ekani aniq ko'rsatildi.
   - API endpointi: `POST /api/rasch/evaluate`.
   - Barcha testlar (`tests/test_rasch_engine.py`) 100% yashil o'tdi.
+- [x] 45. O'quvchi javoblar varaqasida (36–45 yozma savollarda) har bir javob kiritish inputi uchun formula va virtual klaviatura integratsiyasi to'liq joriy qilindi:
+  - Har bir `a)` va `b)` javob inputining o'ng tomoniga `[ Σ ]` (Matematik formula/simvollar) va `[ ⌨ ]` (Virtual klaviatura) tugmalari joylashtirildi.
+  - O'quvchi uchun to'liq ekranli mobil-mos Virtual Math Keyboard (`#mathKeyboard`) ulandi (123, symbols, abc, greek tablari, backspace, enter, undo, redo bilan).
+  - Klaviaturadan kiritilgan belgilar avtomatik `oninput` orqali saqlanadi va test natijasiga uzatiladi.
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.
