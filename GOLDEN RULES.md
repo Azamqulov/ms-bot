@@ -88,8 +88,13 @@
 - [x] 42. AWS EC2 fon tunneli (`https://mil-had-create-mhz.trycloudflare.com`) to'liq ulandi:
   - Tunnel `nohup` yordamida orqa fonda 24/7 ishlaydigan mustaqil jarayon sifatida yoqildi.
   - Ortiqcha "Server sozlamasi" prompt dialogi butunlay olib tashlandi, o'rniga oddiy va toza "🔄 Qayta yuklash" tugmasi qo'yildi.
-  - Brauzer va Telegram keshini avtomatik chetlab o'tish uchun barcha HTML fayllarga `?v=20260908_2` versiya parametrlari ulandi.
+  - Brauzer va Telegram keshini avtomatik chetlab o'tish uchun barcha HTML fayllarga `?v=20260908_5` versiya parametrlari ulandi.
   - O'zgarishlar GitHub'ga muvaffaqiyatli push qilindi.
+- [x] 43. Admin panelida testni o'chirish (`confirmDeleteTest` va `#confirmModal`) tizimiga single-click guard va spinner loading animatsiyasi qo'shildi:
+  - Tasdiqlash tugmasi bir marta bosilgach darhol bloklanadi (`disabled`, `pointer-events: none`, takroriy spam-klik himoyasi).
+  - Tugma ichida aylanuvchi zamonaviy `.btn-spinner` yuklanish animatsiyasi va "O'chirilmoqda..." matni paydo bo'ladi.
+  - Modalning "Bekor qilish" va yopish tugmalari so'rov davomida vaqtincha muzlatiladi.
+  - Serverdan javob muvaffaqiyatli kelgach modal yopiladi, toast xabari chiqadi va testlar ro'yxati yangilanadi. Xatolik yuz berganda esa tugma qayta tiklanadi.
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.

@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-  <link rel="stylesheet" href="css/admin.css?v=20260908_3">
+  <link rel="stylesheet" href="css/admin.css?v=20260908_5">
 </head>
 <body>
 
@@ -356,7 +356,7 @@
     <div class="modal-card">
       <div class="modal-header">
         <span id="confirmModalTitle">Tasdiqlash</span>
-        <button type="button" class="icon-btn" style="border:none;" onclick="closeModal('confirmModal')">
+        <button type="button" class="icon-btn" id="confirmModalCloseBtn" style="border:none;" onclick="closeModal('confirmModal')">
           <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
@@ -364,7 +364,7 @@
         Haqiqatan ham ushbu amalni bajarmoqchimisiz?
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn-action-small" onclick="closeModal('confirmModal')">Bekor qilish</button>
+        <button type="button" class="btn-action-small" id="confirmModalCancelBtn" onclick="closeModal('confirmModal')">Bekor qilish</button>
         <button type="button" class="btn-action-small danger" id="btnConfirmAction">Ha, bajarish</button>
       </div>
     </div>
@@ -600,7 +600,7 @@
   <!-- Toast -->
   <div class="toast" id="toastMsg"></div>
 
-  <script src="js/config.js?v=20260908_4"></script>
-  <script src="js/admin.js?v=20260908_4"></script>
+  <script src="js/config.js?v=20260908_5"></script>
+  <script src="js/admin.js?v=20260908_5"></script>
 </body>
 </html>

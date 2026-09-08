@@ -1067,11 +1067,14 @@
       border-radius: 6px;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
       cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
     }
 
-    .btn-action-small:hover {
+    .btn-action-small:hover:not(:disabled) {
       background: var(--border);
     }
 
@@ -1079,9 +1082,32 @@
       color: var(--danger);
     }
 
-    .btn-action-small.danger:hover {
+    .btn-action-small.danger:hover:not(:disabled) {
       background: var(--danger-light);
       border-color: var(--danger);
+    }
+
+    .btn-action-small:disabled,
+    .btn-action-small.loading {
+      opacity: 0.65;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+    }
+
+    .btn-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: btnSpin 0.65s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes btnSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     /* ================= VIRTUAL FORMULA KEYBOARD ================= */

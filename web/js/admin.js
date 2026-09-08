@@ -1019,15 +1019,68 @@
       if (m) m.classList.remove('active');
     }
 
-    function openConfirmModal(title, bodyText, onConfirm) {
-      document.getElementById('confirmModalTitle').innerText = title;
-      document.getElementById('confirmModalBody').innerText = bodyText;
-      const btn = document.getElementById('btnConfirmAction');
-      btn.onclick = () => {
-        closeModal('confirmModal');
-        onConfirm();
-      };
-      document.getElementById('confirmModal').classList.add('active');
+    function openConfirmModal(title, bodyText, onConfirm, options = {}) {
+      const confirmModal = document.getElementById('confirmModal');
+      const titleEl = document.getElementById('confirmModalTitle');
+      const bodyEl = document.getElementById('confirmModalBody');
+      const btnConfirm = document.getElementById('btnConfirmAction');
+      const btnCancel = document.getElementById('confirmModalCancelBtn') || (confirmModal ? confirmModal.querySelector('.modal-footer button:not(#btnConfirmAction)') : null);
+      const btnClose = document.getElementById('confirmModalCloseBtn') || (confirmModal ? confirmModal.querySelector('.modal-header .icon-btn') : null);
+
+      if (titleEl) titleEl.innerText = title;
+      if (bodyEl) bodyEl.innerHTML = bodyText;
+
+      const defaultText = options.confirmText || "Ha, bajarish";
+      const loadingText = options.loadingText || "Bajarilmoqda...";
+      const isDanger = options.danger !== false;
+
+      if (btnConfirm) {
+        btnConfirm.innerHTML = defaultText;
+        btnConfirm.disabled = false;
+        btnConfirm.classList.remove('loading');
+        if (isDanger) {
+          btnConfirm.classList.add('danger');
+        } else {
+          btnConfirm.classList.remove('danger');
+        }
+
+        let isRunning = false;
+
+        btnConfirm.onclick = async () => {
+          if (isRunning) return; // SINGLE-CLICK GUARD: takroriy bosishlarni to'xtatadi
+          isRunning = true;
+
+          // Tugmani darhol loading holatiga o'tkazish
+          btnConfirm.disabled = true;
+          btnConfirm.classList.add('loading');
+          btnConfirm.innerHTML = `<span class="btn-spinner"></span> <span>${escapeHtml(loadingText)}</span>`;
+          if (btnCancel) btnCancel.disabled = true;
+          if (btnClose) btnClose.disabled = true;
+
+          try {
+            const res = await onConfirm();
+            if (res !== false) {
+              closeModal('confirmModal');
+            }
+          } catch (err) {
+            console.error("Confirm action error:", err);
+            showToast("Xatolik: " + (err.message || "Amal bajarilmadi"), true);
+          } finally {
+            if (confirmModal && confirmModal.classList.contains('active')) {
+              btnConfirm.disabled = false;
+              btnConfirm.classList.remove('loading');
+              btnConfirm.innerHTML = defaultText;
+              if (btnCancel) btnCancel.disabled = false;
+              if (btnClose) btnClose.disabled = false;
+            }
+            isRunning = false;
+          }
+        };
+      }
+
+      if (btnCancel) btnCancel.disabled = false;
+      if (btnClose) btnClose.disabled = false;
+      if (confirmModal) confirmModal.classList.add('active');
     }
 
     // ================= AUTOSAVE & RESTORE =================
@@ -2493,7 +2546,7 @@
     function confirmDeleteTest(testId, code) {
       openConfirmModal(
         "Testni o'chirish",
-        `Haqiqatan ham '${code}' testini butunlay o'chirib tashlamoqchimisiz?`,
+        `Haqiqatan ham <strong style="color:var(--danger); font-family:monospace; font-size:15px;">${escapeHtml(code)}</strong> testini butunlay o'chirib tashlamoqchimisiz?<br><span style="font-size:12px; color:var(--text-muted); margin-top:6px; display:inline-block;">Ushbu amalni ortga qaytarib bo'lmaydi va barcha natijalar o'chiriladi.</span>`,
         async () => {
           try {
             const res = await fetch(`${API_BASE}/api/admin/tests/${testId}`, {
@@ -2502,14 +2555,22 @@
             });
             const data = await res.json();
             if (res.ok && data.success) {
-              showToast("Test o'chirildi!");
-              loadMyTests();
+              showToast("Test muvaffaqiyatli o'chirildi!");
+              await loadMyTests();
+              return true;
             } else {
               showToast("Xatolik: " + (data.detail || "O'chirib bo'lmadi"), true);
+              return false;
             }
           } catch (e) {
-            showToast("Xatolik: " + e.message, true);
+            showToast("Server bilan aloqa uzildi: " + e.message, true);
+            return false;
           }
+        },
+        {
+          confirmText: "Ha, o'chirish",
+          loadingText: "O'chirilmoqda...",
+          danger: true
         }
       );
     }
