@@ -4,7 +4,7 @@ Admin va Super Admin boshqaruv servisi hamda Test yuklash logikasi.
 
 import logging
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Dict, Any, Tuple
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -674,4 +674,114 @@ async def delete_attempt_by_id(attempt_id: int, admin_user_id: int) -> Tuple[boo
         await session.delete(att)
         await session.commit()
         return True, "Natija muvaffaqiyatli o'chirildi", test_id
+
+
+async def get_system_super_stats() -> Dict[str, Any]:
+    """
+    Faqat Bosh Super Admin uchun tizim bo'yicha global statistika:
+    - Jami foydalanuvchilar
+    - Oxirgi 7 kunda qo'shilganlar (haftalik o'sish)
+    - Bugun (oxirgi 24 soat) qo'shilganlar
+    - Telefon raqami mavjud foydalanuvchilar
+    - Kamida 1 marta test topshirgan faol o'quvchilar
+    - Hali test topshirmagan nofaol foydalanuvchilar
+    - Jami yaratilgan testlar va faol testlar
+    - Jami topshirilgan test urinishlari
+    - Yakunlangan testlar soni
+    - Sertifikat olganlar soni va foizi
+    - Tizim bo'yicha o'rtacha ball
+    - Tayinlangan adminlar soni
+    """
+    now = datetime.now(timezone.utc)
+    seven_days_ago = now - timedelta(days=7)
+    one_day_ago = now - timedelta(days=1)
+
+    async with async_session_maker() as session:
+        # 1. Foydalanuvchilar
+        total_users = (await session.execute(select(func.count(User.id)))).scalar() or 0
+        users_week = (await session.execute(
+            select(func.count(User.id)).where(User.created_at >= seven_days_ago)
+        )).scalar() or 0
+        users_today = (await session.execute(
+            select(func.count(User.id)).where(User.created_at >= one_day_ago)
+        )).scalar() or 0
+        users_with_phone = (await session.execute(
+            select(func.count(User.id)).where(User.phone_number.isnot(None), User.phone_number != "")
+        )).scalar() or 0
+
+        # Kamida bitta test topshirgan faol o'quvchilar
+        active_takers = (await session.execute(
+            select(func.count(func.distinct(Attempt.user_id)))
+        )).scalar() or 0
+
+        # 2. Testlar
+        total_tests = (await session.execute(select(func.count(Test.id)))).scalar() or 0
+        active_tests = (await session.execute(
+            select(func.count(Test.id)).where(Test.is_active == True)
+        )).scalar() or 0
+
+        # 3. Urinishlar va Natijalar
+        total_attempts = (await session.execute(select(func.count(Attempt.id)))).scalar() or 0
+        completed_attempts = (await session.execute(
+            select(func.count(Attempt.id)).where(Attempt.status == "completed")
+        )).scalar() or 0
+        certified_attempts = (await session.execute(
+            select(func.count(Attempt.id)).where(Attempt.is_certified == True)
+        )).scalar() or 0
+
+        avg_score_res = (await session.execute(
+            select(func.avg(Attempt.final_score)).where(Attempt.status == "completed")
+        )).scalar()
+        avg_score = round(float(avg_score_res), 1) if avg_score_res is not None else 0.0
+
+        # 4. Adminlar
+        total_admins = (await session.execute(
+            select(func.count(User.id)).where(User.role.in_(["admin", "super_admin"]))
+        )).scalar() or 0
+
+        inactive_users = max(0, total_users - active_takers)
+        cert_percent = round((certified_attempts / completed_attempts * 100), 1) if completed_attempts > 0 else 0.0
+
+        return {
+            "total_users": total_users,
+            "users_week": users_week,
+            "users_today": users_today,
+            "users_with_phone": users_with_phone,
+            "active_takers": active_takers,
+            "inactive_users": inactive_users,
+            "total_tests": total_tests,
+            "active_tests": active_tests,
+            "total_attempts": total_attempts,
+            "completed_attempts": completed_attempts,
+            "certified_attempts": certified_attempts,
+            "cert_percent": cert_percent,
+            "avg_score": avg_score,
+            "total_admins": total_admins,
+            "generated_at": now.strftime("%d.%m.%Y %H:%M UTC"),
+        }
+
+
+def format_super_stats_message(stats: Dict[str, Any]) -> str:
+    """Super admin uchun tizim statistikasini Telegram formatida chiroyli qilish"""
+    return (
+        "👑 <b>SUPER ADMIN — TIZIMNING UMUMIY STATISTIKASI</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "👥 <b>FOYDALANUVCHILAR:</b>\n"
+        f"• <b>Jami foydalanuvchilar:</b> <code>{stats['total_users']}</code> ta\n"
+        f"• <b>Oxirgi 7 kunda qo'shilgan:</b> <code>+{stats['users_week']}</code> ta (haftalik o'sish)\n"
+        f"• <b>Bugun qo'shilgan (24 soat):</b> <code>+{stats['users_today']}</code> ta\n"
+        f"• <b>Telefon raqami kiritilgan:</b> <code>{stats['users_with_phone']}</code> ta\n"
+        f"• <b>Test topshirgan faol o'quvchilar:</b> <code>{stats['active_takers']}</code> ta\n"
+        f"• <b>Hali test topshirmaganlar:</b> <code>{stats['inactive_users']}</code> ta\n\n"
+        "📝 <b>TESTLAR VA URINISHLAR:</b>\n"
+        f"• <b>Jami yaratilgan testlar:</b> <code>{stats['total_tests']}</code> ta (Faol: {stats['active_tests']} ta)\n"
+        f"• <b>Jami test topshirish urinishlari:</b> <code>{stats['total_attempts']}</code> ta\n"
+        f"• <b>Yakunlangan testlar:</b> <code>{stats['completed_attempts']}</code> ta\n"
+        f"• <b>Sertifikat olganlar:</b> <code>{stats['certified_attempts']}</code> ta ({stats['cert_percent']}%)\n"
+        f"• <b>Tizim bo'yicha o'rtacha ball:</b> <code>{stats['avg_score']}</code> ball (70 dan)\n\n"
+        "🛠 <b>BOSHQARUV:</b>\n"
+        f"• <b>Tayinlangan adminlar soni:</b> <code>{stats['total_admins']}</code> ta\n"
+        f"• <b>Bosh Super Admin ID:</b> <code>{settings.SUPER_ADMIN_ID}</code>\n\n"
+        f"⏱ <i>Yangilangan vaqt: {stats['generated_at']}</i>"
+    )
 

@@ -117,8 +117,14 @@
   1) Backendda (`bot/web_app/api.py`) `notify_creator_test_created` background taski ulandi: yangi test yaratilishi bilanoq test nomi, kodi, savollar soni, vaqti, `@ms_matematikabot` manzili va to'g'ridan-to'g'ri `https://t.me/ms_matematikabot?start={code}` havolasi bilan birga muallifning shaxsiy Telegram botiga chiroyli xabar yuboriladi.
   2) O'quvchilar guruhlari/kanallariga bitta tugma bilan ulashish uchun `📢 O'quvchilarga ulashish` (Telegram share URL) inline tugmasi joylandi.
   3) WebApp muvaffaqiyatli saqlash modalida (`#successModal`) va kod nusxalash funksiyasida (`copySuccessTestCode`) rasmiy bot manzili `@ms_matematikabot` ga to'g'rilandi. Barcha 31 ta test 100% muvaffaqiyatli o'tdi.
+- [x] [2026-09-08] Faqat Bosh Super Admin (`1685356708`) uchun butun tizim bo'yicha global statistika va monitoring tizimi to'liq ishlab chiqildi:
+  1) Backendda (`bot/services/admin_service.py`): `get_system_super_stats()` funksiyasi jami bot a'zolari soni, oxirgi 7 kunda qo'shilganlar (haftalik o'sish), bugungi yangi o'sish (24 soat), telefon raqami tasdiqlanganlar, kamida 1 marta test topshirgan faol o'quvchilar, hali test topshirmaganlar, jami va faol testlar, topshirilgan urinishlar, yakunlangan testlar, sertifikat olganlar (va foizi), 70 ballik tizimdagi o'rtacha ball hamda tayinlangan adminlar sonini hisoblaydi.
+  2) Telegram Botda (`bot/handlers/admin.py` va `bot/keyboards/admin.py`): `/superstats` va `/stats` buyruqlari, shuningdek Super Admin menyusiga "📊 Tizim statistikasi" tugmasi va "🔄 Yangilash" callback'i joylandi. Ruxsatsiz foydalanuvchilar qat'iy bloklanadi.
+  3) Web App Admin panelida (`admin.html`, `web/admin.html` va `web/js/admin.js`): Faqat Super Admin ochganda ko'rinadigan "Tizim statistikasi" navigatsiya tugmasi va zamonaviy KPI kartalariga ega bo'lgan `#superStatsModal` modali yaratildi.
+  4) API (`bot/web_app/api.py`): `GET /api/admin/super-stats` endpointi yaratilib, faqat tasdiqlangan Super Admin uchun ochildi (oddiy admin va talabalarga 403 Forbidden). Barcha 32 ta Pytest testlari 100% muvaffaqiyatli o'tdi.
 
 ## 📋 Roadmap & Upcoming Tasks (Backlog)
 - [ ] Faza 2: Savollar uchun video/matnli yechimlar havolasi.
 - [ ] Faza 2: Mavzular (bo'limlar) bo'yicha tahlil.
 - [ ] Faza 2: Leaderboard (Umumiy reyting jadvali).
+

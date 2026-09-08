@@ -638,6 +638,89 @@ async def test_create_test_triggers_creator_notification(monkeypatch):
     assert f"https://t.me/ms_matematikabot?start={code}" in msg_text
 
 
+@pytest.mark.asyncio
+async def test_super_admin_system_stats_service_and_api():
+    """Super admin tizim statistikasi: xizmat va API darajasidagi testlar"""
+    from httpx import AsyncClient, ASGITransport
+    from bot.web_app.api import app
+    from bot.web_app.auth import create_mock_init_data
+    from bot.services.admin_service import get_system_super_stats, format_super_stats_message, add_admin
+
+    await init_db()
+
+    # 1. Service funksiyasi tekshiruvi
+    stats = await get_system_super_stats()
+    assert isinstance(stats, dict)
+    for field in [
+        "total_users", "users_week", "users_today", "users_with_phone",
+        "active_takers", "inactive_users", "total_tests", "active_tests",
+        "total_attempts", "completed_attempts", "certified_attempts",
+        "cert_percent", "avg_score", "total_admins", "generated_at"
+    ]:
+        assert field in stats, f"Field '{field}' stats da mavjud emas"
+
+    # Xabar formati tekshiruvi
+    msg_text = format_super_stats_message(stats)
+    assert "SUPER ADMIN — TIZIMNING UMUMIY STATISTIKASI" in msg_text
+    assert "FOYDALANUVCHILAR:" in msg_text
+    assert "TESTLAR VA URINISHLAR:" in msg_text
+    assert "BOSHQARUV:" in msg_text
+    assert str(settings.SUPER_ADMIN_ID) in msg_text
+
+    # 2. API endpoint tekshiruvi (/api/admin/super-stats)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # A. Ruxsatsiz (headersiz) -> 401
+        res_no_auth = await client.get("/api/admin/super-stats")
+        assert res_no_auth.status_code == 401
+
+        # B. Oddiy talaba / begona user -> 403
+        student_id = 777123456
+        student_init_data = create_mock_init_data(
+            user_id=student_id,
+            bot_token=settings.BOT_TOKEN,
+            is_valid=True,
+        )
+        res_student = await client.get(
+            "/api/admin/super-stats",
+            headers={"X-Telegram-Init-Data": student_init_data},
+        )
+        assert res_student.status_code == 403
+
+        # C. Oddiy Admin (super_admin emas) -> 403
+        reg_admin_id = 888123456
+        await get_or_create_user(reg_admin_id, "Oddiy Admin")
+        await add_admin(reg_admin_id)
+        reg_admin_init_data = create_mock_init_data(
+            user_id=reg_admin_id,
+            bot_token=settings.BOT_TOKEN,
+            is_valid=True,
+        )
+        res_reg_admin = await client.get(
+            "/api/admin/super-stats",
+            headers={"X-Telegram-Init-Data": reg_admin_init_data},
+        )
+        assert res_reg_admin.status_code == 403
+        assert "faqat Bosh Super Adminga" in res_reg_admin.json().get("detail", "")
+
+        # D. Haqiqiy Super Admin -> 200 OK
+        super_admin_init_data = create_mock_init_data(
+            user_id=settings.SUPER_ADMIN_ID,
+            bot_token=settings.BOT_TOKEN,
+            is_valid=True,
+        )
+        res_super = await client.get(
+            "/api/admin/super-stats",
+            headers={"X-Telegram-Init-Data": super_admin_init_data},
+        )
+        assert res_super.status_code == 200
+        res_json = res_super.json()
+        assert res_json.get("success") is True
+        assert "stats" in res_json
+        assert res_json["stats"]["total_users"] >= stats["total_users"]
+
+
+
 
 
 

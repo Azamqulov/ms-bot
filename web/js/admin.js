@@ -1,6 +1,6 @@
 // ================= GLOBAL STATE & AUTH =================
     const telegramInitData = window.Telegram?.WebApp?.initData || '';
-    const currentTelegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null;
+    const currentTelegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || (new URLSearchParams(window.location.search).get('admin_id')) || null;
 
     function getAdminAuthHeaders(extraHeaders = {}) {
       const headers = { ...extraHeaders };
@@ -1823,7 +1823,162 @@
       renderStatsParticipants(filtered);
     }
 
+    // ================= SUPER ADMIN TIZIM STATISTIKASI =================
+    const SUPER_ADMIN_ID = 1685356708;
+
+    function checkAndShowSuperAdminUi() {
+      const superBtn = document.getElementById('navSuperStatsBtn');
+      if (!superBtn) return;
+      if (Number(currentTelegramId) === SUPER_ADMIN_ID) {
+        superBtn.style.display = 'inline-flex';
+      }
+    }
+
+    async function openSuperStatsModal() {
+      const modal = document.getElementById('superStatsModal');
+      const body = document.getElementById('superStatsModalBody');
+      if (!modal || !body) return;
+
+      openModal('superStatsModal');
+      body.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; color:var(--text-sub);">
+          <svg class="icon" style="width:32px; height:32px; animation:spin 1s linear infinite; margin-bottom:12px;" viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+          <div style="font-size:13px; font-weight:500;">Tizim statistikasi tahlil qilinmoqda...</div>
+        </div>
+      `;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/super-stats`, {
+          headers: getAdminAuthHeaders()
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || "Statistikani yuklab bo'lmadi (Ruxsat faqat Super Adminga)");
+        }
+        const data = await res.json();
+        const stats = data.stats;
+        if (!stats) throw new Error("Statistika ma'lumotlari bo'sh qaytdi");
+
+        renderSuperStatsContent(stats);
+      } catch (err) {
+        body.innerHTML = `
+          <div style="padding:24px; text-align:center; color:var(--danger); background:var(--card-sub); border:1px solid var(--border); border-radius:10px;">
+            <svg class="icon" style="width:32px; height:32px; margin-bottom:10px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <div style="font-weight:700; font-size:15px; margin-bottom:6px;">Yuklashda xatolik yuz berdi</div>
+            <div style="font-size:13px; color:var(--text-sub); line-height:1.5;">${escapeHtml(err.message)}</div>
+          </div>
+        `;
+      }
+    }
+
+    function renderSuperStatsContent(stats) {
+      const body = document.getElementById('superStatsModalBody');
+      if (!body) return;
+
+      const activePct = stats.total_users > 0 ? Math.round((stats.active_takers / stats.total_users) * 100) : 0;
+      const inactivePct = Math.max(0, 100 - activePct);
+
+      body.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <!-- FOYDALANUVCHILAR VA O'SISH -->
+          <div>
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-sub); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+              <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              Foydalanuvchilar va O'sish dinamikasi
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+              <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center;">
+                <div style="font-size:11px; color:var(--text-sub);">Jami bot a'zolari</div>
+                <div style="font-size:22px; font-weight:800; color:var(--primary); margin-top:2px;">${stats.total_users}</div>
+                <div style="font-size:10px; color:var(--text-sub); margin-top:2px;">ro'yxatdan o'tgan</div>
+              </div>
+              <div style="background:var(--card-sub); border:1px solid rgba(16, 185, 129, 0.35); border-radius:10px; padding:12px; text-align:center;">
+                <div style="font-size:11px; color:#10b981; font-weight:600;">Oxirgi 7 kun</div>
+                <div style="font-size:22px; font-weight:800; color:#10b981; margin-top:2px;">+${stats.users_week}</div>
+                <div style="font-size:10px; color:var(--text-sub); margin-top:2px;">haftalik yangi o'sish</div>
+              </div>
+              <div style="background:var(--card-sub); border:1px solid rgba(59, 130, 246, 0.35); border-radius:10px; padding:12px; text-align:center;">
+                <div style="font-size:11px; color:#3b82f6; font-weight:600;">Bugun (24 soat)</div>
+                <div style="font-size:22px; font-weight:800; color:#3b82f6; margin-top:2px;">+${stats.users_today}</div>
+                <div style="font-size:10px; color:var(--text-sub); margin-top:2px;">kunlik yangi o'sish</div>
+              </div>
+              <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center;">
+                <div style="font-size:11px; color:var(--text-sub);">Telefon kiritilgan</div>
+                <div style="font-size:22px; font-weight:800; color:var(--text); margin-top:2px;">${stats.users_with_phone}</div>
+                <div style="font-size:10px; color:var(--text-sub); margin-top:2px;">kontakt tasdiqlangan</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FOYDALANUVCHILAR FAOLLIK STRUKTURASI -->
+          <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:10px; padding:12px 14px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+              <span style="font-size:12px; font-weight:700; color:var(--text);">Foydalanuvchilar faollik strukturasi</span>
+              <span style="font-size:11px; color:var(--text-sub); font-weight:500;">Faollik: ${activePct}%</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:6px;">
+              <span>Test topshirgan faollar: <b style="color:#10b981;">${stats.active_takers} ta (${activePct}%)</b></span>
+              <span>Hali test topshirmaganlar: <b style="color:var(--text-sub);">${stats.inactive_users} ta (${inactivePct}%)</b></span>
+            </div>
+            <div style="height:8px; border-radius:4px; background:var(--border); overflow:hidden; display:flex;">
+              <div style="width:${activePct}%; background:#10b981;"></div>
+              <div style="width:${inactivePct}%; background:rgba(156, 163, 175, 0.4);"></div>
+            </div>
+          </div>
+
+          <!-- TESTLAR VA NATIJALAR -->
+          <div>
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-sub); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+              <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              Testlar, Urinishlar va Natijalar
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+              <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center;">
+                <div style="font-size:11px; color:var(--text-sub);">Yaratilgan testlar</div>
+                <div style="font-size:22px; font-weight:800; color:var(--text); margin-top:2px;">${stats.total_tests}</div>
+                <div style="font-size:10px; color:#10b981; margin-top:2px;">shundan ${stats.active_tests} ta faol</div>
+              </div>
+              <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center;">
+                <div style="font-size:11px; color:var(--text-sub);">Jami urinishlar</div>
+                <div style="font-size:22px; font-weight:800; color:var(--text); margin-top:2px;">${stats.total_attempts}</div>
+                <div style="font-size:10px; color:var(--text-sub); margin-top:2px;">${stats.completed_attempts} ta yakunlangan</div>
+              </div>
+              <div style="background:var(--card-sub); border:1px solid rgba(245, 158, 11, 0.35); border-radius:10px; padding:12px; text-align:center;">
+                <div style="font-size:11px; color:#f59e0b; font-weight:600;">Sertifikatlar</div>
+                <div style="font-size:22px; font-weight:800; color:#f59e0b; margin-top:2px;">${stats.certified_attempts}</div>
+                <div style="font-size:10px; color:var(--text-sub); margin-top:2px;">${stats.cert_percent}% muvaffaqiyat</div>
+              </div>
+              <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center;">
+                <div style="font-size:11px; color:var(--text-sub);">O'rtacha ball</div>
+                <div style="font-size:22px; font-weight:800; color:var(--primary); margin-top:2px;">${stats.avg_score}</div>
+                <div style="font-size:10px; color:var(--text-sub); margin-top:2px;">70 ballik tizimda</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOSHQARUV TIZIMI -->
+          <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:10px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="width:30px; height:30px; border-radius:6px; background:rgba(245, 158, 11, 0.15); color:#f59e0b; display:flex; align-items:center; justify-content:center;">
+                <svg class="icon" style="width:16px; height:16px;" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </div>
+              <div>
+                <div style="font-size:12px; font-weight:700; color:var(--text);">Adminlar tarkibi</div>
+                <div style="font-size:11px; color:var(--text-sub);">Tizimda jami <b>${stats.total_admins} ta</b> tayinlangan admin mavjud</div>
+              </div>
+            </div>
+            <div style="font-size:11px; color:var(--text-sub); text-align:right;">
+              Yangilangan vaqt:<br><b style="color:var(--text);">${escapeHtml(stats.generated_at || '')}</b>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    window.openSuperStatsModal = openSuperStatsModal;
+
     // ================= TELEGRAMGA BIR BOSISHDA POST YUBORISH =================
+
     async function sendStatsDirectlyToTelegram() {
       if (!currentTestStatsData || !currentTestStatsData.test_id) {
         showToast("Statistika ma'lumotlari mavjud emas!", true);
@@ -2455,6 +2610,9 @@
       // Restore saved draft
       restoreDraft();
 
+      // Super Admin bo'lsa tizim statistikasi tugmasini ko'rsatish
+      checkAndShowSuperAdminUi();
+
       // Dastlabki testlar sonini bilish
       fetch(`${API_BASE}/api/admin/tests/${currentTelegramId || 0}`, {
         headers: getAdminAuthHeaders()
@@ -2508,6 +2666,10 @@
                 </div>
               `;
               return false;
+            }
+            if (data.role === 'super_admin' || Number(user.id) === SUPER_ADMIN_ID) {
+              const superBtn = document.getElementById('navSuperStatsBtn');
+              if (superBtn) superBtn.style.display = 'inline-flex';
             }
           }
         } catch (e) {

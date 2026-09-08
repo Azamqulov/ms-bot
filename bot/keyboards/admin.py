@@ -42,6 +42,9 @@ def get_admin_dashboard_keyboard(is_super: bool) -> InlineKeyboardMarkup:
         builder.row(
             InlineKeyboardButton(text="➖ Adminni o'chirish", callback_data="adm_remove_admin_prompt"),
         )
+        builder.row(
+            InlineKeyboardButton(text="📊 Tizim statistikasi (Super Admin)", callback_data="adm_super_stats"),
+        )
 
     builder.row(
         InlineKeyboardButton(text="📋 Mening testlarim", callback_data="adm_my_tests"),
@@ -87,3 +90,14 @@ def get_admin_back_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="🔙 Admin panelga qaytish", callback_data="adm_open_panel"))
     return builder.as_markup()
+
+
+def get_super_stats_keyboard() -> InlineKeyboardMarkup:
+    """Super admin tizim statistikasi boshqaruv tugmalari"""
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="🔄 Yangilash", callback_data="adm_super_stats_refresh"),
+        InlineKeyboardButton(text="🔙 Admin panelga qaytish", callback_data="adm_open_panel"),
+    )
+    return builder.as_markup()
+

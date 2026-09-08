@@ -13,6 +13,8 @@ from bot.services.admin_service import (
     get_all_admins,
     get_admin_tests,
     get_test_participants_stats,
+    get_system_super_stats,
+    format_super_stats_message,
 )
 from bot.services.test_service import get_or_create_user, get_user_by_telegram_id
 from bot.keyboards.admin import (
@@ -20,6 +22,7 @@ from bot.keyboards.admin import (
     get_admin_back_keyboard,
     get_admin_my_tests_keyboard,
     get_admin_test_stats_keyboard,
+    get_super_stats_keyboard,
 )
 from bot.keyboards.reply import get_main_menu_keyboard
 from bot.states.admin_state import AdminState
@@ -152,6 +155,39 @@ async def process_remove_admin_id(message: Message, state: FSMContext):
     await state.clear()
     user = await get_user_by_telegram_id(message.from_user.id)
     await message.answer(f"{'✅' if success else '❌'} {msg}", reply_markup=get_main_menu_keyboard(True, user=user))
+
+
+# ==================== SUPER ADMIN: TIZIM STATISTIKASI ====================
+
+@router.message(Command("superstats"))
+@router.message(Command("stats"))
+async def handle_super_stats_command(message: Message):
+    """Faqat Super Admin uchun butun tizim statistikasini ko'rsatish"""
+    telegram_id = message.from_user.id
+    if not is_super_admin(telegram_id):
+        await message.answer("⛔ <b>Ushbu bo'lim faqat Bosh Super Admin uchun mo'ljallangan!</b>")
+        return
+
+    stats = await get_system_super_stats()
+    text = format_super_stats_message(stats)
+    await message.answer(text, reply_markup=get_super_stats_keyboard(), parse_mode="HTML")
+
+
+@router.callback_query(F.data.in_(["adm_super_stats", "adm_super_stats_refresh"]))
+async def handle_super_stats_callback(callback: CallbackQuery):
+    """Faqat Super Admin uchun tizim statistikasini callback orqali yangilash"""
+    telegram_id = callback.from_user.id
+    if not is_super_admin(telegram_id):
+        await callback.answer("⛔ Ushbu bo'lim faqat Bosh Super Admin uchun!", show_alert=True)
+        return
+
+    stats = await get_system_super_stats()
+    text = format_super_stats_message(stats)
+    await callback.answer("Statistika yangilandi!")
+    try:
+        await callback.message.edit_text(text, reply_markup=get_super_stats_keyboard(), parse_mode="HTML")
+    except Exception:
+        pass
 
 
 # ==================== MENING TESTLARIM VA STATISTIKA ====================

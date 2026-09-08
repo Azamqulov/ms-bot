@@ -60,6 +60,10 @@
         <svg class="icon" style="width:16px; height:16px;" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
         Mening testlarim (<span id="myTestsCount">0</span>)
       </button>
+      <button type="button" class="admin-nav-btn" id="navSuperStatsBtn" onclick="openSuperStatsModal()" style="display:none; color:#f59e0b; border-color:rgba(245, 158, 11, 0.3);">
+        <svg class="icon" style="width:16px; height:16px;" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        Tizim statistikasi
+      </button>
     </div>
 
     <!-- ================= TAB 1: TEST YARATISH FORMASI ================= -->
@@ -522,6 +526,36 @@
           </button>
           <button type="button" class="btn-action-small" onclick="closeModal('attemptDetailsModal')">Yopish</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Super Admin Tizim Statistikasi -->
+  <div class="modal-overlay" id="superStatsModal" style="z-index: 2200;">
+    <div class="modal-card" style="max-width: 620px; max-height: 92vh; display: flex; flex-direction: column;">
+      <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:28px; height:28px; border-radius:6px; background:rgba(245, 158, 11, 0.15); color:#f59e0b; display:flex; align-items:center; justify-content:center;">
+            <svg class="icon" style="width:16px; height:16px;" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          </div>
+          <div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text);">Tizimning umumiy statistikasi</div>
+            <div style="font-size: 11px; color: var(--text-sub);">Faqat Bosh Super Admin uchun</div>
+          </div>
+        </div>
+        <button type="button" class="icon-btn" style="border:none;" onclick="closeModal('superStatsModal')">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="superStatsModalBody" style="padding: 16px; overflow-y: auto;">
+        <!-- Dinamik yuklanadi -->
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button" class="btn-action-small" onclick="openSuperStatsModal()" style="display:inline-flex; align-items:center; gap:5px;">
+          <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          Yangilash
+        </button>
+        <button type="button" class="btn-action-small" onclick="closeModal('superStatsModal')">Yopish</button>
       </div>
     </div>
   </div>

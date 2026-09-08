@@ -35,6 +35,8 @@ from bot.services.admin_service import (
     get_test_participants_stats,
     get_attempt_detailed_answers,
     delete_attempt_by_id,
+    is_super_admin,
+    get_system_super_stats,
 )
 from bot.services.test_service import (
     get_or_create_user,
@@ -511,6 +513,20 @@ async def api_get_admin_tests(
     user = await get_or_create_user(admin_telegram_id, "Admin")
     tests = await get_admin_tests(user.id)
     return {"tests": tests}
+
+
+@app.get("/api/admin/super-stats")
+async def api_get_super_stats(
+    admin_telegram_id: int = Depends(require_admin_user),
+):
+    """Faqat Super Admin uchun butun tizim bo'yicha global statistika"""
+    if not is_super_admin(admin_telegram_id):
+        raise HTTPException(
+            status_code=403,
+            detail="Ushbu statistikani ko'rish huquqi faqat Bosh Super Adminga tegishli.",
+        )
+    stats = await get_system_super_stats()
+    return {"success": True, "stats": stats}
 
 
 @app.post("/api/admin/tests/{test_id}/toggle")
