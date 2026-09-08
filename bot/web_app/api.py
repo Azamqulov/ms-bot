@@ -8,7 +8,7 @@ import shutil
 import uuid
 import logging
 import time
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Header, BackgroundTasks
@@ -724,6 +724,42 @@ async def api_delete_attempt(
     if not success:
         raise HTTPException(status_code=400, detail=msg)
     return {"success": True, "message": msg, "test_id": test_id}
+
+
+# ==============================================================================
+# RASCH MODEL BAHOLASH ENDPOINTI (SIMULYATSIYA VA INTEGRATSIYA UCHUN)
+# ==============================================================================
+from bot.core.rasch_engine import calculateRaschAbility
+
+
+class RaschQuestionItemPayload(BaseModel):
+    questionId: Union[int, str]
+    correctAnswer: Optional[str] = ""
+    userAnswer: Optional[str] = ""
+    isCorrect: Optional[bool] = None
+    difficulty: Optional[Union[str, float]] = None
+
+
+class RaschEvaluationPayload(BaseModel):
+    questions: List[RaschQuestionItemPayload]
+    autoDifficulty: bool = True
+    calibrationParams: Optional[Dict[str, float]] = None
+
+
+@app.post("/api/rasch/evaluate")
+async def api_evaluate_rasch(payload: RaschEvaluationPayload):
+    """
+    Rasch 1PL modeli bo'yicha 45 ta savolni baholash endpointi.
+    Milliy sertifikat metodikasiga o'xshash simulyatsion model.
+    """
+    items_data = [q.model_dump() for q in payload.questions]
+    result = calculateRaschAbility(
+        answers_data=items_data,
+        auto_difficulty=payload.autoDifficulty,
+        calibration_params=payload.calibrationParams,
+    )
+    return result.to_dict()
+
 
 
 

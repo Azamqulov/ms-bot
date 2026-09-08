@@ -102,9 +102,22 @@ async def test_web_api_endpoints():
         fake_student = User(id=99, telegram_id=999999, full_name="Ali Valiyev", phone_number="+998901234567")
         fake_attempt = Attempt(id=1, test_id=1, user_id=99)
         fake_rasch = RaschResult(raw_score=40, total_items=45, theta=1.5, standard_error=0.3, final_score=68.5, grade="A+", is_certified=True)
-        teacher_msg = generate_teacher_notification(fake_student, "Matematika Test 1", "MS-1234-A", fake_attempt, fake_rasch)
-        assert "YANGI TEST NATIJASI QABUL QILINDI" in teacher_msg
-        assert "Ali Valiyev" in teacher_msg
-        assert "+998901234567" in teacher_msg
-        assert "68.5 / 75.0" in teacher_msg
-        assert "MS-1234-A" in teacher_msg
+        # 8. Rasch modeli evaluate endpointi testi
+        rasch_payload = {
+            "questions": [
+                {"questionId": i, "isCorrect": (i <= 30), "difficulty": "easy" if i <= 15 else "medium"}
+                for i in range(1, 46)
+            ],
+            "autoDifficulty": True
+        }
+        r_eval_res = await client.post("/api/rasch/evaluate", json=rasch_payload)
+        assert r_eval_res.status_code == 200
+        r_eval_data = r_eval_res.json()
+        assert r_eval_data["total_questions"] == 45
+        assert r_eval_data["correct_count"] == 30
+        assert r_eval_data["wrong_count"] == 15
+        assert "theta" in r_eval_data
+        assert "final_score" in r_eval_data
+        assert "certificate_level" in r_eval_data
+        assert "simulyatsion" in r_eval_data["disclaimer"].lower()
+

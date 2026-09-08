@@ -188,3 +188,24 @@ def evaluate_attempt(
         grade=grade,
         is_certified=is_certified
     )
+
+
+# ==============================================================================
+# Yangi modulli Rasch engine funksiyalari (CamelCase va snake_case)
+# ==============================================================================
+from bot.core.rasch_engine import (
+    calculateProbability,
+    calculate_probability,
+    estimateItemDifficulty,
+    estimate_item_difficulty,
+    convertRaschToScore,
+    convert_rasch_to_score,
+    getCertificateLevel,
+    get_certificate_level,
+    calculateRaschAbility,
+    calculate_rasch_ability,
+    QuestionEvaluationItem,
+    RaschEvaluationResult,
+    DEFAULT_DIFFICULTY_MAP,
+    DEFAULT_CALIBRATION_PARAMS,
+)

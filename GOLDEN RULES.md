@@ -95,6 +95,15 @@
   - Tugma ichida aylanuvchi zamonaviy `.btn-spinner` yuklanish animatsiyasi va "O'chirilmoqda..." matni paydo bo'ladi.
   - Modalning "Bekor qilish" va yopish tugmalari so'rov davomida vaqtincha muzlatiladi.
   - Serverdan javob muvaffaqiyatli kelgach modal yopiladi, toast xabari chiqadi va testlar ro'yxati yangilanadi. Xatolik yuz berganda esa tugma qayta tiklanadi.
+- [x] 44. Matematika fanidan Milliy sertifikat formati uchun Rasch modeli (1PL IRT) baholash tizimi yaratildi:
+  - Backend: `bot/core/rasch_engine.py` da modulli funksiyalar: `calculateProbability(theta, b)`, `estimateItemDifficulty()`, `calculateRaschAbility()`, `convertRaschToScore()`, `getCertificateLevel()`.
+  - Frontend: `web/js/rasch_engine.js` da universal JS moduli va `web/rasch_calculator.html` interaktiv simulyator sahifasi.
+  - "Auto difficulty" funksiyasi (ON/OFF): ON bo'lganda 1-15 (Easy, b=-1.0), 16-35 (Medium, b=0.0), 36-45 (Hard, b=+1.0); OFF bo'lganda qo'lda Easy/Medium/Hard yoki real float b_i kiritish.
+  - Newton-Raphson MLE iteratsiyasi bilan qobiliyat (theta) va standart xatolik SE(theta) baholanadi.
+  - Kalibrlash va shkala: 70+ (A+), 65–69.9 (A), 60–64.9 (B+), 55–59.9 (B), 50–54.9 (C+), 46–49.9 (C), <46 (Sertifikat darajasi yo'q).
+  - Tizim BBA rasmiy bahosi emas, simulyatsion model ekani aniq ko'rsatildi.
+  - API endpointi: `POST /api/rasch/evaluate`.
+  - Barcha testlar (`tests/test_rasch_engine.py`) 100% yashil o'tdi.
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.

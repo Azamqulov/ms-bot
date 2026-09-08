@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rasch Modeli Baholash Simulyatori — Milliy Sertifikat</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/rasch_calculator.css?v=20260908_1">
+</head>
+<body>
+
+  <div class="rasch-container">
+    <!-- Header -->
+    <header class="calc-header">
+      <h1>
+        <span>📐 Milliy Sertifikat — Rasch Modeli Baholash Tizimi</span>
+        <span class="model-badge">1PL IRT Model</span>
+      </h1>
+      <p>
+        Matematika fani bo'yicha 45 ta topshiriq natijalarini Rasch o'lchov modeli (Item Response Theory)
+        asosida qiyinlik parametrlari (b) va qobiliyat darajasi (θ) orqali professional baholash.
+      </p>
+    </header>
+
+    <!-- Formula Information Box -->
+    <div class="formula-box">
+      <div class="formula-text">
+        P(X_ni = 1) = exp(θ_n - b_i) / (1 + exp(θ_n - b_i))
+      </div>
+      <div class="formula-desc">
+        <strong>Asosiy qoida:</strong> Yakuniy ball oddiy to'g'ri javoblar foizi (X × 70 / 45) orqali hisoblanmaydi!
+        Rasch modelida har bir topshiriqning qiyinligi va qaysi savollarga javob berilgani to'liq inobatga olinadi.
+      </div>
+    </div>
+
+    <!-- Control Bar -->
+    <div class="control-bar">
+      <div class="switch-group">
+        <label class="switch-toggle">
+          <input type="checkbox" id="autoDiffSwitch" checked onchange="toggleAutoDifficulty()">
+          <span class="slider"></span>
+        </label>
+        <div class="switch-label">
+          <span>Auto Difficulty: <strong id="autoDiffStatus" style="color:var(--primary);">ON</strong></span>
+          <span class="switch-subtext" id="autoDiffDesc">Tizim savol murakkabligi asosida avtomatik belgilaydi (1-15: Easy, 16-35: Medium, 36-45: Hard)</span>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <button type="button" class="btn-secondary" onclick="fillRandomAnswers()">🎲 Tasodifiy to'ldirish</button>
+        <button type="button" class="btn-secondary" onclick="fillAllCorrect()">✅ Barchasini to'g'ri qilish</button>
+        <button type="button" class="btn-secondary" onclick="resetAllAnswers()">🔄 Tozalash</button>
+        <button type="button" class="btn-primary" onclick="runEvaluation()">🚀 Rasch Bo'yicha Baholash</button>
+      </div>
+    </div>
+
+    <!-- Results Panel (Dinamik chiqadi) -->
+    <div class="results-card" id="resultsPanel" style="display: none;">
+      <div class="results-header">
+        <h2>📊 Baholash Natijalari (Rasch Measurement Report)</h2>
+        <span class="model-badge" id="certBadge">Sertifikat</span>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-box">
+          <div class="kpi-label">To'g'ri javoblar</div>
+          <div class="kpi-val" id="resCorrect">0 / 45</div>
+        </div>
+
+        <div class="kpi-box">
+          <div class="kpi-label">Noto'g'ri javoblar</div>
+          <div class="kpi-val" id="resWrong">0 / 45</div>
+        </div>
+
+        <div class="kpi-box highlight">
+          <div class="kpi-label">Rasch Ability (θ)</div>
+          <div class="kpi-val" id="resTheta">0.00 <span style="font-size:13px; font-weight:500;">logit</span></div>
+        </div>
+
+        <div class="kpi-box highlight">
+          <div class="kpi-label">Hisoblangan Ball</div>
+          <div class="kpi-val" id="resScore">0.0</div>
+        </div>
+
+        <div class="kpi-box grade-box">
+          <div class="kpi-label">Daraja</div>
+          <div class="kpi-val" id="resGrade">—</div>
+        </div>
+      </div>
+
+      <div class="disclaimer-alert">
+        <span style="font-size: 18px;">⚠️</span>
+        <div>
+          <strong>Muhim eslatma:</strong> Ushbu baholash natijasi Milliy sertifikat metodikasiga o'xshash
+          <strong>simulyatsion Rasch modeli</strong> asosida hisoblangan bo'lib, BBA (Bilim va malakalarni baholash agentligi)
+          rasmiy imtihon natijasi hisoblanmaydi.
+        </div>
+      </div>
+    </div>
+
+    <!-- Questions Table -->
+    <div class="grid-header-bar">
+      <div class="grid-title">45 ta topshiriq ro'yxati va javoblar varaqasi</div>
+      <div style="font-size:12px; color:var(--text-muted);">
+        1-32: Yopiq test | 33-35: Kontekstli savollar | 36-45: Ochiq yozma savollar
+      </div>
+    </div>
+
+    <div class="questions-table-wrapper">
+      <table class="questions-table" id="questionsTable">
+        <thead>
+          <tr>
+            <th style="width: 50px;">#</th>
+            <th style="width: 90px;">Turi</th>
+            <th style="width: 140px;">To'g'ri javob</th>
+            <th>Foydalanuvchi javobi</th>
+            <th style="width: 110px;">Holati</th>
+            <th style="width: 160px;">Qiyinlik (b_i)</th>
+          </tr>
+        </thead>
+        <tbody id="questionsBody">
+          <!-- Dinamik JS orqali to'ldiriladi -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Rasch Engine JS moduli -->
+  <script src="js/rasch_engine.js?v=20260908_1"></script>
+
+  <script>
+    // 45 ta savol uchun ma'lumotlar modeli
+    const DEFAULT_CORRECT_ANSWERS = [
+      "A","B","C","D","A","B","C","D","A","B",
+      "C","D","A","B","C","D","A","B","C","D",
+      "A","B","C","D","A","B","C","D","A","B",
+      "C","D","E","F","B","42","15","3.5","18","24",
+      "100","72","9","0.25","60"
+    ];
+
+    let questionsData = [];
+    let isAutoDifficulty = true;
+
+    function initQuestions() {
+      questionsData = [];
+      for (let i = 1; i <= 45; i++) {
+        let type = 'Y';
+        if (i >= 33 && i <= 35) type = 'GROUPED';
+        if (i >= 36) type = 'O';
+
+        const cAns = DEFAULT_CORRECT_ANSWERS[i - 1] || 'A';
+        // Dastlabki javob (simulyatsiya uchun to'g'ri qilib qo'yamiz)
+        const uAns = (i <= 28) ? cAns : (type === 'O' ? '0' : 'A');
+
+        questionsData.push({
+          questionId: i,
+          type: type,
+          correctAnswer: cAns,
+          userAnswer: uAns,
+          isCorrect: (uAns.toUpperCase() === cAns.toUpperCase()),
+          difficulty: i <= 15 ? 'easy' : (i <= 35 ? 'medium' : 'hard'),
+          customB: null
+        });
+      }
+      renderTable();
+    }
+
+    function toggleAutoDifficulty() {
+      const sw = document.getElementById('autoDiffSwitch');
+      isAutoDifficulty = sw.checked;
+
+      const statusEl = document.getElementById('autoDiffStatus');
+      const descEl = document.getElementById('autoDiffDesc');
+
+      if (isAutoDifficulty) {
+        statusEl.innerText = "ON";
+        statusEl.style.color = "var(--primary)";
+        descEl.innerText = "Tizim savol murakkabligi asosida avtomatik belgilaydi (1-15: Easy, 16-35: Medium, 36-45: Hard)";
+      } else {
+        statusEl.innerText = "OFF";
+        statusEl.style.color = "var(--danger)";
+        descEl.innerText = "Administrator har bir savol uchun qo'lda Easy / Medium / Hard yoki real b_i qiymatini belgilaydi";
+      }
+
+      renderTable();
+      runEvaluation();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('questionsBody');
+      tbody.innerHTML = '';
+
+      questionsData.forEach((q, idx) => {
+        const tr = document.createElement('tr');
+
+        // Savol raqami
+        const tdNo = document.createElement('td');
+        tdNo.innerHTML = `<strong>${q.questionId}</strong>`;
+        tr.appendChild(tdNo);
+
+        // Turi
+        const tdType = document.createElement('td');
+        tdType.innerHTML = q.type === 'O' 
+          ? `<span class="q-badge open">Ochiq</span>` 
+          : (q.type === 'GROUPED' ? `<span class="q-badge" style="background:#e0e7ff; color:#3730a3;">Kontekst</span>` : `<span class="q-badge">Yopiq</span>`);
+        tr.appendChild(tdType);
+
+        // To'g'ri javob
+        const tdCorrect = document.createElement('td');
+        tdCorrect.innerHTML = `<span style="font-family:monospace; font-weight:700; color:var(--text-main); font-size:14px;">${q.correctAnswer}</span>`;
+        tr.appendChild(tdCorrect);
+
+        // Foydalanuvchi javobi
+        const tdUser = document.createElement('td');
+        if (q.type === 'Y') {
+          ['A', 'B', 'C', 'D'].forEach(opt => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'opt-btn' + (q.userAnswer.toUpperCase() === opt ? ' active' : '');
+            btn.innerText = opt;
+            btn.onclick = () => selectAnswer(idx, opt);
+            tdUser.appendChild(btn);
+          });
+        } else if (q.type === 'GROUPED') {
+          ['A', 'B', 'C', 'D', 'E', 'F'].forEach(opt => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'opt-btn' + (q.userAnswer.toUpperCase() === opt ? ' active' : '');
+            btn.innerText = opt;
+            btn.onclick = () => selectAnswer(idx, opt);
+            tdUser.appendChild(btn);
+          });
+        } else {
+          // Ochiq savol inputi
+          const inp = document.createElement('input');
+          inp.type = 'text';
+          inp.value = q.userAnswer;
+          inp.style.cssText = "padding:5px 8px; border-radius:6px; border:1px solid var(--border-color); font-size:13px; width:120px; font-weight:600;";
+          inp.oninput = (e) => selectAnswer(idx, e.target.value);
+          tdUser.appendChild(inp);
+        }
+        tr.appendChild(tdUser);
+
+        // Holati
+        const isCorr = (q.userAnswer && q.correctAnswer) ? (q.userAnswer.trim().toUpperCase() === q.correctAnswer.trim().toUpperCase()) : false;
+        q.isCorrect = isCorr;
+
+        const tdStatus = document.createElement('td');
+        tdStatus.innerHTML = isCorr
+          ? `<span class="status-badge correct">✓ To'g'ri</span>`
+          : `<span class="status-badge wrong">✗ Noto'g'ri</span>`;
+        tr.appendChild(tdStatus);
+
+        // Qiyinlik ustuni
+        const tdDiff = document.createElement('td');
+        if (isAutoDifficulty) {
+          const autoDiff = RaschEngine.estimateItemDifficulty(q.questionId, q.type, true);
+          let bLabel = autoDiff.numericalB >= 0 ? `+${autoDiff.numericalB.toFixed(1)}` : autoDiff.numericalB.toFixed(1);
+          tdDiff.innerHTML = `<span class="diff-tag ${autoDiff.difficulty}">${autoDiff.difficulty.toUpperCase()}</span> <span style="font-family:monospace; font-size:12px; color:var(--text-muted); margin-left:4px;">(b=${bLabel})</span>`;
+        } else {
+          const select = document.createElement('select');
+          select.className = 'diff-select';
+          select.innerHTML = `
+            <option value="easy" ${q.difficulty === 'easy' ? 'selected' : ''}>Easy (b = -1.0)</option>
+            <option value="medium" ${q.difficulty === 'medium' ? 'selected' : ''}>Medium (b = 0.0)</option>
+            <option value="hard" ${q.difficulty === 'hard' ? 'selected' : ''}>Hard (b = +1.0)</option>
+          `;
+          select.onchange = (e) => {
+            q.difficulty = e.target.value;
+            runEvaluation();
+          };
+          tdDiff.appendChild(select);
+        }
+        tr.appendChild(tdDiff);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function selectAnswer(idx, val) {
+      questionsData[idx].userAnswer = val;
+      renderTable();
+      runEvaluation();
+    }
+
+    function fillAllCorrect() {
+      questionsData.forEach(q => {
+        q.userAnswer = q.correctAnswer;
+        q.isCorrect = true;
+      });
+      renderTable();
+      runEvaluation();
+    }
+
+    function fillRandomAnswers() {
+      const opts = ['A', 'B', 'C', 'D'];
+      questionsData.forEach(q => {
+        if (q.type === 'O') {
+          q.userAnswer = Math.random() > 0.4 ? q.correctAnswer : String(Math.floor(Math.random() * 50));
+        } else {
+          q.userAnswer = opts[Math.floor(Math.random() * opts.length)];
+        }
+      });
+      renderTable();
+      runEvaluation();
+    }
+
+    function resetAllAnswers() {
+      questionsData.forEach(q => {
+        q.userAnswer = '';
+        q.isCorrect = false;
+      });
+      renderTable();
+      runEvaluation();
+    }
+
+    function runEvaluation() {
+      const payload = questionsData.map(q => ({
+        questionId: q.questionId,
+        correctAnswer: q.correctAnswer,
+        userAnswer: q.userAnswer,
+        isCorrect: q.isCorrect,
+        difficulty: q.difficulty
+      }));
+
+      const res = RaschEngine.calculateRaschAbility(payload, {
+        autoDifficulty: isAutoDifficulty
+      });
+
+      const panel = document.getElementById('resultsPanel');
+      panel.style.display = 'block';
+
+      document.getElementById('resCorrect').innerText = `${res.correctCount} / ${res.totalQuestions}`;
+      document.getElementById('resWrong').innerText = `${res.wrongCount} / ${res.totalQuestions}`;
+      
+      const thetaSign = res.theta >= 0 ? `+${res.theta.toFixed(2)}` : res.theta.toFixed(2);
+      document.getElementById('resTheta').innerHTML = `${thetaSign} <span style="font-size:12px; font-weight:500; color:var(--text-muted);">(SE: ±${res.standardError.toFixed(2)})</span>`;
+      document.getElementById('resScore').innerText = `${res.finalScore.toFixed(1)} ball`;
+      
+      const gradeEl = document.getElementById('resGrade');
+      gradeEl.innerText = res.certificateLevel;
+
+      const certBadge = document.getElementById('certBadge');
+      if (res.isCertified) {
+        certBadge.innerText = `Sertifikat: ${res.certificateLevel}`;
+        certBadge.style.background = "rgba(16, 185, 129, 0.2)";
+        certBadge.style.color = "#059669";
+        certBadge.style.borderColor = "rgba(16, 185, 129, 0.4)";
+      } else {
+        certBadge.innerText = "Sertifikat darajasi yo'q";
+        certBadge.style.background = "rgba(239, 68, 68, 0.2)";
+        certBadge.style.color = "#dc2626";
+        certBadge.style.borderColor = "rgba(239, 68, 68, 0.4)";
+      }
+    }
+
+    // Initsializatsiya
+    window.addEventListener('DOMContentLoaded', () => {
+      initQuestions();
+      runEvaluation();
+    });
+  </script>
+</body>
+</html>
