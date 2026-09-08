@@ -263,6 +263,19 @@ async def test_admin_api_authentication_security():
         assert "avg_score" in stats_data
         assert "participants" in stats_data
 
+        # 10. Test statistikasini Telegramga post qilib yuborish (POST /api/admin/tests/{test_id}/send-telegram-post)
+        res_post = await client.post(
+            f"/api/admin/tests/{created_test_id}/send-telegram-post",
+            json={"target_chat": "1685356708"},
+            headers={"X-Telegram-Init-Data": valid_admin_init_data},
+        )
+        assert res_post.status_code == 200
+        post_data = res_post.json()
+        assert post_data["success"] is True
+        assert "post_text" in post_data
+        assert "TEST NATIJALARI VA STATISTIKASI" in post_data["post_text"]
+        assert "TALABGORLAR VA NATIJALAR" in post_data["post_text"]
+
 
 @pytest.mark.asyncio
 async def test_hide_answers_submission_flow():
@@ -332,5 +345,52 @@ async def test_hide_answers_submission_flow():
         # raw_score va cert_url talabgorga qaytarilmasligi
         assert "raw_score" not in sub_data
         assert "certificate_url" not in sub_data
+
+
+def test_format_telegram_stats_post():
+    """Foydalanuvchi talabi bo'yicha Telegram post formatini tekshirish:
+    Ism Familiya ------ nechta to'g'ri topgani, to'plagan bali va darajasi (✅ berildi / ❌ berilmadi)"""
+    from bot.services.report_service import format_telegram_stats_post
+
+    dummy_stats = {
+        "test_id": 1,
+        "test_code": "111",
+        "test_title": "Milliy Sertifikat Matematika (1-variant)",
+        "question_count": 45,
+        "time_limit_min": 150,
+        "total_participants": 2,
+        "completed_count": 2,
+        "certified_count": 1,
+        "avg_score": 53.5,
+        "highest_score": 75.0,
+        "participants": [
+            {
+                "rank": 1,
+                "full_name": "Admin",
+                "raw_score": 35,
+                "final_score": 75.0,
+                "grade": "A+",
+                "is_certified": True,
+            },
+            {
+                "rank": 2,
+                "full_name": "Valiyev Ali",
+                "raw_score": 20,
+                "final_score": 32.0,
+                "grade": "Sertifikat berilmaydi",
+                "is_certified": False,
+            }
+        ]
+    }
+
+    messages = format_telegram_stats_post(dummy_stats)
+    assert len(messages) >= 1
+    post = messages[0]
+    assert "TEST NATIJALARI VA STATISTIKASI" in post
+    assert "#111" in post
+    # Talab qilingan format tekshiruvi:
+    assert "Admin</b> ------ 🎯 35 ta to'g'ri, ⭐️ 75.0 ball, A+ (✅ Sertifikat berildi)" in post
+    assert "Valiyev Ali</b> ------ 🎯 20 ta to'g'ri, ⭐️ 32.0 ball, ❌ Sertifikat berilmadi" in post
+
 
 

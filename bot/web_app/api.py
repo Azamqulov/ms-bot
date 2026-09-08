@@ -43,7 +43,11 @@ from bot.services.test_service import (
     finish_attempt,
     get_default_test,
 )
-from bot.services.report_service import generate_result_report, generate_teacher_notification
+from bot.services.report_service import (
+    generate_result_report,
+    generate_teacher_notification,
+    format_telegram_stats_post,
+)
 from bot.services.certificate_service import generate_certificate_image
 from bot.services.attempt_service import process_test_submission
 from bot.core.validator import check_open_answer
@@ -505,5 +509,68 @@ async def api_get_test_stats(
     if not stats:
         raise HTTPException(status_code=404, detail="Test topilmadi yoki statistikani ko'rishga ruxsat yo'q")
     return stats
+
+
+class SendTelegramStatsRequest(BaseModel):
+    target_chat: Optional[str] = None  # None bo'lsa adminga boradi, yoki @kanal / chat_id
+
+
+@app.post("/api/admin/tests/{test_id}/send-telegram-post")
+async def api_send_telegram_stats(
+    test_id: int,
+    payload: Optional[SendTelegramStatsRequest] = None,
+    admin_telegram_id: int = Depends(require_admin_user),
+):
+    """
+    Test statistikasi va qatnashuvchilar natijalarini Telegramga post qilib yuborish.
+    Foydalanuvchi so'rovi bo'yicha:
+    Ism Familiya ------ nechta to'g'ri topgani, to'plagan bali va darajasi (✅ berildi / ❌ berilmadi)
+    """
+    user = await get_or_create_user(admin_telegram_id, "Admin")
+    stats = await get_test_participants_stats(test_id, user.id)
+    if not stats:
+        raise HTTPException(status_code=404, detail="Test topilmadi yoki statistikani ko'rishga ruxsat yo'q")
+
+    messages = format_telegram_stats_post(stats)
+    bot = getattr(app.state, "bot", None)
+
+    target_chat = payload.target_chat.strip() if (payload and payload.target_chat and payload.target_chat.strip()) else admin_telegram_id
+    if isinstance(target_chat, str) and (target_chat.isdigit() or (target_chat.startswith("-") and target_chat[1:].isdigit())):
+        target_chat = int(target_chat)
+
+    sent_to_telegram = False
+    send_error = None
+
+    if bot:
+        try:
+            for msg in messages:
+                await bot.send_message(
+                    chat_id=target_chat,
+                    text=msg,
+                    parse_mode="HTML",
+                )
+            sent_to_telegram = True
+        except Exception as e:
+            logger.warning(f"Telegram post yuborishda xatolik: {e}")
+            send_error = str(e)
+
+    full_text = "\n\n".join(messages)
+    return {
+        "success": True,
+        "sent_to_telegram": sent_to_telegram,
+        "target_chat": str(target_chat),
+        "post_text": full_text,
+        "error": send_error,
+        "message": (
+            "Natijalar posti muvaffaqiyatli Telegramga yuborildi!"
+            if sent_to_telegram
+            else (
+                "Post matni tayyorlandi va nusxalandi!"
+                if not send_error
+                else f"Telegramga yuborishda xatolik: {send_error}. Matn nusxalandi."
+            )
+        ),
+    }
+
 
 

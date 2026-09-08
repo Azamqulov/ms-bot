@@ -407,9 +407,57 @@
         </div>
       </div>
 
-      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
         <span style="font-size: 11px; color: var(--text-sub);" id="statsFooterInfo">Jami: 0 ta natija</span>
-        <button type="button" class="btn-action-small" onclick="closeModal('testStatsModal')">Yopish</button>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button type="button" class="btn-action-small" id="btnSendStatsTelegram" onclick="openSendStatsDialog()" style="background: linear-gradient(135deg, #0284c7, #2563eb); color: #ffffff; border: none; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 6px rgba(37,99,235,0.25); transition: all 0.2s ease;">
+            <svg class="icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            <span>Telegramga post qilish</span>
+          </button>
+          <button type="button" class="btn-action-small" onclick="closeModal('testStatsModal')">Yopish</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Telegramga Post Yuborish Dialogi -->
+  <div class="modal-overlay" id="sendStatsDialogModal">
+    <div class="modal-card" style="max-width: 440px; padding: 20px;">
+      <div class="modal-header" style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(37,99,235,0.1); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+            <svg class="icon" style="width: 18px; height: 18px;" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </div>
+          <div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text);">Telegramga post qilish</div>
+            <div style="font-size: 11px; color: var(--text-sub);">Natijalar va reytingni Telegramga chiqarish</div>
+          </div>
+        </div>
+        <button type="button" class="icon-btn" style="border:none;" onclick="closeModal('sendStatsDialogModal')">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding: 4px 0 16px 0;">
+        <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 12px; line-height: 1.5;">
+          Qatnashuvchilarning to'plagan ballari, to'g'ri javoblar soni va sertifikat darajasi chiroyli post shaklida Telegramga yuboriladi.
+        </p>
+
+        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text);">
+          Yuboriladigan manzil (ixtiyoriy):
+        </label>
+        <input type="text" class="form-input" id="statsTargetChatInput" placeholder="Bo'sh qolsa profilingizga, yoki @kanal / guruh" style="height: 38px; font-size: 13px; margin-bottom: 14px;">
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button type="button" class="btn btn-primary" id="btnExecuteSendTelegram" onclick="executeSendStatsTelegram()" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 42px; font-size: 13px;">
+            <svg class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            <span>Postni yuborish</span>
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="copyStatsPostToClipboard()" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 40px; font-size: 13px;">
+            <svg class="icon" style="width: 15px; height: 15px;" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Faqat matnni nusxalash</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>

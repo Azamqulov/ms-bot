@@ -3,7 +3,7 @@ Test natijalarini chiroyli formatda taqdim etish servisi (Report Service).
 """
 
 from datetime import datetime
-from typing import List
+from typing import List, Dict, Any, Optional
 from bot.database.models import Attempt, User
 from bot.core.rasch import RaschResult
 
@@ -126,3 +126,73 @@ def generate_teacher_notification(
         f"➖➖➖➖➖➖➖➖➖➖\n\n"
         f"💡 <i>Ushbu testni siz yaratganingiz uchun talabgorning to'liq natijasi sizga yuborildi.</i>"
     )
+
+
+def format_telegram_stats_post(stats: Dict[str, Any]) -> List[str]:
+    """
+    Test statistikasi va qatnashuvchilar ro'yxatini Telegram post xabarlari formatida tayyorlaydi.
+    Format talabi:
+    Ism Familiya ------ nechta to'g'ri topgani, to'plagan bali va darajasi (✅ berildi / ❌ berilmadi)
+    Telegram 4096 belgi chegarasi xavfsiz hisobga olingan.
+    """
+    total_part = stats.get("total_participants", 0)
+    completed_cnt = stats.get("completed_count", 0)
+    cert_cnt = stats.get("certified_count", 0)
+    cert_pct = round((cert_cnt / completed_cnt * 100), 1) if completed_cnt > 0 else 0.0
+
+    test_title = stats.get("test_title", "Milliy Sertifikat Testi")
+    test_code = stats.get("test_code", "")
+    q_count = stats.get("question_count", 45)
+    time_limit = stats.get("time_limit_min", 150)
+    avg_score = stats.get("avg_score", 0.0)
+    highest_score = stats.get("highest_score", 0.0)
+
+    header = (
+        f"📊 <b>TEST NATIJALARI VA STATISTIKASI</b>\n\n"
+        f"🏷 <b>Test:</b> {test_title}\n"
+        f"🔑 <b>Test kodi:</b> <code>#{test_code}</code>\n"
+        f"❓ <b>Savollar soni:</b> {q_count} ta | ⏱ <b>Vaqt:</b> {time_limit} daqiqa\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"👥 <b>Qatnashuvchilar:</b> {total_part} ta\n"
+        f"📈 <b>O'rtacha ball:</b> {avg_score:.1f} / 75 ball\n"
+        f"🏆 <b>Eng yuqori ball:</b> {highest_score:.1f} ball\n"
+        f"📜 <b>Sertifikat olganlar:</b> {cert_cnt} ta ({cert_pct}%)\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"🏆 <b>TALABGORLAR VA NATIJALAR:</b>\n\n"
+    )
+
+    participants = stats.get("participants", [])
+    if not participants:
+        return [header + "ℹ️ <i>Ushbu testni hali birorta ham talabgor topshirmagan.</i>"]
+
+    lines = []
+    for p in participants:
+        rank = p.get("rank", 1)
+        name = p.get("full_name", "Noma'lum")
+        raw_score = p.get("raw_score", 0)
+        final_score = p.get("final_score", 0.0)
+        is_cert = p.get("is_certified", False)
+        grade = p.get("grade")
+
+        if is_cert:
+            grade_label = f"{grade} (✅ Sertifikat berildi)" if grade else "✅ Sertifikat berildi"
+        else:
+            grade_label = "❌ Sertifikat berilmadi"
+
+        line = f"<b>{rank}. {name}</b> ------ 🎯 {raw_score} ta to'g'ri, ⭐️ {final_score:.1f} ball, {grade_label}"
+        lines.append(line)
+
+    messages = []
+    current_chunk = header
+    for line in lines:
+        if len(current_chunk) + len(line) + 2 > 3900:
+            messages.append(current_chunk.strip())
+            current_chunk = line + "\n"
+        else:
+            current_chunk += line + "\n"
+
+    if current_chunk.strip():
+        messages.append(current_chunk.strip())
+
+    return messages
+

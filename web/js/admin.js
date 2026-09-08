@@ -1608,6 +1608,124 @@
       renderStatsParticipants(filtered);
     }
 
+    function openSendStatsDialog() {
+      if (!currentTestStatsData) {
+        showToast("Statistika ma'lumotlari topilmadi!", true);
+        return;
+      }
+      const chatInp = document.getElementById('statsTargetChatInput');
+      if (chatInp) chatInp.value = '';
+      openModal('sendStatsDialogModal');
+    }
+
+    function buildStatsPostTextClient(data) {
+      if (!data) return "";
+      const totalPart = data.total_participants || 0;
+      const completedCnt = data.completed_count || 0;
+      const certCnt = data.certified_count || 0;
+      const certPct = completedCnt > 0 ? Math.round((certCnt / completedCnt) * 100) : 0;
+
+      let post = `📊 <b>TEST NATIJALARI VA STATISTIKASI</b>\n\n`;
+      post += `🏷 <b>Test:</b> ${data.test_title || ''}\n`;
+      post += `🔑 <b>Test kodi:</b> <code>#${data.test_code || ''}</code>\n`;
+      post += `❓ <b>Savollar soni:</b> ${data.question_count || 45} ta | ⏱ <b>Vaqt:</b> ${data.time_limit_min || 150} daqiqa\n\n`;
+      post += `━━━━━━━━━━━━━━━━━━━━\n`;
+      post += `👥 <b>Qatnashuvchilar:</b> ${totalPart} ta\n`;
+      post += `📈 <b>O'rtacha ball:</b> ${data.avg_score || 0} / 75 ball\n`;
+      post += `🏆 <b>Eng yuqori ball:</b> ${data.highest_score || 0} ball\n`;
+      post += `📜 <b>Sertifikat olganlar:</b> ${certCnt} ta (${certPct}%)\n`;
+      post += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+      post += `🏆 <b>TALABGORLAR VA NATIJALAR:</b>\n\n`;
+
+      const participants = data.participants || [];
+      if (participants.length === 0) {
+        post += `ℹ️ <i>Ushbu testni hali birorta ham talabgor topshirmagan.</i>\n`;
+      } else {
+        participants.forEach((p, idx) => {
+          const rank = p.rank || (idx + 1);
+          const name = p.full_name || "Noma'lum";
+          const raw = p.raw_score || 0;
+          const score = (p.final_score !== undefined && p.final_score !== null) ? Number(p.final_score).toFixed(1) : "0.0";
+          const certBadge = p.is_certified ? `${p.grade || ''} (✅ Sertifikat berildi)`.trim() : `❌ Sertifikat berilmadi`;
+          post += `<b>${rank}. ${name}</b> ------ 🎯 ${raw} ta to'g'ri, ⭐️ ${score} ball, ${certBadge}\n`;
+        });
+      }
+      return post;
+    }
+
+    async function executeSendStatsTelegram() {
+      if (!currentTestStatsData || !currentTestStatsData.test_id) {
+        showToast("Statistika ma'lumotlari mavjud emas!", true);
+        return;
+      }
+
+      const btn = document.getElementById('btnExecuteSendTelegram');
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>Yuborilmoqda...</span>';
+      }
+
+      const chatInp = document.getElementById('statsTargetChatInput');
+      const targetChat = chatInp ? chatInp.value.trim() : '';
+
+      try {
+        const payload = targetChat ? { target_chat: targetChat } : {};
+        const res = await fetch(`${API_BASE}/api/admin/tests/${currentTestStatsData.test_id}/send-telegram-post`, {
+          method: 'POST',
+          headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || "Telegramga yuborib bo'lmadi");
+        }
+
+        const data = await res.json();
+
+        // Shuningdek matnni clipboardga nusxalash
+        if (data.post_text) {
+          try {
+            await navigator.clipboard.writeText(data.post_text);
+          } catch (e) {}
+        }
+
+        closeModal('sendStatsDialogModal');
+        showToast(data.message || "Natijalar Telegramga yuborildi!");
+      } catch (err) {
+        // Agar server xatosi bo'lsa yoki offline bo'lsa, mijoz tomonida matnni tayyorlab clipboardga nusxalash
+        const fallbackText = buildStatsPostTextClient(currentTestStatsData);
+        try {
+          await navigator.clipboard.writeText(fallbackText);
+          closeModal('sendStatsDialogModal');
+          showToast("Matn nusxalandi! Telegram kanalingizga joylashingiz mumkin.");
+        } catch (clipErr) {
+          showToast("Xatolik: " + err.message, true);
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origText;
+        }
+      }
+    }
+
+    async function copyStatsPostToClipboard() {
+      if (!currentTestStatsData) {
+        showToast("Statistika ma'lumotlari topilmadi!", true);
+        return;
+      }
+      const text = buildStatsPostTextClient(currentTestStatsData);
+      try {
+        await navigator.clipboard.writeText(text);
+        closeModal('sendStatsDialogModal');
+        showToast("✅ Natijalar posti nusxalandi! Telegramga joylashingiz mumkin.");
+      } catch (err) {
+        showToast("Nusxalashda xatolik yuz berdi", true);
+      }
+    }
+
     let editingTestId = null;
 
     async function openEditTest(testId) {

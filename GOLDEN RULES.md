@@ -94,6 +94,7 @@
 - [x] [2026-09-07] 20 ta Pytest testlari 100% muvaffaqiyatli o'tdi.
 - [x] [2026-09-07] Server va bot parallel holda fonda ishlamoqda.
 - [x] [2026-09-08] Admin foydalanuvchilar "Admin panelga o'tish" tugmasini bosganda yuzaga kelgan GitHub Pages 404 (File not found) xatosi to'liq bartaraf etildi: `getAdminPanelUrl` dinamik yo'l aniqlash funksiyasi joriy qilindi, `navigateToAdminPanel` orqali query parametrlar saqlangan holda to'g'ri `web/admin.html` ga yo'naltirildi, root `404.html` va `admin/index.html` redirection ko'priklari qo'shildi, backendda `/web` statik marshruti ta'minlandi.
+- [x] [2026-09-08] Admin statistika modalida "Telegramga post qilish" funksiyasi to'liq joriy qilindi: umumiy KPI va har bir talabgorning to'g'ri javoblari soni, to'plagan bali va sertifikat holati (`Ism Familiya ------ 🎯 X ta to'g'ri, ⭐️ Y ball, Daraja (✅ berildi / ❌ berilmadi)`) ko'rinishida Telegramga yuborish (va clipboardga nusxalash) imkoniyati yaratildi; backendda `POST /api/admin/tests/{test_id}/send-telegram-post` endpointi va `format_telegram_stats_post` servisi yaratildi.
 
 ## 📋 Roadmap & Upcoming Tasks (Backlog)
 - [ ] Faza 2: Savollar uchun video/matnli yechimlar havolasi.
