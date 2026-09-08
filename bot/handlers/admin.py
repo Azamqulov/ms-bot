@@ -2,7 +2,8 @@ import json
 import io
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message, CallbackQuery, BufferedInputFile
+from aiogram.types import Message, CallbackQuery, BufferedInputFile, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 
 from bot.services.admin_service import (
@@ -36,7 +37,24 @@ async def open_admin_panel(message: Message, state: FSMContext):
     await state.clear()
     telegram_id = message.from_user.id
     if not await is_admin(telegram_id):
-        await message.answer("⛔ <b>Kechirasiz, sizda Admin huquqi yo'q!</b>")
+        text = (
+            "⛔ <b>Kechirasiz, sizda Administratorlik huquqi yo'q!</b>\n\n"
+            "Ushbu bo'lim faqat ustozlar, repetitorlar va administratorlar uchun mo'ljallangan.\n\n"
+            "📝 <b>Test javoblarini yaratish yoki Admin huquqini olish uchun:</b>\n"
+            "Agar siz o'z o'quvchilaringiz uchun Milliy Sertifikat talablari asosida "
+            "test javoblari bazasini yaratmoqchi bo'lsangiz va natijalarni tahlil qilmoqchi bo'lsangiz, "
+            "administratorlik huquqini olish uchun quyidagi manzilga murojaat qiling:\n\n"
+            "👨‍💻 <b>Admin / Aloqa:</b> @ITCenter_01\n\n"
+            "<i>Murojaatda ismingiz va o'quv markaz/maktab faoliyatingiz haqida qisqacha ma'lumot qoldiring.</i>"
+        )
+        builder = InlineKeyboardBuilder()
+        builder.row(
+            InlineKeyboardButton(
+                text="💬 Adminga murojaat qilish (@ITCenter_01)",
+                url="https://t.me/ITCenter_01"
+            )
+        )
+        await message.answer(text, reply_markup=builder.as_markup())
         return
 
     is_super = is_super_admin(telegram_id)
@@ -55,7 +73,7 @@ async def callback_admin_panel(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     telegram_id = callback.from_user.id
     if not await is_admin(telegram_id):
-        await callback.answer("Ruxsat berilmagan.", show_alert=True)
+        await callback.answer("Admin huquqi kerak. Bosh admin: @ITCenter_01", show_alert=True)
         return
 
     is_super = is_super_admin(telegram_id)

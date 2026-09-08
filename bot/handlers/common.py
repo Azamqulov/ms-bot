@@ -185,13 +185,73 @@ async def show_rasch_info(message: Message):
 @router.message(Command("help"))
 async def show_help(message: Message):
     text = (
-        "📖 <b>BOTDAN FOYDALANISH BO'YICHA QO'LLANMA:</b>\n\n"
-        "1️⃣ <b>Vaqt:</b> Butun test uchun umumiy <b>150 daqiqa</b> (2 soat 30 daqiqa) beriladi.\n"
-        "2️⃣ <b>Savollar formati:</b>\n"
-        "  • <b>1–32-savollar (Y-1):</b> 4 variantli yopiq test (A, B, C, D)\n"
-        "  • <b>33–35-savollar (Guruhlangan):</b> Bitta umumiy chizma/matn asosida 3 ta savol va 6 ta umumiy variant (A–F)\n"
-        "  • <b>36–45-savollar (Ochiq):</b> Javobni matn yoki son sifatida yozish (a va b qismlar)\n"
-        "3️⃣ <b>Navigatsiya:</b> Test davomida savollar orasida bemalol oldinga-orqaga harakatlanishingiz va javoblarni o'zgartirishingiz mumkin.\n"
-        "4️⃣ <b>Yakunlash:</b> Barcha savollarga javob bergach yoki vaqtingiz yetganda '🏁 Testni yakunlash' tugmasini bosing."
+        "🎓 <b>MILLIY SERTIFIKAT (MATEMATIKA) SINOV BOTI</b>\n\n"
+        "Ushbu bot Bilim va malakalarni baholash agentligi (DTM) standarti asosida "
+        "Matematika fanidan Milliy Sertifikat imtihoniga tayyorgarlik ko'rish, bilimingizni "
+        "real sinovdan o'tkazish va aniq natijangizni bilish uchun yaratilgan.\n\n"
+        "📐 <b>Baholash tizimi (RASH IRT modeli):</b>\n"
+        "• Ballar shunchaki to'g'ri javoblar soniga qarab emas, balki xalqaro <b>RASH (Item Response Theory)</b> modeli asosida hisoblanadi;\n"
+        "• Har bir savol o'z qiyinlik darajasiga (b-parametr) ega bo'lib, natija <b>0 dan 75 gacha</b> bo'lgan rasmiy shkalada aniqlanadi;\n"
+        "• Natijaga ko'ra rasmiy darajalar belgilanadi: <b>A+, A, B+, B, C+, C</b>.\n\n"
+        "📋 <b>Test formati va tuzilishi:</b>\n"
+        "⏳ <b>Umumiy vaqt:</b> 150 daqiqa (2 soat 30 daqiqa);\n"
+        "• <b>1–32-savollar (Y-1):</b> 4 variantli yopiq testlar (A, B, C, D);\n"
+        "• <b>33–35-savollar:</b> Bitta umumiy kontekst/chizma asosidagi 3 ta guruhlangan savol (A–F variantlar);\n"
+        "• <b>36–45-savollar:</b> Ochiq yozma savollar (a va b bandlari).\n\n"
+        "🎖 <b>Rasmiy QR-kodli elektron sertifikat:</b>\n"
+        "Testni topshirib yakunlashingiz bilanoq, bot sizga to'plagan balingiz, umumiy foiz va "
+        "darajangiz ko'rsatilgan <b>rasmiy elektron sertifikat blankasini (QR-kod bilan)</b> darhol taqdim etadi!\n\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        "👨‍🏫 <b>USTOZLAR VA REPETITORLAR DIQQATIGA:</b>\n"
+        "Agar siz o'z o'quvchilaringiz uchun milliy sertifikat formatida <b>yangi test javoblarini yaratish</b>, "
+        "maxsus kod orqali test o'tkazish hamda barcha o'quvchilar natijalari statistikasini olishni istasangiz, "
+        "botda <b>Admin huquqi</b> talab qilinadi.\n\n"
+        "👨‍💻 <b>SHAXSIY YORDAM VA ADMIN BILAN BOG'LANISH:</b>\n"
+        "• Bot bo'yicha har qanday savol va takliflar;\n"
+        "• Yangi test javoblarini yaratish (Admin huquqi olish);\n"
+        "• Shaxsiy maslahat va yordam uchun:\n\n"
+        "👉 <b>Bosh admin:</b> @ITCenter_01"
     )
-    await message.answer(text)
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    from aiogram.types import InlineKeyboardButton
+
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(
+            text="💬 Shaxsiy yordam / Admin (@ITCenter_01)",
+            url="https://t.me/ITCenter_01"
+        )
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text="ℹ️ RASH modeli haqida batafsil",
+            callback_data="help_rasch_info"
+        )
+    )
+    await message.answer(text, reply_markup=builder.as_markup())
+
+
+@router.callback_query(F.data == "help_rasch_info")
+async def callback_help_rasch_info(callback: CallbackQuery):
+    await callback.answer()
+    text = (
+        "📐 <b>RASH (Item Response Theory — IRT) MODELI HAQIDA</b>\n\n"
+        "Milliy Sertifikat imtihonlarida ballar oddiy to'g'ri javoblar soni bilan emas, "
+        "balki <b>RASH ilmiy modeli</b> orqali hisoblanadi.\n\n"
+        "<b>Bu qanday ishlaydi?</b>\n"
+        "1. Har bir savol o'zining qiyinlik darajasiga (<b>b-parametr</b>) ega.\n"
+        "2. Qiyin savolga to'g'ri javob berish talabgorning qobiliyati (<b>θ — theta</b>) yuqori ekanini ko'rsatadi.\n"
+        "3. Formula: <code>P(to'g'ri) = 1 / (1 + e^(-(θ - b)))</code>\n"
+        "4. Maximum Likelihood Estimation (MLE) orqali barcha javoblar majmuasidan sizning aniq qobiliyatingiz aniqlanadi.\n"
+        "5. Yakunda qobiliyat ko'rsatkichi <b>0–75 ballik rasmiy shkalaga</b> o'giriladi.\n\n"
+        "🎖 <b>Rasmiy darajalar:</b>\n"
+        "• <b>A+</b>: 70.0 — 75.0 ball (100% imtiyoz)\n"
+        "• <b>A</b>: 65.0 — 69.9 ball (Maksimal ball)\n"
+        "• <b>B+</b>: 60.0 — 64.9 ball\n"
+        "• <b>B</b>: 55.0 — 59.9 ball\n"
+        "• <b>C+</b>: 50.0 — 54.9 ball\n"
+        "• <b>C</b>: 46.0 — 49.9 ball (Minimal o'tish)\n"
+        "• <b>Sertifikat berilmaydi</b>: 46.0 balldan past."
+    )
+    await callback.message.answer(text)
+

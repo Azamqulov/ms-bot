@@ -79,6 +79,12 @@
   - 480px (kichik telefon): header `flex-wrap:wrap` qilindi (yozuvlar pastga siljishi o'rniga qator bo'yicha joylashadi), stat-row (`span`/`b`) avvalgiday yonma-yon lekin kichraymagan holda chiqadi, sertifikat yuklab olish tugmalari ekranga sig'adi, admin-nav-btn yorliqlari kichrayadi, test kartochalari (`test-card`) va statistika modal KPI bloki 2 ustunli grid formatga o'tadi.
   - 576px: ochiq savol juft kiritish qatorlari (`open-inputs-pair`) 2 ustundan 1 ustunlik to'liq kenglikka o'tadi.
   - 640px: `app-container` 100% kenglikda bo'ladi.
+- [x] 41. Foydalanuvchi talabiga asosan bot haqidagi to'liq ma'lumot, yordam va murojaat tizimi yangilandi:
+  - Botning "❓ Yordam" (`/help`) bo'limi boyitildi: Milliy Sertifikat (Matematika) imtihoni maqsadi, RASH (IRT) ilmiy modeli asosida 0–75 ballik baholash va A+..C darajalar, 45 ta savol strukturasi, rasmiy QR-kodli elektron sertifikat blankasi haqida to'liq tushuntirildi.
+  - Ustozlar va repetitorlar uchun test javoblari bazasini yaratish, kod orqali test o'tkazish va statistika olish uchun adminlik huquqi kerakligi ko'rsatildi.
+  - Shaxsiy yordam va test yaratishda adminlik huquqini olish uchun bosh admin @ITCenter_01 profili hamda Telegram chatga o'tuvchi inline tugma joylashtirildi.
+  - Botda ("👑 Admin Panel" / `/admin`) va Web ilovada (`web/js/admin.js`) admin huquqi bo'lmagan foydalanuvchilar kirganda @ITCenter_01 bilan bog'lanish tugmasi va tushuntirish berildi.
+  - O'quvchi javoblar varaqasi bosh ekranida (`web/index.html`) ham ustozlar uchun axborot ko'rsatkichi ulandi.
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.

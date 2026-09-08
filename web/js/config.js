@@ -3,8 +3,8 @@
  * Backend API Base URL Resolver & O'z-o'zini tiklovchi Fetcher
  */
 
-// Faol Cloudflare Tunnel yoki Server manzili
-let DEFAULT_API_BASE = "https://prayers-skating-patch-awareness.trycloudflare.com";
+// Faol Cloudflare Tunnel yoki Server manzili (AWS EC2)
+let DEFAULT_API_BASE = "https://generous-syntax-allow-dryer.trycloudflare.com";
 
 /**
  * Backend API URL manzilini aniqlash:

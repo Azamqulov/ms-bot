@@ -2652,17 +2652,36 @@
             const data = await res.json();
             if (!data.is_admin) {
               document.body.innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:30px; text-align:center; font-family:Inter,sans-serif; background:var(--bg); color:var(--text);">
-                  <div style="width:60px; height:60px; border-radius:50%; background:var(--danger-light); display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
-                    <svg class="icon" style="width:32px; height:32px; color:var(--danger);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:30px 20px; text-align:center; font-family:Inter,sans-serif; background:var(--bg); color:var(--text);">
+                  <div style="width:68px; height:68px; border-radius:50%; background:var(--danger-light, rgba(239, 68, 68, 0.1)); display:flex; align-items:center; justify-content:center; margin-bottom:18px;">
+                    <svg class="icon" style="width:36px; height:36px; color:var(--danger, #ef4444); fill:none; stroke:currentColor;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                   </div>
-                  <h2 style="font-size:20px; font-weight:700; margin-bottom:8px;">Ruxsat berilmadi</h2>
-                  <p style="color:var(--text-sub); font-size:14px; max-width:340px; line-height:1.6; margin-bottom:24px;">
-                    Kechirasiz, ushbu Admin paneliga faqat siz tayinlagan administratorlar kira oladi.
+                  <h2 style="font-size:22px; font-weight:700; margin-bottom:8px; color:var(--text);">Admin huquqi talab qilinadi</h2>
+                  <p style="color:var(--text-sub); font-size:14px; max-width:400px; line-height:1.6; margin-bottom:20px;">
+                    Kechirasiz, test javoblarini yaratish va boshqaruv paneli faqat tasdiqlangan administratorlar (ustozlar va repetitorlar) uchun ochiq.
                   </p>
-                  <a href="/" style="display:inline-flex; align-items:center; gap:8px; padding:10px 20px; background:var(--primary); color:#fff; border-radius:8px; font-weight:600; text-decoration:none; font-size:14px;">
-                    Bosh sahifaga qaytish
-                  </a>
+
+                  <div style="background:var(--card-bg, rgba(0,0,0,0.03)); border:1px solid var(--border); border-radius:12px; padding:16px 20px; margin-bottom:24px; max-width:400px; text-align:left; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                    <div style="font-weight:700; font-size:14px; margin-bottom:6px; color:var(--text);">
+                      👨‍🏫 Ustozlar va o'qituvchilar diqqatiga:
+                    </div>
+                    <p style="font-size:13px; color:var(--text-sub); margin:0; line-height:1.6;">
+                      O'z o'quvchilaringiz uchun milliy sertifikat mock testlarini yaratish yoki administratorlik huquqini olish uchun bosh adminga murojaat qiling:
+                      <br><a href="https://t.me/ITCenter_01" target="_blank" onclick="if(window.Telegram?.WebApp?.openTelegramLink){window.Telegram.WebApp.openTelegramLink('https://t.me/ITCenter_01');return false;}" style="color:var(--primary, #3b82f6); font-weight:700; text-decoration:none; font-size:14px; display:inline-flex; align-items:center; gap:4px; margin-top:6px;">
+                        👉 @ITCenter_01
+                      </a>
+                    </p>
+                  </div>
+
+                  <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+                    <a href="https://t.me/ITCenter_01" target="_blank" onclick="if(window.Telegram?.WebApp?.openTelegramLink){window.Telegram.WebApp.openTelegramLink('https://t.me/ITCenter_01');return false;}" style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px; background:#2AABEE; color:#fff; border-radius:10px; font-weight:600; text-decoration:none; font-size:14px; box-shadow:0 4px 12px rgba(42,171,238,0.28);">
+                      <svg class="icon" style="width:18px; height:18px; stroke:currentColor; fill:none;" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                      Adminga murojaat qilish (@ITCenter_01)
+                    </a>
+                    <a href="/" style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px; background:var(--primary); color:#fff; border-radius:10px; font-weight:600; text-decoration:none; font-size:14px;">
+                      Bosh sahifaga qaytish
+                    </a>
+                  </div>
                 </div>
               `;
               return false;
