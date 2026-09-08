@@ -1379,8 +1379,12 @@
           <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
           TESTNI CHIQARISH VA SAQLASH
         `;
-        openApiConfigModal();
-        showToast("Backend Server URL kiritilmagan! Iltimos, server manzilini kiriting.", true);
+        showAlertModal(
+          "Server manzili kiritilmagan!",
+          "Backend server URL si aniqlanmadi. Bot va tunnel ishlab turganini tekshiring, so'ng sahifani qayta yuklang.",
+          true
+        );
+        showToast("Backend Server URL kiritilmagan!", true);
         return;
       }
 
@@ -1516,8 +1520,7 @@
             }
           );
           showToast("Server bilan ulanish uzildi!", true);
-          updateStatusBarUI('offline', "Server bilan aloqa yo'q! (Sozlashni bosing)");
-          openApiConfigModal();
+          // Server offline — foydalanuvchiga toast orqali xabar berildi
         } else {
           showAlertModal("Xatolik yuz berdi", "Server bilan ulanishda xatolik: " + err.message, true);
           showToast("Server bilan ulanishda xatolik: " + err.message, true);
@@ -2169,9 +2172,7 @@
         }
 
         // Testlar ro'yxatidagi hisoblagichlarni ham yangilash
-        if (typeof loadAdminTests === 'function') {
-          loadAdminTests();
-        }
+        loadMyTests();
       } catch (err) {
         showToast("Xatolik: " + err.message, true);
       }

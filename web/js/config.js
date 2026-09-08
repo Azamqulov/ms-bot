@@ -26,7 +26,7 @@ function getApiBaseUrl() {
       return DEFAULT_API_BASE;
     }
     const saved = localStorage.getItem('MS_API_BASE_URL');
-    if (saved && !saved.includes('localhost') && !saved.includes('trycloudflare.com')) {
+    if (saved && saved.startsWith('http') && !saved.includes('localhost') && !saved.includes('127.0.0.1')) {
       return saved;
     }
   } catch (e) {
