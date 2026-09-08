@@ -363,7 +363,7 @@
           </div>
 
           <div class="sub-variants-box">
-            <div class="sub-variants-header">Har bir variant uchun ehtimoliy to'g'ri javoblarni kiriting:</div>
+            <div class="sub-variants-header">To'g'ri javoblarni kiriting:</div>
             <div id="subVariantsList_${i}">
               ${renderSubVariantsRows(i)}
             </div>
@@ -414,24 +414,33 @@
       const data = openQuestionsData[qNum] || { a: [''] };
       const keys = Object.keys(data);
 
-      return keys.map(variant => `
-        <div class="variant-group" id="variantGroup_${qNum}_${variant}">
-          <div class="variant-label">${variant}) variant uchun:</div>
-          <div id="ansList_${qNum}_${variant}">
-            ${(data[variant] || ['']).map((ans, idx) => renderAnswerInputHtml(qNum, variant, idx, ans)).join('')}
+      return keys.map(variant => {
+        const val = (data[variant] && data[variant][0]) ? data[variant][0] : '';
+        const fieldId = `openAns_${qNum}_${variant}_0`;
+        return `
+          <div class="variant-group" id="variantGroup_${qNum}_${variant}" style="margin-bottom:12px;">
+            <div class="variant-label" style="font-weight:600; font-size:13px; margin-bottom:6px; color:var(--text);">${variant}) band uchun to'g'ri javob:</div>
+            <div class="answer-input-row" id="row_${qNum}_${variant}_0" style="margin-bottom:0;">
+              <div class="answer-field-wrap">
+                <input type="text" class="answer-input" id="${fieldId}" value="${escapeHtml(val)}" 
+                       placeholder="${variant}) to'g'ri javob (masalan: 12 yoki 0.5)..." 
+                       onfocus="registerActiveInput(this)" 
+                       oninput="updateOpenAns(${qNum}, '${variant}', 0, this.value)">
+                <div class="answer-tools">
+                  <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('${fieldId}', 'symbols')" title="Formula">Σ</button>
+                  <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('${fieldId}', 'greek')" title="Klaviatura"><svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6.01" y2="8"></line><line x1="10" y1="8" x2="10.01" y2="8"></line><line x1="14" y1="8" x2="14.01" y2="8"></line><line x1="18" y1="8" x2="18.01" y2="8"></line><line x1="6" y1="12" x2="6.01" y2="12"></line><line x1="10" y1="12" x2="10.01" y2="12"></line><line x1="14" y1="12" x2="14.01" y2="12"></line><line x1="18" y1="12" x2="18.01" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg></button>
+                </div>
+              </div>
+            </div>
           </div>
-          <button type="button" class="add-ans-btn" onclick="addAnswerRow(${qNum}, '${variant}')">
-            <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Javob qo'shish
-          </button>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function renderAnswerInputHtml(qNum, variant, idx, val) {
       const fieldId = `openAns_${qNum}_${variant}_${idx}`;
       return `
-        <div class="answer-input-row" id="row_${qNum}_${variant}_${idx}">
+        <div class="answer-input-row" id="row_${qNum}_${variant}_${idx}" style="margin-bottom:0;">
           <div class="answer-field-wrap">
             <input type="text" class="answer-input" id="${fieldId}" value="${escapeHtml(val || '')}" 
                    placeholder="${variant}) to'g'ri javob (masalan: 12 yoki 0.5)..." 
@@ -442,9 +451,6 @@
               <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('${fieldId}', 'greek')" title="Klaviatura"><svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6.01" y2="8"></line><line x1="10" y1="8" x2="10.01" y2="8"></line><line x1="14" y1="8" x2="14.01" y2="8"></line><line x1="18" y1="8" x2="18.01" y2="8"></line><line x1="6" y1="12" x2="6.01" y2="12"></line><line x1="10" y1="12" x2="10.01" y2="12"></line><line x1="14" y1="12" x2="14.01" y2="12"></line><line x1="18" y1="12" x2="18.01" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg></button>
             </div>
           </div>
-          <button type="button" class="del-btn" onclick="removeAnswerRow(${qNum}, '${variant}', ${idx})" title="O'chirish">
-            <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-          </button>
         </div>
       `;
     }
@@ -457,27 +463,8 @@
       scheduleAutosave();
     }
 
-    function addAnswerRow(qNum, variant) {
-      if (!openQuestionsData[qNum][variant]) openQuestionsData[qNum][variant] = [];
-      openQuestionsData[qNum][variant].push('');
-      const container = document.getElementById(`ansList_${qNum}_${variant}`);
-      const newIdx = openQuestionsData[qNum][variant].length - 1;
-      const div = document.createElement('div');
-      div.innerHTML = renderAnswerInputHtml(qNum, variant, newIdx, '');
-      container.appendChild(div.firstElementChild);
-      scheduleAutosave();
-    }
-
-    function removeAnswerRow(qNum, variant, idx) {
-      if (openQuestionsData[qNum][variant].length <= 1) {
-        showToast("Kamida 1 ta javob maydoni qolishi kerak!", true);
-        return;
-      }
-      openQuestionsData[qNum][variant].splice(idx, 1);
-      const container = document.getElementById(`ansList_${qNum}_${variant}`);
-      container.innerHTML = openQuestionsData[qNum][variant].map((ans, i) => renderAnswerInputHtml(qNum, variant, i, ans)).join('');
-      scheduleAutosave();
-    }
+    function addAnswerRow(qNum, variant) {}
+    function removeAnswerRow(qNum, variant, idx) {}
 
     function stepCount(qNum, change) {
       const stepElem = document.getElementById(`stepVal_${qNum}`);
