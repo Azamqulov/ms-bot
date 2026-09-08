@@ -188,12 +188,16 @@ async def process_test_submission(
         answers_to_save: List[Dict[str, Any]] = []
 
         for q in questions:
-            if q.type in ("Y-1", "GROUPED"):
+            is_open = q.type in ("O", "O-1") or q.type.startswith("O") or (q.sub_parts and len(q.sub_parts) > 0) or q.order_no >= 36
+            if not is_open:
+                # 1-35 Y-1 yoki GROUPED (yopiq test)
                 r_item = RaschItem(item_id=f"q_{q.id}", difficulty_b=q.difficulty_b)
                 rasch_items.append(r_item)
 
                 user_ans = ans_dict.get((q.id, None), "")
-                is_correct = (user_ans == q.correct_answer) if user_ans else False
+                user_clean = str(user_ans).strip().upper() if user_ans else ""
+                corr_clean = str(q.correct_answer).strip().upper() if q.correct_answer else ""
+                is_correct = (user_clean == corr_clean) if (user_clean and corr_clean) else False
                 correct_flags.append(is_correct)
 
                 answers_to_save.append({
@@ -205,24 +209,35 @@ async def process_test_submission(
                     "correct_answer": q.correct_answer,
                     "is_correct": is_correct,
                 })
-            elif q.type == "O":
-                sub_parts = q.sub_parts or []
+            else:
+                # 36-45 Ochiq / Yozma test (sub_parts: a va b)
+                sub_parts = q.sub_parts or [{"label": "a", "correct_answer": ""}, {"label": "b", "correct_answer": ""}]
                 for sp in sub_parts:
                     label = sp.get("label", "a")
                     diff_b = float(sp.get("difficulty_b", q.difficulty_b))
-                    correct_val = sp.get("correct_answer", "")
+                    correct_val = str(sp.get("correct_answer", "")).strip()
+
+                    # Barcha muqobil to'g'ri variantlarni tekshirish uchun yig'ish
+                    alts = sp.get("alternative_answers") or []
+                    if isinstance(alts, list) and alts:
+                        all_variants = [str(v).strip() for v in alts if str(v).strip()]
+                        if correct_val and correct_val not in all_variants:
+                            all_variants.insert(0, correct_val)
+                        check_target = "; ".join(all_variants)
+                    else:
+                        check_target = correct_val
 
                     r_item = RaschItem(item_id=f"q_{q.id}_{label}", difficulty_b=diff_b)
                     rasch_items.append(r_item)
 
                     user_ans = ans_dict.get((q.id, label), "")
-                    is_correct = check_open_answer(user_ans, correct_val) if user_ans else False
+                    is_correct = check_open_answer(user_ans, check_target) if user_ans else False
                     correct_flags.append(is_correct)
 
                     answers_to_save.append({
                         "question_id": q.id,
                         "order_no": q.order_no,
-                        "type": q.type,
+                        "type": "O",
                         "sub_part_label": label,
                         "user_answer": user_ans,
                         "correct_answer": correct_val,

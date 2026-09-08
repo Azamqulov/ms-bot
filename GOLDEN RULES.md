@@ -101,6 +101,11 @@
   2) Statistikada talabgorlar natijasini bosganda ochiluvchi batafsil savolma-savol tahlil modali (`attemptDetailsModal`) yaratildi: 45 ta savolning har biri bo'yicha talabgor qaysi javobni tanlagani, to'g'ri javob nima ekanligi va status nishonlari (✅ To'g'ri, ❌ Noto'g'ri, ⚪️ Yechilmagan) aniq ko'rsatiladi.
   3) Yangi test yaratishda eski test ma'lumotlari (kod, nom, javoblar, qoralama) qolib ketishi butunlay bartaraf etildi (`resetCreateForm`, `confirmResetDraft`, `switchAdminTab` va nashr qilishdan keyin avtomatik tozalash).
   4) Bir xil kodli test yaratishga yo'l qo'ymaslik frontend (`window.myTestsCache` tekshiruvi) va backendda (`func.upper(Test.code) == clean_code` tekshiruvi) qat'iy kafolatlandi. Barcha 28 ta test 100% muvaffaqiyatli o'tdi.
+- [x] [2026-09-08] Yozma (36-45) va yopiq (1-35) savollarni hisoblashdagi barcha muammolar to'liq bartaraf etildi:
+  1) `web/js/admin.js` da yozma savollar `type: "O-1"` deb generatsiya qilinayotgani sababli backendda (`if q.type == "O"`) tekshiruvidan o'tmay qolayotgan edi. Backend `attempt_service.py`, `test_service.py` va `admin_service.py` da `is_open = q.type in ("O", "O-1") or (q.sub_parts and len(q.sub_parts) > 0) or q.order_no >= 36` mustahkam tekshiruvi o'rnatildi va `admin.js` da standart `type: "O"` ga keltirildi; mavjud bazadagi `O-1` savollar migratsiya qilindi.
+  2) Yozma savollarning `alternative_answers` (nuqta/vergul: `12.0` va `12,0`, kasr va o'nlik) hisobga olinmayotgani to'g'rilandi.
+  3) Yopiq savollarda registr (kichik/katta harflar `a` vs `A`) va probellar (`" A "`) `.strip().upper()` bilan to'liq normallashtirildi.
+  4) Yangi test `tests/test_evaluation_open_closed.py` qo'shildi va barcha 30 ta test 100% muvaffaqiyatli o'tdi.
 
 ## 📋 Roadmap & Upcoming Tasks (Backlog)
 - [ ] Faza 2: Savollar uchun video/matnli yechimlar havolasi.

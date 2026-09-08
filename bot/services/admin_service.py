@@ -536,7 +536,8 @@ async def get_attempt_detailed_answers(attempt_id: int, admin_user_id: int) -> O
         unanswered_count = 0
 
         for q in questions:
-            if q.type == "O":
+            is_open = q.type in ("O", "O-1") or (q.type and q.type.startswith("O")) or bool(q.sub_parts and len(q.sub_parts) > 0) or q.order_no >= 36
+            if is_open:
                 # Ochiq savol (a va b qismlar)
                 sub_parts = q.sub_parts or [{"label": "a", "correct_answer": ""}, {"label": "b", "correct_answer": ""}]
                 parts_data = []

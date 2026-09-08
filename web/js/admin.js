@@ -1311,7 +1311,7 @@
 
         questionsPayload.push({
           order_no: i,
-          type: "O-1",
+          type: "O",
           section: subject,
           difficulty_b: 1.5,
           text: meta.text || `${i}-savol: Har bir band uchun to'g'ri natijani kiriting.`,

@@ -246,13 +246,16 @@ async def finish_attempt(attempt_id: int) -> Tuple[Attempt, RaschResult]:
         correct_flags: List[bool] = []
 
         for q in questions:
-            if q.type in ("Y-1", "GROUPED"):
-                # Bitta baholash bandi
+            is_open = q.type in ("O", "O-1") or q.type.startswith("O") or (q.sub_parts and len(q.sub_parts) > 0) or q.order_no >= 36
+            if not is_open:
+                # Bitta baholash bandi (1-35 yopiq test)
                 r_item = RaschItem(item_id=f"q_{q.id}", difficulty_b=q.difficulty_b)
                 rasch_items.append(r_item)
 
                 user_ans = ans_dict.get((q.id, None))
-                is_correct = (user_ans == q.correct_answer) if user_ans else False
+                user_clean = str(user_ans).strip().upper() if user_ans else ""
+                corr_clean = str(q.correct_answer).strip().upper() if q.correct_answer else ""
+                is_correct = (user_clean == corr_clean) if (user_clean and corr_clean) else False
                 correct_flags.append(is_correct)
 
                 # Javobni bazada is_correct holatini ham mustahkamlash
@@ -261,19 +264,28 @@ async def finish_attempt(attempt_id: int) -> Tuple[Attempt, RaschResult]:
                         if a.question_id == q.id and a.sub_part_label is None:
                             a.is_correct = is_correct
 
-            elif q.type == "O":
-                # Ochiq savol - har bir sub_part (a, b) alohida Rasch item
-                sub_parts = q.sub_parts or []
+            else:
+                # Ochiq savol (36-45) - har bir sub_part (a, b) alohida Rasch item
+                sub_parts = q.sub_parts or [{"label": "a", "correct_answer": ""}, {"label": "b", "correct_answer": ""}]
                 for sp in sub_parts:
                     label = sp.get("label", "a")
                     diff_b = float(sp.get("difficulty_b", q.difficulty_b))
-                    correct_val = sp.get("correct_answer", "")
+                    correct_val = str(sp.get("correct_answer", "")).strip()
+
+                    alts = sp.get("alternative_answers") or []
+                    if isinstance(alts, list) and alts:
+                        all_variants = [str(v).strip() for v in alts if str(v).strip()]
+                        if correct_val and correct_val not in all_variants:
+                            all_variants.insert(0, correct_val)
+                        check_target = "; ".join(all_variants)
+                    else:
+                        check_target = correct_val
 
                     r_item = RaschItem(item_id=f"q_{q.id}_{label}", difficulty_b=diff_b)
                     rasch_items.append(r_item)
 
                     user_ans = ans_dict.get((q.id, label))
-                    is_correct = check_open_answer(user_ans or "", correct_val) if user_ans else False
+                    is_correct = check_open_answer(user_ans or "", check_target) if user_ans else False
                     correct_flags.append(is_correct)
 
                     # Javobni bazada is_correct yangilash
