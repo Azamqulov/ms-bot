@@ -35,21 +35,15 @@ def update_env(key: str, value: str):
         new_lines.append(f"{key}={value}")
     ENV_FILE.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
 
-def update_html_files(tunnel_url: str):
+def update_web_config(tunnel_url: str):
     root = Path(__file__).parent
-    html_files = [
-        root / "web" / "index.html",
-        root / "index.html",
-        root / "web" / "admin.html",
-        root / "admin.html",
-    ]
-    pattern = re.compile(r'(?:const|let)\s+DEFAULT_API_BASE\s*=\s*"[^"]*";')
-    replacement = f'let DEFAULT_API_BASE = "{tunnel_url}";'
-    for f in html_files:
-        if f.exists():
-            text = f.read_text(encoding="utf-8")
-            if pattern.search(text):
-                f.write_text(pattern.sub(replacement, text), encoding="utf-8")
+    config_file = root / "web" / "js" / "config.js"
+    if config_file.exists():
+        text = config_file.read_text(encoding="utf-8")
+        pattern = re.compile(r'let DEFAULT_API_BASE\s*=\s*"[^"]*";')
+        replacement = f'let DEFAULT_API_BASE = "{tunnel_url}";'
+        if pattern.search(text):
+            config_file.write_text(pattern.sub(replacement, text), encoding="utf-8")
 
 def cleanup(signum=None, frame=None):
     log("[STOP] Botva tunnel to'xtatilmoqda...")
@@ -102,12 +96,12 @@ if __name__ == "__main__":
     # 1. Tunnel ishga tushirish
     tunnel_url = start_tunnel()
 
-    # 2. .env va HTML fayllarni yangilash
+    # 2. .env va Web config faylini yangilash
     if tunnel_url:
         update_env("API_SERVER_URL", tunnel_url)
-        update_html_files(tunnel_url)
+        update_web_config(tunnel_url)
         log(f"[OK] Tunnel: {tunnel_url}")
-        log("[OK] .env va HTML fayllar yangilandi")
+        log("[OK] .env va web/js/config.js yangilandi")
     else:
         log("[INFO] Tunnelsiz davom etilmoqda...")
 

@@ -74,6 +74,10 @@ app.add_middleware(
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 if Path("web").exists():
     app.mount("/static", StaticFiles(directory="web"), name="static")
+    if (Path("web") / "css").exists():
+        app.mount("/css", StaticFiles(directory="web/css"), name="css")
+    if (Path("web") / "js").exists():
+        app.mount("/js", StaticFiles(directory="web/js"), name="js")
 
 
 # Pydantic modellar

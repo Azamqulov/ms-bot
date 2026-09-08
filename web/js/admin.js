@@ -1,0 +1,1904 @@
+// ================= GLOBAL STATE & AUTH =================
+    const telegramInitData = window.Telegram?.WebApp?.initData || '';
+    const currentTelegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null;
+
+    function getAdminAuthHeaders(extraHeaders = {}) {
+      const headers = { ...extraHeaders };
+      if (telegramInitData) {
+        headers['X-Telegram-Init-Data'] = telegramInitData;
+      }
+      return headers;
+    }
+
+    const answers1to35 = {}; // {1: 'A', 2: 'B', ...}
+    const questionsMeta = {}; // {1: {text: '', image: '', options: {A:'', B:'', C:'', D:''}}}
+    const openQuestionsData = {}; // {36: {a: [''], b: ['']}, ...}
+    const openQuestionsMeta = {}; // {36: {text: '', image: ''}}
+    const groupContextData = { text: '', image: '', options: { A: '', B: '', C: '', D: '', E: '', F: '' } };
+
+    let currentActiveInput = null;
+    // (API konfiguratsiyasi va apiFetch js/config.js faylidan yuklanadi)
+
+    let currentKbTab = 'greek';
+    let isGreekShiftActive = false;
+    let activeUploadTarget = null; // {type: 'q1to35'|'openQ', qNum: 1}
+    let autosaveTimer = null;
+    let lastCreatedTestCode = '';
+
+    const checkboxStates = {
+      autoCheck: true,
+      hideAnswers: false,
+      reqSub: false
+    };
+
+    let selectedAccessType = 'closed'; // 'open' | 'closed'
+    let selectedAnswerMode = 'write';  // 'write' | 'photo'
+
+    // Undo / Redo history map
+    const inputHistory = new Map(); // inputElement -> { history: [], pointer: -1 }
+
+    function trackInputHistory(inp) {
+      if (!inp) return;
+      if (!inputHistory.has(inp)) {
+        inputHistory.set(inp, { history: [inp.value], pointer: 0 });
+      }
+      const data = inputHistory.get(inp);
+      if (data.history[data.pointer] !== inp.value) {
+        data.history = data.history.slice(0, data.pointer + 1);
+        data.history.push(inp.value);
+        data.pointer = data.history.length - 1;
+      }
+    }
+
+    // ================= TABS LOGIC =================
+    function switchAdminTab(tab) {
+      const createBtn = document.getElementById('navCreateTab');
+      const listBtn = document.getElementById('navListTab');
+      const createForm = document.getElementById('createTestForm');
+      const listTab = document.getElementById('testsListTab');
+      const headerTitle = document.getElementById('pageHeaderTitle');
+
+      if (tab === 'create') {
+        createBtn.classList.add('active');
+        listBtn.classList.remove('active');
+        createForm.style.display = 'flex';
+        listTab.style.display = 'none';
+        headerTitle.innerText = "Test qo'shish";
+      } else {
+        createBtn.classList.remove('active');
+        listBtn.classList.add('active');
+        createForm.style.display = 'none';
+        listTab.style.display = 'flex';
+        headerTitle.innerText = "Mening testlarim";
+        loadMyTests();
+      }
+    }
+
+    // ================= 1–32 SAVOLLAR (KLASSIK VARIANTLI TESTLAR) =================
+    function initQuestions1to32() {
+      const container = document.getElementById('keysList1to32');
+      if (!container) return;
+      container.innerHTML = '';
+
+      for (let i = 1; i <= 32; i++) {
+        if (!answers1to35[i]) answers1to35[i] = 'A';
+        if (!questionsMeta[i]) questionsMeta[i] = { text: '', image: '', options: { A: '', B: '', C: '', D: '' } };
+
+        const row = document.createElement('div');
+        row.className = 'key-row';
+        row.id = `keyRow_${i}`;
+
+        const hasMeta = Boolean(questionsMeta[i].text || questionsMeta[i].image);
+
+        row.innerHTML = `
+          <div class="key-row-header">
+            <span class="key-row-label">
+              ${i}-savol
+              <span class="key-has-meta-badge" id="badge_q_${i}" style="display:${hasMeta ? 'inline-block' : 'none'};">Savol matni kiritilgan</span>
+            </span>
+            <button type="button" class="key-attach-btn" onclick="toggleDetailsDrawer(${i})">
+              <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              Rasm / Matn qo'shish
+            </button>
+          </div>
+          <div class="key-options-grid">
+            ${['A', 'B', 'C', 'D'].map(opt => `
+              <button type="button" class="key-option-btn ${answers1to35[i] === opt ? 'selected' : ''}" onclick="selectKeyOption(${i}, '${opt}')">${opt}</button>
+            `).join('')}
+          </div>
+          <div class="key-details-drawer" id="detailsDrawer_${i}">
+            <div style="font-size:12px; font-weight:600; color:var(--text-sub);">Savol matni (KaTeX formulalar qo'llab-quvvatlanadi):</div>
+            <div class="answer-field-wrap">
+              <input type="text" class="form-input" id="qTextInput_${i}" style="height:38px; font-size:13px;" placeholder="${i}-savol matni yoki formulasi (ixtiyoriy)..." value="${escapeHtml(questionsMeta[i].text || '')}" onfocus="registerActiveInput(this)" oninput="saveQuestionText(${i}, this.value)">
+              <div class="answer-tools">
+                <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('qTextInput_${i}', 'symbols')" title="Formula">Σ</button>
+                <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('qTextInput_${i}', 'greek')" title="Klaviatura">⌨️</button>
+              </div>
+            </div>
+            <div class="katex-preview" id="katexPreview_q_${i}">
+              ${renderKatexString(questionsMeta[i].text || "Formula ko'rinishi shu yerda chiqadi...")}
+            </div>
+
+            <div style="font-size:12px; font-weight:600; color:var(--text-sub); margin-top:4px;">Savol rasmi (chizma yoki grafik):</div>
+            <div class="upload-action-row">
+              <button type="button" class="btn-upload" onclick="triggerFileUpload('q1to35', ${i})">
+                <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                Fayl yuklash
+              </button>
+              <input type="text" class="form-input" id="qImgUrlInput_${i}" style="flex:1; height:34px; font-size:12px;" placeholder="Yoki rasm URL havolasi..." value="${escapeHtml(questionsMeta[i].image || '')}" oninput="saveQuestionImage(${i}, this.value)">
+            </div>
+            <div id="imgPreviewBox_q_${i}" style="display:${questionsMeta[i].image ? 'block' : 'none'};">
+              <div class="img-preview-wrap">
+                <img class="image-preview-thumbnail" id="imgThumb_q_${i}" src="${questionsMeta[i].image || ''}" alt="Savol rasmi">
+                <span style="font-size:12px; flex:1; color:var(--text-sub); word-break:break-all;" id="imgName_q_${i}">${questionsMeta[i].image || ''}</span>
+                <button type="button" class="del-btn" onclick="removeQuestionImage(${i})" title="Rasmni o'chirish">
+                  <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(row);
+      }
+    }
+
+    // ================= 33–35 SAVOLLAR (GURUHLANGAN TESTLAR — A dan F gacha) =================
+    function initGroupedQuestions33to35() {
+      const container = document.getElementById('keysList33to35');
+      if (!container) return;
+      container.innerHTML = '';
+
+      for (let i = 33; i <= 35; i++) {
+        if (!answers1to35[i]) answers1to35[i] = 'A';
+
+        const row = document.createElement('div');
+        row.className = 'key-row';
+        row.id = `keyRow_${i}`;
+
+        row.innerHTML = `
+          <div class="key-row-header">
+            <span class="key-row-label">${i}-savol:</span>
+          </div>
+          <div class="key-options-grid six-options">
+            ${['A', 'B', 'C', 'D', 'E', 'F'].map(opt => `
+              <button type="button" class="key-option-btn ${answers1to35[i] === opt ? 'selected' : ''}" onclick="selectKeyOption(${i}, '${opt}')">${opt}</button>
+            `).join('')}
+          </div>
+        `;
+        container.appendChild(row);
+      }
+    }
+
+    function toggleGroupMetaDetails() {
+      const wrap = document.getElementById('groupMetaDetailsWrap');
+      const text = document.getElementById('toggleGroupDetailsText');
+      if (!wrap) return;
+      const isOpen = (wrap.style.display !== 'none');
+      wrap.style.display = isOpen ? 'none' : 'flex';
+      if (text) {
+        text.innerText = isOpen 
+          ? "+ Kontekst matni yoki chizma qo'shish (ixtiyoriy)" 
+          : "— Yopish: Kontekst matni va chizma";
+      }
+    }
+
+    function initQuestions1to35() {
+      initQuestions1to32();
+      initGroupedQuestions33to35();
+    }
+
+    function saveGroupContextText(val) {
+      groupContextData.text = val;
+      const prev = document.getElementById('katexPreview_groupContext');
+      if (prev) {
+        prev.innerHTML = renderKatexString(val || "Formula ko'rinishi shu yerda chiqadi...");
+      }
+      scheduleAutosave();
+    }
+
+    function saveGroupImage(val) {
+      groupContextData.image = val.trim();
+      const pBox = document.getElementById('imgPreviewBox_group');
+      const thumb = document.getElementById('imgThumb_group');
+      const nameElem = document.getElementById('imgName_group');
+      if (val.trim()) {
+        pBox.style.display = 'block';
+        thumb.src = val.trim();
+        nameElem.innerText = val.trim();
+      } else {
+        pBox.style.display = 'none';
+      }
+      scheduleAutosave();
+    }
+
+    function removeGroupImage() {
+      const inp = document.getElementById('groupImgUrlInput');
+      if (inp) inp.value = '';
+      saveGroupImage('');
+    }
+
+    function saveSharedOption(letter, val) {
+      if (!groupContextData.options) groupContextData.options = {};
+      groupContextData.options[letter] = val.trim();
+      scheduleAutosave();
+    }
+
+    function selectKeyOption(qNum, opt) {
+      answers1to35[qNum] = opt;
+      const row = document.getElementById(`keyRow_${qNum}`);
+      if (row) {
+        const btns = row.querySelectorAll('.key-option-btn');
+        btns.forEach(btn => {
+          if (btn.innerText.trim() === opt) {
+            btn.classList.add('selected');
+          } else {
+            btn.classList.remove('selected');
+          }
+        });
+      }
+      scheduleAutosave();
+    }
+
+    function toggleDetailsDrawer(qNum) {
+      const drawer = document.getElementById(`detailsDrawer_${qNum}`);
+      if (drawer) {
+        drawer.classList.toggle('open');
+      }
+    }
+
+    function saveQuestionText(qNum, val) {
+      if (!questionsMeta[qNum]) questionsMeta[qNum] = {};
+      questionsMeta[qNum].text = val;
+      const prev = document.getElementById(`katexPreview_q_${qNum}`);
+      if (prev) {
+        prev.innerHTML = renderKatexString(val || "Formula ko'rinishi shu yerda chiqadi...");
+      }
+      updateMetaBadge(qNum);
+      scheduleAutosave();
+    }
+
+    function saveQuestionImage(qNum, val) {
+      if (!questionsMeta[qNum]) questionsMeta[qNum] = {};
+      questionsMeta[qNum].image = val.trim();
+      const pBox = document.getElementById(`imgPreviewBox_q_${qNum}`);
+      const thumb = document.getElementById(`imgThumb_q_${qNum}`);
+      const nameElem = document.getElementById(`imgName_q_${qNum}`);
+      if (val.trim()) {
+        pBox.style.display = 'block';
+        thumb.src = val.trim();
+        nameElem.innerText = val.trim();
+      } else {
+        pBox.style.display = 'none';
+      }
+      updateMetaBadge(qNum);
+      scheduleAutosave();
+    }
+
+    function removeQuestionImage(qNum) {
+      saveQuestionImage(qNum, '');
+      const inp = document.getElementById(`qImgUrlInput_${qNum}`);
+      if (inp) inp.value = '';
+    }
+
+    function updateMetaBadge(qNum) {
+      const badge = document.getElementById(`badge_q_${qNum}`);
+      if (badge) {
+        const has = Boolean(questionsMeta[qNum]?.text || questionsMeta[qNum]?.image);
+        badge.style.display = has ? 'inline-block' : 'none';
+      }
+    }
+
+    // ================= 36–45 OCHIQ SAVOLLARNI GENERATSIYA QILISH =================
+    function initOpenQuestions() {
+      const container = document.getElementById('openQuestionsContainer');
+      container.innerHTML = '';
+
+      for (let i = 36; i <= 45; i++) {
+        if (!openQuestionsData[i]) {
+          openQuestionsData[i] = { a: [''], b: [''] };
+        }
+        if (!openQuestionsMeta[i]) {
+          openQuestionsMeta[i] = { text: '', image: '' };
+        }
+
+        const subKeys = Object.keys(openQuestionsData[i]);
+        const card = document.createElement('div');
+        card.className = 'open-question-card';
+        card.id = `openCard_${i}`;
+
+        card.innerHTML = `
+          <div class="open-q-header">
+            <div class="open-q-title">${i}-savol</div>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <button type="button" class="key-attach-btn" onclick="toggleOpenQuestionMeta(${i})">
+                <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                Shart / Rasm qo'shish
+              </button>
+              <div class="count-stepper">
+                <span>Javoblar soni:</span>
+                <button type="button" class="step-btn" onclick="stepCount(${i}, -1)">–</button>
+                <span class="step-val" id="stepVal_${i}">${subKeys.length}</span>
+                <button type="button" class="step-btn" onclick="stepCount(${i}, 1)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="key-details-drawer" id="openMetaDrawer_${i}">
+            <div style="font-size:12px; font-weight:600; color:var(--text-sub);">Savol sharti yoki matni:</div>
+            <div class="answer-field-wrap">
+              <input type="text" class="form-input" id="openTextInput_${i}" style="height:38px; font-size:13px;" placeholder="${i}-savol matni yoki formulasi..." value="${escapeHtml(openQuestionsMeta[i].text || '')}" onfocus="registerActiveInput(this)" oninput="saveOpenQuestionText(${i}, this.value)">
+              <div class="answer-tools">
+                <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('openTextInput_${i}', 'symbols')" title="Formula">Σ</button>
+                <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('openTextInput_${i}', 'greek')" title="Klaviatura">⌨️</button>
+              </div>
+            </div>
+            <div class="katex-preview" id="katexPreview_open_${i}">
+              ${renderKatexString(openQuestionsMeta[i].text || "Formula ko'rinishi shu yerda chiqadi...")}
+            </div>
+
+            <div style="font-size:12px; font-weight:600; color:var(--text-sub); margin-top:4px;">Chizma yoki masala rasmi:</div>
+            <div class="upload-action-row">
+              <button type="button" class="btn-upload" onclick="triggerFileUpload('openQ', ${i})">
+                <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                Fayl yuklash
+              </button>
+              <input type="text" class="form-input" id="openImgUrlInput_${i}" style="flex:1; height:34px; font-size:12px;" placeholder="Yoki rasm URL..." value="${escapeHtml(openQuestionsMeta[i].image || '')}" oninput="saveOpenQuestionImage(${i}, this.value)">
+            </div>
+            <div id="imgPreviewBox_open_${i}" style="display:${openQuestionsMeta[i].image ? 'block' : 'none'};">
+              <div class="img-preview-wrap">
+                <img class="image-preview-thumbnail" id="imgThumb_open_${i}" src="${openQuestionsMeta[i].image || ''}" alt="Savol rasmi">
+                <span style="font-size:12px; flex:1; color:var(--text-sub); word-break:break-all;" id="imgName_open_${i}">${openQuestionsMeta[i].image || ''}</span>
+                <button type="button" class="del-btn" onclick="removeOpenQuestionImage(${i})" title="O'chirish">
+                  <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:12px; font-weight:600; color:var(--text-sub);" id="subLetters_${i}">
+            ${subKeys.join(' , ')}
+          </div>
+
+          <div class="sub-variants-box">
+            <div class="sub-variants-header">Har bir variant uchun ehtimoliy to'g'ri javoblarni kiriting:</div>
+            <div id="subVariantsList_${i}">
+              ${renderSubVariantsRows(i)}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      }
+    }
+
+    function toggleOpenQuestionMeta(qNum) {
+      const drawer = document.getElementById(`openMetaDrawer_${qNum}`);
+      if (drawer) drawer.classList.toggle('open');
+    }
+
+    function saveOpenQuestionText(qNum, val) {
+      if (!openQuestionsMeta[qNum]) openQuestionsMeta[qNum] = {};
+      openQuestionsMeta[qNum].text = val;
+      const prev = document.getElementById(`katexPreview_open_${qNum}`);
+      if (prev) {
+        prev.innerHTML = renderKatexString(val || "Formula ko'rinishi shu yerda chiqadi...");
+      }
+      scheduleAutosave();
+    }
+
+    function saveOpenQuestionImage(qNum, val) {
+      if (!openQuestionsMeta[qNum]) openQuestionsMeta[qNum] = {};
+      openQuestionsMeta[qNum].image = val.trim();
+      const pBox = document.getElementById(`imgPreviewBox_open_${qNum}`);
+      const thumb = document.getElementById(`imgThumb_open_${qNum}`);
+      const nameElem = document.getElementById(`imgName_open_${qNum}`);
+      if (val.trim()) {
+        pBox.style.display = 'block';
+        thumb.src = val.trim();
+        nameElem.innerText = val.trim();
+      } else {
+        pBox.style.display = 'none';
+      }
+      scheduleAutosave();
+    }
+
+    function removeOpenQuestionImage(qNum) {
+      saveOpenQuestionImage(qNum, '');
+      const inp = document.getElementById(`openImgUrlInput_${qNum}`);
+      if (inp) inp.value = '';
+    }
+
+    function renderSubVariantsRows(qNum) {
+      const data = openQuestionsData[qNum] || { a: [''] };
+      const keys = Object.keys(data);
+
+      return keys.map(variant => `
+        <div class="variant-group" id="variantGroup_${qNum}_${variant}">
+          <div class="variant-label">${variant}) variant uchun:</div>
+          <div id="ansList_${qNum}_${variant}">
+            ${(data[variant] || ['']).map((ans, idx) => renderAnswerInputHtml(qNum, variant, idx, ans)).join('')}
+          </div>
+          <button type="button" class="add-ans-btn" onclick="addAnswerRow(${qNum}, '${variant}')">
+            <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Javob qo'shish
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function renderAnswerInputHtml(qNum, variant, idx, val) {
+      const fieldId = `openAns_${qNum}_${variant}_${idx}`;
+      return `
+        <div class="answer-input-row" id="row_${qNum}_${variant}_${idx}">
+          <div class="answer-field-wrap">
+            <input type="text" class="answer-input" id="${fieldId}" value="${escapeHtml(val || '')}" 
+                   placeholder="${variant}) to'g'ri javob (masalan: 12 yoki 0.5)..." 
+                   onfocus="registerActiveInput(this)" 
+                   oninput="updateOpenAns(${qNum}, '${variant}', ${idx}, this.value)">
+            <div class="answer-tools">
+              <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('${fieldId}', 'symbols')" title="Formula">Σ</button>
+              <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('${fieldId}', 'greek')" title="Klaviatura">⌨️</button>
+            </div>
+          </div>
+          <button type="button" class="del-btn" onclick="removeAnswerRow(${qNum}, '${variant}', ${idx})" title="O'chirish">
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </div>
+      `;
+    }
+
+    function updateOpenAns(qNum, variant, idx, val) {
+      if (!openQuestionsData[qNum]) openQuestionsData[qNum] = { a: [''] };
+      if (!openQuestionsData[qNum][variant]) openQuestionsData[qNum][variant] = [''];
+      openQuestionsData[qNum][variant][idx] = val;
+      trackInputHistory(document.getElementById(`openAns_${qNum}_${variant}_${idx}`));
+      scheduleAutosave();
+    }
+
+    function addAnswerRow(qNum, variant) {
+      if (!openQuestionsData[qNum][variant]) openQuestionsData[qNum][variant] = [];
+      openQuestionsData[qNum][variant].push('');
+      const container = document.getElementById(`ansList_${qNum}_${variant}`);
+      const newIdx = openQuestionsData[qNum][variant].length - 1;
+      const div = document.createElement('div');
+      div.innerHTML = renderAnswerInputHtml(qNum, variant, newIdx, '');
+      container.appendChild(div.firstElementChild);
+      scheduleAutosave();
+    }
+
+    function removeAnswerRow(qNum, variant, idx) {
+      if (openQuestionsData[qNum][variant].length <= 1) {
+        showToast("Kamida 1 ta javob maydoni qolishi kerak!", true);
+        return;
+      }
+      openQuestionsData[qNum][variant].splice(idx, 1);
+      const container = document.getElementById(`ansList_${qNum}_${variant}`);
+      container.innerHTML = openQuestionsData[qNum][variant].map((ans, i) => renderAnswerInputHtml(qNum, variant, i, ans)).join('');
+      scheduleAutosave();
+    }
+
+    function stepCount(qNum, change) {
+      const stepElem = document.getElementById(`stepVal_${qNum}`);
+      const lettersElem = document.getElementById(`subLetters_${qNum}`);
+      const listElem = document.getElementById(`subVariantsList_${qNum}`);
+
+      const possibleLetters = ['a', 'b', 'c', 'd'];
+      let curCount = Object.keys(openQuestionsData[qNum]).length;
+      let newCount = curCount + change;
+      if (newCount < 1) newCount = 1;
+      if (newCount > 4) newCount = 4;
+      if (newCount === curCount) return;
+
+      const newData = {};
+      for (let i = 0; i < newCount; i++) {
+        const letter = possibleLetters[i];
+        newData[letter] = openQuestionsData[qNum][letter] || [''];
+      }
+      openQuestionsData[qNum] = newData;
+
+      stepElem.innerText = newCount;
+      lettersElem.innerText = Object.keys(newData).join(' , ');
+      listElem.innerHTML = renderSubVariantsRows(qNum);
+      scheduleAutosave();
+    }
+
+    // ================= IMAGE UPLOAD HANDLING =================
+    function triggerFileUpload(type, qNum) {
+      activeUploadTarget = { type, qNum };
+      const fileInp = document.getElementById('globalImageFileInput');
+      fileInp.value = '';
+      fileInp.click();
+    }
+
+    async function handleFileSelected(input) {
+      if (!input.files || !input.files[0] || !activeUploadTarget) return;
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+
+      showToast("Rasm yuklanmoqda...");
+
+      if (!API_BASE && window.location.hostname.includes('github.io')) {
+        openApiConfigModal();
+        showToast("Server manzili kiritilmagan! Iltimos, serverni sozlang.", true);
+        activeUploadTarget = null;
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/upload-image`, {
+          method: 'POST',
+          headers: getAdminAuthHeaders(),
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok && data.url) {
+          showToast("Rasm muvaffaqiyatli yuklandi!");
+          if (activeUploadTarget.type === 'groupContext') {
+            const urlInp = document.getElementById('groupImgUrlInput');
+            if (urlInp) urlInp.value = data.url;
+            saveGroupImage(data.url);
+          } else if (activeUploadTarget.type === 'q1to35') {
+            const qNum = activeUploadTarget.qNum;
+            const urlInp = document.getElementById(`qImgUrlInput_${qNum}`);
+            if (urlInp) urlInp.value = data.url;
+            saveQuestionImage(qNum, data.url);
+          } else {
+            const qNum = activeUploadTarget.qNum;
+            const urlInp = document.getElementById(`openImgUrlInput_${qNum}`);
+            if (urlInp) urlInp.value = data.url;
+            saveOpenQuestionImage(qNum, data.url);
+          }
+        } else {
+          showToast("Rasmni yuklab bo'lmadi: " + (data.detail || "Noma'lum xatolik"), true);
+        }
+      } catch (err) {
+        if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+          showToast("Server bilan ulanish yo'q! Bot va tunnel ishlab turganini tekshiring.", true);
+          openApiConfigModal();
+        } else {
+          showToast("Rasm yuklashda xatolik: " + err.message, true);
+        }
+      } finally {
+        activeUploadTarget = null;
+      }
+    }
+
+    // ================= QUICK MASS KEYS MODAL =================
+    function openQuickKeysModal() {
+      document.getElementById('quickKeysModal').classList.add('active');
+      const input = document.getElementById('quickKeysInput');
+      // mavjud kalitlarni yig'ish
+      let cur = [];
+      for (let i = 1; i <= 35; i++) cur.push(answers1to35[i] || 'A');
+      input.value = cur.join('');
+      input.focus();
+    }
+
+    function applyQuickKeys() {
+      const raw = document.getElementById('quickKeysInput').value.toUpperCase();
+      // 1-32 uchun A-D, 33-35 uchun A-F qabul qilinadi
+      const matched = raw.match(/[A-F]/g);
+      if (!matched || matched.length === 0) {
+        showToast("Hech qanday A–F harfi topilmadi!", true);
+        return;
+      }
+
+      const count = Math.min(35, matched.length);
+      for (let i = 1; i <= count; i++) {
+        let key = matched[i - 1];
+        if (i <= 32 && !['A', 'B', 'C', 'D'].includes(key)) {
+          key = 'A';
+        }
+        selectKeyOption(i, key);
+      }
+
+      closeModal('quickKeysModal');
+      showToast(`${count} ta savol kalitlari muvaffaqiyatli o'rnatildi!`);
+      scheduleAutosave();
+    }
+
+    // ================= VIRTUAL MATEMATIKA KLAVIATURASI =================
+    const greekLower = [
+      [
+        { key: 'φ', sub: 'phi' }, { key: 'σ', sub: 'sigma' }, { key: 'ϵ', sub: 'epsilon' },
+        { key: 'ρ', sub: 'rho' }, { key: 'τ', sub: 'tau' }, { key: 'υ', sub: 'upsilon' },
+        { key: 'θ', sub: 'theta' }, { key: 'ι', sub: 'iota' }, { key: 'ο', sub: 'omicron' }, { key: 'π', sub: 'pi' }
+      ],
+      [
+        { key: 'α', sub: 'alpha' }, { key: 'δ', sub: 'delta' },
+        { key: 'ϕ', sub: 'phi var' }, { key: 'γ', sub: 'gamma' }, { key: 'η', sub: 'eta' },
+        { key: 'ξ', sub: 'xi' }, { key: 'κ', sub: 'kappa' }, { key: 'λ', sub: 'lambda' }
+      ],
+      [
+        { key: '⇧', action: 'shift', special: true },
+        { key: 'ζ', sub: 'zeta' }, { key: 'χ', sub: 'chi' }, { key: 'ψ', sub: 'psi' },
+        { key: 'ω', sub: 'omega' }, { key: 'β', sub: 'beta' }, { key: 'ν', sub: 'nu' },
+        { key: 'μ', sub: 'mu' },
+        { key: '⌫', action: 'backspace', special: true }
+      ],
+      [
+        { key: 'ε' }, { key: 'ϑ' }, { key: 'ϰ' }, { key: 'ϖ' }, { key: 'ϱ' },
+        { key: '◀', action: 'left', special: true },
+        { key: '▶', action: 'right', special: true },
+        { key: '↵', action: 'enter', special: true }
+      ]
+    ];
+
+    const greekUpper = [
+      [
+        { key: 'Φ', sub: 'Phi' }, { key: 'Σ', sub: 'Sigma' }, { key: 'Ε', sub: 'Epsilon' },
+        { key: 'Ρ', sub: 'Rho' }, { key: 'Τ', sub: 'Tau' }, { key: 'Υ', sub: 'Upsilon' },
+        { key: 'Θ', sub: 'Theta' }, { key: 'Ι', sub: 'Iota' }, { key: 'Ο', sub: 'Omicron' }, { key: 'Π', sub: 'Pi' }
+      ],
+      [
+        { key: 'Α', sub: 'Alpha' }, { key: 'Δ', sub: 'Delta' },
+        { key: 'Γ', sub: 'Gamma' }, { key: 'Η', sub: 'Eta' },
+        { key: 'Ξ', sub: 'Xi' }, { key: 'Κ', sub: 'Kappa' }, { key: 'Λ', sub: 'Lambda' }
+      ],
+      [
+        { key: '⇧', action: 'shift', special: true },
+        { key: 'Ζ', sub: 'Zeta' }, { key: 'Χ', sub: 'Chi' }, { key: 'Ψ', sub: 'Psi' },
+        { key: 'Ω', sub: 'Omega' }, { key: 'Β', sub: 'Beta' }, { key: 'Ν', sub: 'Nu' },
+        { key: 'Μ', sub: 'Mu' },
+        { key: '⌫', action: 'backspace', special: true }
+      ],
+      [
+        { key: '◀', action: 'left', special: true },
+        { key: '▶', action: 'right', special: true },
+        { key: '↵', action: 'enter', special: true }
+      ]
+    ];
+
+    const numKeysLayout = [
+      [{ key: '7' }, { key: '8' }, { key: '9' }, { key: '÷' }, { key: '(' }, { key: ')' }],
+      [{ key: '4' }, { key: '5' }, { key: '6' }, { key: '×' }, { key: '[' }, { key: ']' }],
+      [{ key: '1' }, { key: '2' }, { key: '3' }, { key: '-' }, { key: 'x²' }, { key: '√' }],
+      [{ key: '0' }, { key: '.' }, { key: '=' }, { key: '+' }, { key: '^' }, { key: '⌫', action: 'backspace', special: true }]
+    ];
+
+    const symbolKeysLayout = [
+      [{ key: '∞' }, { key: '≠' }, { key: '≤' }, { key: '≥' }, { key: '∈' }, { key: '∉' }, { key: '⊂' }, { key: '⊃' }],
+      [{ key: '∪' }, { key: '∩' }, { key: '±' }, { key: '∓' }, { key: '⊥' }, { key: '∥' }, { key: '∠' }, { key: '°' }],
+      [{ key: '√' }, { key: '∛' }, { key: '∫' }, { key: '∑' }, { key: '∏' }, { key: '≈' }, { key: '≡' }, { key: '⌫', action: 'backspace', special: true }],
+      [{ key: 'sin' }, { key: 'cos' }, { key: 'tan' }, { key: 'cot' }, { key: 'log' }, { key: 'ln' }, { key: 'lim' }, { key: '↵', action: 'enter', special: true }]
+    ];
+
+    const abcKeysLayout = [
+      [{ key: 'q' }, { key: 'w' }, { key: 'e' }, { key: 'r' }, { key: 't' }, { key: 'y' }, { key: 'u' }, { key: 'i' }, { key: 'o' }, { key: 'p' }],
+      [{ key: 'a' }, { key: 's' }, { key: 'd' }, { key: 'f' }, { key: 'g' }, { key: 'h' }, { key: 'j' }, { key: 'k' }, { key: 'l' }],
+      [{ key: 'z' }, { key: 'x' }, { key: 'c' }, { key: 'v' }, { key: 'b' }, { key: 'n' }, { key: 'm' }, { key: '⌫', action: 'backspace', special: true }],
+      [{ key: ' ', sub: 'bo\'shliq', special: true }, { key: '↵', action: 'enter', special: true }]
+    ];
+
+    function renderKeyboard(tabName) {
+      currentKbTab = tabName;
+      const container = document.getElementById('kbKeysBody');
+      container.innerHTML = '';
+
+      let layout = isGreekShiftActive ? greekUpper : greekLower;
+      if (tabName === '123') layout = numKeysLayout;
+      else if (tabName === 'symbols') layout = symbolKeysLayout;
+      else if (tabName === 'abc') layout = abcKeysLayout;
+
+      layout.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'kb-row';
+        row.forEach(item => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `kb-key ${item.special ? 'kb-key-special' : ''}`;
+
+          if (item.action) {
+            btn.innerHTML = `<span>${item.key}</span>`;
+            btn.onmousedown = (e) => { e.preventDefault(); handleKbAction(item.action); };
+          } else {
+            btn.innerHTML = `
+              <span>${item.key}</span>
+              ${item.sub ? `<span class="kb-key-sub">${item.sub}</span>` : ''}
+            `;
+            btn.onmousedown = (e) => { e.preventDefault(); insertCharIntoInput(item.key); };
+          }
+          rowDiv.appendChild(btn);
+        });
+        container.appendChild(rowDiv);
+      });
+    }
+
+    function switchKbTab(tabName) {
+      document.querySelectorAll('.kb-tab').forEach(t => {
+        if (t.getAttribute('data-tab') === tabName) {
+          t.classList.add('active');
+        } else {
+          t.classList.remove('active');
+        }
+      });
+      renderKeyboard(tabName);
+    }
+
+    function registerActiveInput(inp) {
+      if (currentActiveInput && currentActiveInput !== inp) {
+        currentActiveInput.classList.remove('active-input-focus');
+      }
+      currentActiveInput = inp;
+      if (inp) inp.classList.add('active-input-focus');
+      trackInputHistory(inp);
+    }
+
+    function openKeyboardForSpecificInput(inputId, tab) {
+      const inp = document.getElementById(inputId);
+      if (inp) {
+        registerActiveInput(inp);
+        inp.focus();
+      }
+      const kb = document.getElementById('mathKeyboard');
+      kb.classList.add('active');
+      if (tab) switchKbTab(tab);
+    }
+
+    function closeKeyboard() {
+      document.getElementById('mathKeyboard').classList.remove('active');
+      if (currentActiveInput) currentActiveInput.classList.remove('active-input-focus');
+    }
+
+    function insertCharIntoInput(char) {
+      if (!currentActiveInput) {
+        const any = document.querySelector('.answer-input, #testTitle');
+        if (any) registerActiveInput(any);
+      }
+      if (!currentActiveInput) return;
+
+      const start = currentActiveInput.selectionStart ?? currentActiveInput.value.length;
+      const end = currentActiveInput.selectionEnd ?? currentActiveInput.value.length;
+      const oldVal = currentActiveInput.value;
+
+      currentActiveInput.value = oldVal.substring(0, start) + char + oldVal.substring(end);
+      const newPos = start + char.length;
+      currentActiveInput.setSelectionRange(newPos, newPos);
+      currentActiveInput.focus();
+      currentActiveInput.dispatchEvent(new Event('input', { bubbles: true }));
+      trackInputHistory(currentActiveInput);
+    }
+
+    function handleKbAction(act) {
+      if (act === 'shift') {
+        isGreekShiftActive = !isGreekShiftActive;
+        renderKeyboard(currentKbTab);
+        return;
+      }
+      if (!currentActiveInput) return;
+
+      const start = currentActiveInput.selectionStart;
+      const end = currentActiveInput.selectionEnd;
+      const oldVal = currentActiveInput.value;
+
+      if (act === 'backspace') {
+        if (start === end && start > 0) {
+          currentActiveInput.value = oldVal.substring(0, start - 1) + oldVal.substring(end);
+          currentActiveInput.setSelectionRange(start - 1, start - 1);
+        } else if (start !== end) {
+          currentActiveInput.value = oldVal.substring(0, start) + oldVal.substring(end);
+          currentActiveInput.setSelectionRange(start, start);
+        }
+        currentActiveInput.dispatchEvent(new Event('input', { bubbles: true }));
+        trackInputHistory(currentActiveInput);
+      } else if (act === 'left') {
+        if (start > 0) currentActiveInput.setSelectionRange(start - 1, start - 1);
+      } else if (act === 'right') {
+        if (end < oldVal.length) currentActiveInput.setSelectionRange(end + 1, end + 1);
+      } else if (act === 'enter') {
+        closeKeyboard();
+      }
+      currentActiveInput.focus();
+    }
+
+    function kbUndo() {
+      if (!currentActiveInput || !inputHistory.has(currentActiveInput)) return;
+      const data = inputHistory.get(currentActiveInput);
+      if (data.pointer > 0) {
+        data.pointer--;
+        currentActiveInput.value = data.history[data.pointer];
+        currentActiveInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+
+    function kbRedo() {
+      if (!currentActiveInput || !inputHistory.has(currentActiveInput)) return;
+      const data = inputHistory.get(currentActiveInput);
+      if (data.pointer < data.history.length - 1) {
+        data.pointer++;
+        currentActiveInput.value = data.history[data.pointer];
+        currentActiveInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+
+    function kbCopy() {
+      if (currentActiveInput && currentActiveInput.value) {
+        navigator.clipboard.writeText(currentActiveInput.value);
+        showToast("Matn nusxalandi!");
+      }
+    }
+
+    // ================= CHECKBOX VA TOGGLELAR =================
+    function toggleCheckbox(name) {
+      checkboxStates[name] = !checkboxStates[name];
+      const elem = document.getElementById(`cb_${name}`);
+      if (elem) {
+        if (checkboxStates[name]) {
+          elem.classList.add('checked');
+        } else {
+          elem.classList.remove('checked');
+        }
+      }
+      if (name === 'reqSub') {
+        const wrap = document.getElementById('channelInputWrap');
+        if (wrap) wrap.classList.toggle('open', checkboxStates.reqSub);
+      }
+      scheduleAutosave();
+    }
+
+    function setAccessType(type) {
+      selectedAccessType = type;
+      const openBtn = document.getElementById('tabOpen');
+      const closedBtn = document.getElementById('tabClosed');
+      const hint = document.getElementById('accessTypeHint');
+      const testCodeGroup = document.getElementById('testCodeGroup');
+
+      if (type === 'open') {
+        openBtn?.classList.add('active');
+        closedBtn?.classList.remove('active');
+        if (hint) hint.innerText = "Test umumiy ro'yxatda chiqadi va barcha o'quvchilar erkin (kodsiz) kirishi mumkin";
+        if (testCodeGroup) testCodeGroup.style.display = 'none';
+      } else {
+        openBtn?.classList.remove('active');
+        closedBtn?.classList.add('active');
+        if (hint) hint.innerText = "O'quvchilar maxsus test kodini kiritib tizimda qatnashadi";
+        if (testCodeGroup) testCodeGroup.style.display = 'block';
+      }
+      scheduleAutosave();
+    }
+
+    function setAnswerMode(mode) {
+      selectedAnswerMode = mode;
+      const writeBtn = document.getElementById('tabModeWrite');
+      const photoBtn = document.getElementById('tabModePhoto');
+      const hint = document.getElementById('answerModeHint');
+
+      if (mode === 'write') {
+        writeBtn.classList.add('active');
+        photoBtn.classList.remove('active');
+        hint.innerText = "O'quvchi har bir savol uchun javobni matn/formula orqali yozib jo'natadi";
+      } else {
+        writeBtn.classList.remove('active');
+        photoBtn.classList.add('active');
+        hint.innerText = "O'quvchi yechim varaqasini rasmga olib jo'natadi va o'qituvchi tekshiradi";
+      }
+      scheduleAutosave();
+    }
+
+    function generateRandomCode() {
+      const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+      const randomLetter = letters[Math.floor(Math.random() * letters.length)];
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      const code = `MS-${randomNum}-${randomLetter}`;
+      document.getElementById('testCode').value = code;
+      showToast(`Yangi test kodi: ${code}`);
+      scheduleAutosave();
+    }
+
+    // ================= CUSTOM SELECT LOGIKASI =================
+    function initSelect(id) {
+      const wrap = document.getElementById(id);
+      if (!wrap) return;
+      const display = wrap.querySelector('.custom-select-display');
+      const options = wrap.querySelector('.custom-select-options');
+      const opts = wrap.querySelectorAll('.custom-option');
+
+      display.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.custom-select-options').forEach(o => {
+          if (o !== options) o.classList.remove('open');
+        });
+        options.classList.toggle('open');
+      });
+
+      opts.forEach(opt => {
+        opt.addEventListener('click', (e) => {
+          e.stopPropagation();
+          opts.forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          display.querySelector('.selected-text').innerText = opt.innerText;
+          options.classList.remove('open');
+
+          if (id === 'selectTestType') {
+            handleTestTypeChange(opt.getAttribute('data-value'));
+          }
+
+          scheduleAutosave();
+        });
+      });
+    }
+
+    function handleTestTypeChange(type) {
+      const timedWrap = document.getElementById('timedSettingsWrap');
+      if (!timedWrap) return;
+      if (type === 'timed') {
+        timedWrap.style.display = 'flex';
+      } else {
+        timedWrap.style.display = 'none';
+      }
+    }
+
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.custom-select-options').forEach(o => o.classList.remove('open'));
+    });
+
+    // ================= MAVZU ALMASHTIRISH (DARK/LIGHT) =================
+    function updateThemeIcon(theme) {
+      const icon = document.getElementById('themeIcon');
+      if (!icon) return;
+      if (theme === 'dark') {
+        // Moon icon
+        icon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
+      } else {
+        // Sun icon
+        icon.innerHTML = `<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+      }
+    }
+
+    const themeBtn = document.getElementById('themeToggle');
+    themeBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('admin_theme', next);
+      updateThemeIcon(next);
+    });
+
+    const savedTheme = localStorage.getItem('admin_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+
+    function handleExitAdmin() {
+      if (window.Telegram?.WebApp?.close) {
+        window.Telegram.WebApp.close();
+      } else if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = '/';
+      }
+    }
+
+    // ================= TOAST VA MODALLAR =================
+    function showToast(text, isError = false) {
+      const t = document.getElementById('toastMsg');
+      t.innerText = text;
+      t.className = 'toast' + (isError ? ' error' : '');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    function openModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.classList.add('active');
+    }
+
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.classList.remove('active');
+    }
+
+    function openConfirmModal(title, bodyText, onConfirm) {
+      document.getElementById('confirmModalTitle').innerText = title;
+      document.getElementById('confirmModalBody').innerText = bodyText;
+      const btn = document.getElementById('btnConfirmAction');
+      btn.onclick = () => {
+        closeModal('confirmModal');
+        onConfirm();
+      };
+      document.getElementById('confirmModal').classList.add('active');
+    }
+
+    // ================= AUTOSAVE & RESTORE =================
+    function scheduleAutosave() {
+      clearTimeout(autosaveTimer);
+      autosaveTimer = setTimeout(() => {
+        try {
+          const testType = document.querySelector('#selectTestType .custom-option.selected')?.getAttribute('data-value') || 'permanent';
+          const draft = {
+            title: document.getElementById('testTitle')?.value || '',
+            testType: testType,
+            code: document.getElementById('testCode')?.value || '',
+            timeLimit: document.getElementById('testTimeLimit')?.value || '150',
+            startTime: document.getElementById('startTime')?.value || '',
+            endTime: document.getElementById('endTime')?.value || '',
+            accessType: selectedAccessType,
+            answerMode: selectedAnswerMode,
+            checkboxStates,
+            channelInput: document.getElementById('requiredChannelInput')?.value || '',
+            answers1to35,
+            groupContextData,
+            questionsMeta,
+            openQuestionsData,
+            openQuestionsMeta
+          };
+          localStorage.setItem('admin_draft_test', JSON.stringify(draft));
+        } catch (e) {
+          // ignore localStorage error
+        }
+      }, 500);
+    }
+
+    function restoreDraft() {
+      try {
+        const raw = localStorage.getItem('admin_draft_test');
+        if (!raw) {
+          handleTestTypeChange('permanent');
+          setAccessType('open');
+          return;
+        }
+        const draft = JSON.parse(raw);
+
+        if (draft.title) document.getElementById('testTitle').value = draft.title;
+        if (draft.code) document.getElementById('testCode').value = draft.code;
+        if (draft.timeLimit) document.getElementById('testTimeLimit').value = draft.timeLimit;
+        if (draft.startTime) document.getElementById('startTime').value = draft.startTime;
+        if (draft.endTime) document.getElementById('endTime').value = draft.endTime;
+
+        if (draft.testType) {
+          const opt = document.querySelector(`#selectTestType .custom-option[data-value="${draft.testType}"]`);
+          if (opt) {
+            document.querySelectorAll('#selectTestType .custom-option').forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+            document.querySelector('#selectTestType .selected-text').innerText = opt.innerText;
+            handleTestTypeChange(draft.testType);
+          }
+        } else {
+          handleTestTypeChange('permanent');
+        }
+
+        if (draft.accessType) setAccessType(draft.accessType);
+        else setAccessType('open');
+        if (draft.answerMode) setAnswerMode(draft.answerMode);
+
+        if (draft.checkboxStates) {
+          Object.assign(checkboxStates, draft.checkboxStates);
+          ['autoCheck', 'hideAnswers', 'reqSub'].forEach(key => {
+            const elem = document.getElementById(`cb_${key}`);
+            if (elem) {
+              if (checkboxStates[key]) elem.classList.add('checked');
+              else elem.classList.remove('checked');
+            }
+          });
+          if (checkboxStates.reqSub) {
+            document.getElementById('channelInputWrap').classList.add('open');
+          }
+        }
+        if (draft.channelInput) {
+          document.getElementById('requiredChannelInput').value = draft.channelInput;
+        }
+
+        if (draft.answers1to35) Object.assign(answers1to35, draft.answers1to35);
+        if (draft.groupContextData) {
+          Object.assign(groupContextData, draft.groupContextData);
+          if (groupContextData.text) {
+            const el = document.getElementById('groupContextTextInput');
+            if (el) el.value = groupContextData.text;
+            saveGroupContextText(groupContextData.text);
+          }
+          if (groupContextData.image) {
+            const el = document.getElementById('groupImgUrlInput');
+            if (el) el.value = groupContextData.image;
+            saveGroupImage(groupContextData.image);
+          }
+          if (groupContextData.options) {
+            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(letter => {
+              const el = document.getElementById(`sharedOpt_${letter}`);
+              if (el) el.value = groupContextData.options[letter] || '';
+            });
+          }
+        }
+        if (draft.questionsMeta) Object.assign(questionsMeta, draft.questionsMeta);
+        if (draft.openQuestionsData) Object.assign(openQuestionsData, draft.openQuestionsData);
+        if (draft.openQuestionsMeta) Object.assign(openQuestionsMeta, draft.openQuestionsMeta);
+
+        initQuestions1to35();
+        initOpenQuestions();
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    function confirmResetDraft() {
+      openConfirmModal(
+        "Formani tozalash",
+        "Haqiqatan ham kiritilgan barcha ma'lumotlarni tozalab, yangitdan boshlamoqchimisiz?",
+        () => {
+          localStorage.removeItem('admin_draft_test');
+          for (let k in answers1to35) delete answers1to35[k];
+          for (let k in questionsMeta) delete questionsMeta[k];
+          for (let k in openQuestionsData) delete openQuestionsData[k];
+          for (let k in openQuestionsMeta) delete openQuestionsMeta[k];
+          initQuestions1to35();
+          initOpenQuestions();
+          generateRandomCode();
+          showToast("Forma tozalandi!");
+        }
+      );
+    }
+
+    // ================= TESTNI CHIQARISH VA SAQLASH (PUBLISH) =================
+    async function publishFullTest() {
+      const title = document.getElementById('testTitle').value.trim();
+      let code = document.getElementById('testCode').value.trim().toUpperCase();
+      const rawTime = parseInt(document.getElementById('testTimeLimit').value);
+      if (isNaN(rawTime) || rawTime <= 0) {
+        showToast("Vaqt chegarasi musbat butun son (kamida 1 daqiqa) bo'lishi kerak!", true);
+        document.getElementById('testTimeLimit').focus();
+        return;
+      }
+      const timeLimit = Math.max(1, rawTime);
+      const subject = "Matematika";
+      const testType = document.querySelector('#selectTestType .custom-option.selected')?.getAttribute('data-value') || 'permanent';
+      const actualAccessType = (testType === 'timed') ? selectedAccessType : 'open';
+      const startTime = (testType === 'timed') ? document.getElementById('startTime').value.trim() : null;
+      const endTime = (testType === 'timed') ? document.getElementById('endTime').value.trim() : null;
+      const reqChannel = document.getElementById('requiredChannelInput').value.trim();
+
+      if (!title) {
+        showToast("Iltimos, Test nomini kiriting!", true);
+        document.getElementById('testTitle').focus();
+        return;
+      }
+      if (actualAccessType === 'closed' && !code) {
+        showToast("Iltimos, Yopiq test uchun Test kodini kiriting!", true);
+        document.getElementById('testCode').focus();
+        return;
+      }
+      if (actualAccessType === 'open' && !code) {
+        code = `MS-OPEN-${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+
+      const publishBtn = document.getElementById('btnPublishTest');
+      publishBtn.disabled = true;
+      publishBtn.innerHTML = `Yuklanmoqda...`;
+
+      // 45 ta savol massivini yig'amiz:
+      const questionsPayload = [];
+
+      // 1-32 Variantli klassik testlar:
+      for (let i = 1; i <= 32; i++) {
+        const correct = answers1to35[i] || 'A';
+        const meta = questionsMeta[i] || {};
+        questionsPayload.push({
+          order_no: i,
+          type: "Y-1",
+          section: subject,
+          difficulty_b: (i <= 10) ? -1.0 : (i <= 25) ? 0.0 : 1.0,
+          text: meta.text || `${i}-savol: To'g'ri javob variantini tanlang.`,
+          image_url: meta.image || null,
+          options: { "A": "A", "B": "B", "C": "C", "D": "D" },
+          correct_answer: correct
+        });
+      }
+
+      // 33-35 Kontekstli / Guruhlangan testlar (6 ta variant A–F):
+      const sharedOpts = {};
+      ['A', 'B', 'C', 'D', 'E', 'F'].forEach(lettr => {
+        sharedOpts[lettr] = (groupContextData.options && groupContextData.options[lettr]) || lettr;
+      });
+
+      for (let i = 33; i <= 35; i++) {
+        const correct = answers1to35[i] || 'A';
+        const meta = questionsMeta[i] || {};
+        questionsPayload.push({
+          order_no: i,
+          type: "GROUPED",
+          section: subject,
+          difficulty_b: 1.0 + ((i - 32) * 0.3),
+          text: meta.text || `${i}-savol: Mos to'g'ri javobni tanlang.`,
+          image_url: meta.image || null,
+          options: sharedOpts,
+          correct_answer: correct
+        });
+      }
+
+      // 36-45 Ochiq/Yozma testlar:
+      for (let i = 36; i <= 45; i++) {
+        const data = openQuestionsData[i] || { a: [''], b: [''] };
+        const meta = openQuestionsMeta[i] || {};
+
+        const subParts = [];
+        const keys = Object.keys(data);
+        keys.forEach((letter, idx) => {
+          const ansList = (data[letter] || []).map(s => s.trim()).filter(Boolean);
+          const firstAns = ansList.length > 0 ? ansList[0] : String(idx + 1);
+          subParts.push({
+            label: letter,
+            correct_answer: firstAns,
+            alternative_answers: ansList,
+            difficulty_b: 1.0 + (idx * 0.4)
+          });
+        });
+
+        questionsPayload.push({
+          order_no: i,
+          type: "O-1",
+          section: subject,
+          difficulty_b: 1.5,
+          text: meta.text || `${i}-savol: Har bir band uchun to'g'ri natijani kiriting.`,
+          image_url: meta.image || null,
+          sub_parts: subParts
+        });
+      }
+
+      if (!API_BASE && window.location.hostname.includes('github.io')) {
+        publishBtn.disabled = false;
+        publishBtn.innerHTML = `
+          <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          TESTNI CHIQARISH VA SAQLASH
+        `;
+        openApiConfigModal();
+        showToast("Backend Server URL kiritilmagan! Iltimos, server manzilini kiriting.", true);
+        return;
+      }
+
+      // Agar tahrirlash rejimida bo'lsa:
+      if (editingTestId) {
+        try {
+          const res = await fetch(`${API_BASE}/api/admin/tests/${editingTestId}/update`, {
+            method: 'POST',
+            headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({
+              title: title,
+              time_limit_min: timeLimit,
+              hide_answers: checkboxStates.hideAnswers,
+              questions: questionsPayload,
+              grouped_context: {
+                shared_context_text: groupContextData.text || "33–35-savollar uchun umumiy shart:",
+                shared_image_url: groupContextData.image || null,
+                shared_options: sharedOpts
+              }
+            })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.success) {
+            showToast("Test va javob kalitlari muvaffaqiyatli saqlandi!");
+            cancelEditMode();
+            switchAdminTab('list');
+          } else {
+            showToast("Xatolik: " + (data.detail || data.message || "Saqlab bo'lmadi"), true);
+          }
+        } catch (err) {
+          showToast("Xatolik: " + err.message, true);
+        } finally {
+          publishBtn.disabled = false;
+          if (editingTestId) {
+            publishBtn.innerHTML = `
+              <svg class="icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              O'ZGARISHLARNI SAQLASH
+            `;
+          } else {
+            publishBtn.innerHTML = `
+              <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              TESTNI CHIQARISH VA SAQLASH
+            `;
+          }
+        }
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/create-test`, {
+          method: 'POST',
+          headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({
+            creator_telegram_id: currentTelegramId,
+            code: code,
+            title: title,
+            description: `${subject} bo'yicha test (1-32 yopiq, 33-35 guruhlangan, 36-45 ochiq).`,
+            time_limit_min: timeLimit,
+            test_type: testType,
+            access_type: actualAccessType,
+            start_time: startTime,
+            end_time: endTime,
+            auto_check: checkboxStates.autoCheck,
+            hide_answers: checkboxStates.hideAnswers,
+            required_channel: checkboxStates.reqSub ? reqChannel : null,
+            questions: questionsPayload,
+            grouped_context: {
+              shared_context_text: groupContextData.text || "33–35-savollar uchun umumiy shart:",
+              shared_image_url: groupContextData.image || null,
+              shared_options: sharedOpts
+            }
+          })
+        });
+
+        let data = null;
+        const cType = res.headers.get("content-type") || "";
+        if (cType.includes("application/json")) {
+          data = await res.json();
+        } else {
+          const rawText = await res.text();
+          if (rawText.trim().startsWith("<") && window.location.hostname.includes("github.io")) {
+            throw new Error("GitHub Pages faqat statik sayt, unda backend server ishlamaydi. Iltimos, server manzilini to'g'ri kiriting!");
+          }
+          throw new Error(`Server xatosi (${res.status})`);
+        }
+
+        if (res.ok && data.success) {
+          lastCreatedTestCode = data.code;
+          localStorage.removeItem('admin_draft_test'); // tozalaymiz
+
+          document.getElementById('successModalCode').innerText = data.code;
+          document.getElementById('successModalDesc').innerText = `"${title}" testi muvaffaqiyatli saqlandi. O'quvchilar ushbu kod orqali testda qatnashishlari mumkin!`;
+          document.getElementById('successModal').classList.add('active');
+
+          showToast(`Test saqlandi! Kod: ${data.code}`);
+        } else {
+          showToast("Xatolik: " + (data.detail || data.message || "Yuklab bo'lmadi"), true);
+        }
+      } catch (err) {
+        if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+          showToast("Server bilan ulanish uzildi! Bot va tunnel ishlab turganini tekshiring yoki yuqoridagi 'Server sozlamasi' orqali manzilni yangilang.", true);
+          updateStatusBarUI('offline', "Server bilan aloqa yo'q! (Sozlashni bosing)");
+          openApiConfigModal();
+        } else {
+          showToast("Server bilan ulanishda xatolik: " + err.message, true);
+        }
+      } finally {
+        publishBtn.disabled = false;
+        publishBtn.innerHTML = `
+          <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          TESTNI CHIQARISH VA SAQLASH
+        `;
+      }
+    }
+
+    function copySuccessTestCode() {
+      if (!lastCreatedTestCode) return;
+      const text = `Milliy Sertifikat Test Kodi: ${lastCreatedTestCode}\nBot: @matematika_milliy_sertifikat_bot`;
+      navigator.clipboard.writeText(text);
+      showToast("Kod va havola nusxalandi!");
+    }
+
+    function viewCreatedTest() {
+      if (!lastCreatedTestCode) return;
+      const base = window.location.hostname.includes('github.io') ? '../index.html' : '/';
+      const apiParam = API_BASE ? `&api=${encodeURIComponent(API_BASE)}` : '';
+      window.location.href = `${base}?code=${encodeURIComponent(lastCreatedTestCode)}${apiParam}`;
+    }
+
+    // ================= MENING TESTLARIM (TAB 2) =================
+    async function loadMyTests() {
+      const container = document.getElementById('testsListContainer');
+      container.innerHTML = '<div style="text-align:center; padding:30px 10px; color:var(--text-sub);">Testlar yuklanmoqda...</div>';
+
+      if (!API_BASE && window.location.hostname.includes('github.io')) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:30px 16px; color:var(--danger);">
+            <p style="font-weight:600; margin-bottom:8px;">Server manzili ulanmagan!</p>
+            <p style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">Testlar ro'yxatini yuklash uchun server manzilini kiriting.</p>
+            <button type="button" class="btn-action-small" style="background:var(--primary); color:#fff; border-color:var(--primary);" onclick="openApiConfigModal()">
+              ⚙️ Server sozlamasi
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/tests/${currentTelegramId || 0}`, {
+          headers: getAdminAuthHeaders()
+        });
+        let data = { tests: [] };
+        const cType = res.headers.get("content-type") || "";
+        if (cType.includes("application/json")) {
+          data = await res.json();
+        } else {
+          throw new Error("Server noto'g'ri format qaytardi");
+        }
+
+        if (res.ok && Array.isArray(data.tests)) {
+          document.getElementById('myTestsCount').innerText = data.tests.length;
+
+          if (data.tests.length === 0) {
+            container.innerHTML = `
+              <div style="text-align:center; padding:40px 16px; color:var(--text-sub);">
+                <div style="margin-bottom:12px; display:flex; justify-content:center;">
+                  <svg class="icon" style="width:36px; height:36px; color:var(--text-sub);" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                </div>
+                <div style="font-weight:600; margin-bottom:4px; color:var(--text);">Hozircha testlar yo'q</div>
+                <p style="font-size:12px;">Birinchi testingizni "Yangi test yaratish" bo'limida yarating!</p>
+                <button type="button" class="btn-action-small" style="margin-top:12px; background:var(--primary); color:#fff; border-color:var(--primary);" onclick="switchAdminTab('create')">
+                  + Yangi test yaratish
+                </button>
+              </div>
+            `;
+            return;
+          }
+
+          container.innerHTML = data.tests.map(t => `
+            <div class="test-card" id="testCard_${t.id}">
+              <div class="test-card-header">
+                <span class="test-card-code">${escapeHtml(t.code)}</span>
+                <span class="test-card-status ${t.is_active ? 'active' : 'inactive'}" id="statusBadge_${t.id}">
+                  ${t.is_active ? 'Faol' : 'To\'xtatilgan'}
+                </span>
+              </div>
+              <div class="test-card-title">${escapeHtml(t.title)}</div>
+              <div class="test-card-meta">
+                <span>Savollar: <b>${t.question_count} ta</b></span>
+                <span>Vaqt: <b>${t.time_limit_min} daqiqa</b></span>
+                <span>Qatnashuvchilar: <b>${t.attempts_count} ta</b></span>
+                <span>O'rtacha ball: <b>${t.avg_score}</b></span>
+              </div>
+              <div class="test-card-actions">
+                <button type="button" class="btn-action-small" onclick="copyCodeText('${escapeHtml(t.code)}')">
+                  <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  Kodni nusxalash
+                </button>
+                <button type="button" class="btn-action-small" onclick="openTestStatsModal(${t.id})" style="color:#059669; font-weight:600; border-color:#a7f3d0;">
+                  <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                  Statistika
+                </button>
+                <button type="button" class="btn-action-small" onclick="openEditTest(${t.id})" style="color:var(--primary); font-weight:600; border-color:var(--primary-border);">
+                  <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  Tahrirlash
+                </button>
+                <button type="button" class="btn-action-small" onclick="window.open((window.location.hostname.includes('github.io') ? '../index.html' : '/') + '?code=' + encodeURIComponent('${escapeHtml(t.code)}') + (API_BASE ? '&api=' + encodeURIComponent(API_BASE) : ''), '_blank')">
+                  <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  Ko'rish
+                </button>
+                <button type="button" class="btn-action-small" onclick="toggleTestStatus(${t.id})">
+                  ${t.is_active ? 'To\'xtatish' : 'Faollashtirish'}
+                </button>
+                ${t.code !== 'STANDART' ? `
+                  <button type="button" class="btn-action-small danger" onclick="confirmDeleteTest(${t.id}, '${escapeHtml(t.code)}')">
+                    <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    O'chirish
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+          container.innerHTML = `
+            <div style="text-align:center; padding:30px 16px; color:var(--danger);">
+              <p style="font-weight:600; margin-bottom:8px;">Server bilan aloqa uzildi!</p>
+              <p style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">Bot va tunnel ishlab turganini tekshiring.</p>
+              <button type="button" class="btn-action-small" style="background:var(--primary); color:#fff; border-color:var(--primary);" onclick="openApiConfigModal()">
+                ⚙️ Server sozlamasi
+              </button>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `<div style="color:var(--danger); padding:20px; text-align:center;">Yuklashda xatolik: ${err.message}</div>`;
+        }
+      }
+    }
+
+    function copyCodeText(code) {
+      navigator.clipboard.writeText(code);
+      showToast(`Test kodi nusxalandi: ${code}`);
+    }
+
+    let currentTestStatsData = null;
+
+    async function openTestStatsModal(testId) {
+      try {
+        showToast("Statistika yuklanmoqda...");
+        const res = await fetch(`${API_BASE}/api/admin/tests/${testId}/stats`, {
+          headers: getAdminAuthHeaders()
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || "Statistikani yuklab bo'lmadi");
+        }
+        const data = await res.json();
+        currentTestStatsData = data;
+
+        // Sarlavha va meta
+        const titleElem = document.getElementById('statsModalTitle');
+        if (titleElem) titleElem.innerText = `${data.test_code} — Natijalar va statistika`;
+
+        const subElem = document.getElementById('statsModalSubtitle');
+        if (subElem) subElem.innerText = `${data.test_title} (${data.question_count} ta savol, ${data.time_limit_min} daqiqa)`;
+
+        // KPIlar
+        const partElem = document.getElementById('kpiParticipants');
+        if (partElem) partElem.innerText = `${data.total_participants} ta`;
+
+        const avgElem = document.getElementById('kpiAvgScore');
+        if (avgElem) avgElem.innerText = `${data.avg_score}`;
+
+        const highElem = document.getElementById('kpiHighestScore');
+        if (highElem) highElem.innerText = `${data.highest_score}`;
+
+        const certPercent = data.total_participants > 0 ? Math.round((data.certified_count / data.total_participants) * 100) : 0;
+        const certElem = document.getElementById('kpiCertified');
+        if (certElem) certElem.innerText = `${data.certified_count} ta (${certPercent}%)`;
+
+        // Inputni tozalash va ro'yxatni chizish
+        const searchInput = document.getElementById('statsSearchInput');
+        if (searchInput) searchInput.value = '';
+
+        renderStatsParticipants(data.participants);
+
+        openModal('testStatsModal');
+      } catch (err) {
+        showToast("Xatolik: " + err.message, true);
+      }
+    }
+
+    function renderStatsParticipants(participants) {
+      const container = document.getElementById('statsTableContainer');
+      const footerInfo = document.getElementById('statsFooterInfo');
+      if (!container) return;
+
+      if (!participants || participants.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:30px 16px; color:var(--text-sub);">
+            <p style="font-size:13px; font-weight:600;">Hozircha hech kim ushbu testni topshirmagan.</p>
+            <p style="font-size:11px; margin-top:4px;">Test kodi o'quvchilarga ulashilgach, natijalar shu yerda ko'rinadi.</p>
+          </div>
+        `;
+        if (footerInfo) footerInfo.innerText = "Jami: 0 ta natija";
+        return;
+      }
+
+      if (footerInfo) footerInfo.innerText = `Jami: ${participants.length} ta natija`;
+
+      container.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          ${participants.map((p, idx) => {
+            const gradeColor = (p.grade && (p.grade.startsWith('A') || p.grade.startsWith('B'))) ? 'var(--success)' : (p.grade && p.grade.startsWith('C') ? 'var(--primary)' : 'var(--danger)');
+            return `
+              <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:8px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                  <div style="width:28px; height:28px; border-radius:50%; background:${idx === 0 ? '#fef3c7' : (idx === 1 ? '#f1f5f9' : (idx === 2 ? '#ffedd5' : 'var(--border)'))}; color:${idx === 0 ? '#b45309' : (idx === 1 ? '#475569' : (idx === 2 ? '#c2410c' : 'var(--text-sub)'))}; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0;">
+                    ${p.rank || idx + 1}
+                  </div>
+                  <div style="min-width:0;">
+                    <div style="font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                      ${escapeHtml(p.full_name)}
+                    </div>
+                    <div style="font-size:11px; color:var(--text-sub); display:flex; align-items:center; gap:8px; margin-top:2px; flex-wrap:wrap;">
+                      ${p.phone_number ? `<span>📞 ${escapeHtml(p.phone_number)}</span>` : ''}
+                      ${p.username ? `<span>@${escapeHtml(p.username)}</span>` : ''}
+                      <span>🕒 ${p.finished_at || p.started_at}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="text-align:right; flex-shrink:0;">
+                  <div style="font-size:16px; font-weight:800; color:var(--primary);">
+                    ${p.final_score} <span style="font-size:11px; font-weight:500; color:var(--text-sub);">ball</span>
+                  </div>
+                  <div style="display:flex; align-items:center; justify-content:flex-end; gap:6px; margin-top:2px;">
+                    <span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:${gradeColor}15; color:${gradeColor}; border:1px solid ${gradeColor}30;">
+                      ${p.grade || 'Baholanmagan'}
+                    </span>
+                    <span style="font-size:10px; color:var(--text-sub);">
+                      (${p.raw_score} ta to'g'ri)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function filterStatsList(query) {
+      if (!currentTestStatsData || !currentTestStatsData.participants) return;
+      const q = query.trim().toLowerCase();
+      if (!q) {
+        renderStatsParticipants(currentTestStatsData.participants);
+        return;
+      }
+      const filtered = currentTestStatsData.participants.filter(p => {
+        return (p.full_name && p.full_name.toLowerCase().includes(q)) ||
+               (p.phone_number && p.phone_number.toLowerCase().includes(q)) ||
+               (p.username && p.username.toLowerCase().includes(q));
+      });
+      renderStatsParticipants(filtered);
+    }
+
+    let editingTestId = null;
+
+    async function openEditTest(testId) {
+      try {
+        showToast("Test ma'lumotlari yuklanmoqda...");
+        const res = await fetch(`${API_BASE}/api/admin/test-details/${testId}`, {
+          headers: getAdminAuthHeaders()
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `Yuklab bo'lmadi (${res.status})`);
+        }
+        const data = await res.json();
+        const test = data.test;
+        if (!test) throw new Error("Test topilmadi");
+
+        editingTestId = test.id;
+
+        // Formaga qiymatlarni to'ldirish
+        const titleInput = document.getElementById('testTitle');
+        if (titleInput) titleInput.value = test.title || '';
+
+        const codeInput = document.getElementById('testCode');
+        if (codeInput) {
+          codeInput.value = test.code || '';
+          codeInput.disabled = true;
+        }
+
+        const timeInput = document.getElementById('testTimeLimit');
+        if (timeInput) timeInput.value = test.time_limit_min || 150;
+        if (test.hide_answers !== undefined) {
+          checkboxStates.hideAnswers = !!test.hide_answers;
+          const cb = document.getElementById('cb_hideAnswers');
+          if (cb) cb.classList.toggle('checked', checkboxStates.hideAnswers);
+        }
+
+        // 1-35 savollar
+        if (test.questions && Array.isArray(test.questions)) {
+          test.questions.forEach(q => {
+            if (q.order_no >= 1 && q.order_no <= 35) {
+              if (q.correct_answer) {
+                answers1to35[q.order_no] = q.correct_answer;
+                selectKeyOption(q.order_no, q.correct_answer);
+              }
+              if (q.text || q.image_url) {
+                questionsMeta[q.order_no] = {
+                  text: q.text || '',
+                  image: q.image_url || '',
+                  options: q.options || { A: '', B: '', C: '', D: '' }
+                };
+                const badge = document.getElementById(`badge_q_${q.order_no}`);
+                if (badge) badge.style.display = (q.text || q.image_url) ? 'inline-block' : 'none';
+              }
+            } else if (q.order_no >= 36 && q.order_no <= 45) {
+              // Ochiq savollar
+              if (!openQuestionsData[q.order_no]) openQuestionsData[q.order_no] = {};
+              if (q.sub_parts && Array.isArray(q.sub_parts) && q.sub_parts.length > 0) {
+                openQuestionsData[q.order_no] = {};
+                q.sub_parts.forEach(part => {
+                  const answers = (part.alternative_answers && part.alternative_answers.length > 0)
+                    ? part.alternative_answers
+                    : [part.correct_answer || ''];
+                  openQuestionsData[q.order_no][part.label] = answers;
+                });
+              }
+              if (q.text || q.image_url) {
+                openQuestionsMeta[q.order_no] = {
+                  text: q.text || '',
+                  image: q.image_url || ''
+                };
+              }
+            }
+          });
+        }
+
+        // Barcha savollarni yuklangan ma'lumotlar bilan qayta chizish
+        initQuestions1to35();
+        initOpenQuestions();
+
+        // Banner va tugmalar matnini yangilash
+        const banner = document.getElementById('editModeBanner');
+        if (banner) banner.style.display = 'flex';
+
+        const bannerText = document.getElementById('editModeText');
+        if (bannerText) bannerText.innerText = `"${test.title}" (#${test.code}) javoblarini tahrirlash`;
+
+        const publishBtn = document.getElementById('btnPublishTest');
+        if (publishBtn) {
+          publishBtn.innerHTML = `
+            <svg class="icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            O'ZGARISHLARNI SAQLASH
+          `;
+          publishBtn.style.background = 'var(--success)';
+        }
+
+        // Konstruktor oynasiga o'tish
+        switchAdminTab('create');
+        showToast("Test yuklandi. Kerakli javoblarni o'zgartirib, 'O'zgarishlarni saqlash' tugmasini bosing.");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (err) {
+        showToast("Yuklashda xatolik: " + err.message, true);
+      }
+    }
+
+    function cancelEditMode() {
+      editingTestId = null;
+      const banner = document.getElementById('editModeBanner');
+      if (banner) banner.style.display = 'none';
+
+      const codeInput = document.getElementById('testCode');
+      if (codeInput) codeInput.disabled = false;
+
+      const publishBtn = document.getElementById('btnPublishTest');
+      if (publishBtn) {
+        publishBtn.innerHTML = `
+          <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          TESTNI CHIQARISH VA SAQLASH
+        `;
+        publishBtn.style.background = '';
+      }
+    }
+
+    async function toggleTestStatus(testId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/tests/${testId}/toggle`, {
+          method: 'POST',
+          headers: getAdminAuthHeaders()
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message);
+          loadMyTests();
+        } else {
+          showToast("Xatolik: " + (data.detail || "Holat o'zgarmadi"), true);
+        }
+      } catch (e) {
+        showToast("Xatolik: " + e.message, true);
+      }
+    }
+
+    function confirmDeleteTest(testId, code) {
+      openConfirmModal(
+        "Testni o'chirish",
+        `Haqiqatan ham '${code}' testini butunlay o'chirib tashlamoqchimisiz?`,
+        async () => {
+          try {
+            const res = await fetch(`${API_BASE}/api/admin/tests/${testId}`, {
+              method: 'DELETE',
+              headers: getAdminAuthHeaders()
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+              showToast("Test o'chirildi!");
+              loadMyTests();
+            } else {
+              showToast("Xatolik: " + (data.detail || "O'chirib bo'lmadi"), true);
+            }
+          } catch (e) {
+            showToast("Xatolik: " + e.message, true);
+          }
+        }
+      );
+    }
+
+    // ================= HELPERS: KATEX VA HTML =================
+    function escapeHtml(str) {
+      return (str || '')
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function renderKatexString(str) {
+      if (!str) return '';
+      if (!window.katex) return escapeHtml(str);
+
+      // Agar $...$ bo'lsa yoki KaTeX sintaksisi bo'lsa
+      try {
+        const tempDiv = document.createElement('div');
+        tempDiv.textContent = str;
+        if (window.renderMathInElement) {
+          window.renderMathInElement(tempDiv, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false },
+              { left: '\\[', right: '\\]', display: true }
+            ],
+            throwOnError: false
+          });
+        }
+        return tempDiv.innerHTML;
+      } catch (e) {
+        return escapeHtml(str);
+      }
+    }
+
+    // ================= INITIALIZATION =================
+    document.addEventListener('DOMContentLoaded', async () => {
+      initSelect('selectTestType');
+      initQuestions1to35();
+      initOpenQuestions();
+      renderKeyboard('greek');
+
+      // Flatpickr Sanalar uchun
+      if (window.flatpickr) {
+        const fpStart = flatpickr("#startTime", {
+          enableTime: true,
+          dateFormat: "d.m.Y H:i",
+          time_24hr: true,
+          defaultDate: "07.09.2026 09:00",
+          onChange: () => scheduleAutosave()
+        });
+        const fpEnd = flatpickr("#endTime", {
+          enableTime: true,
+          dateFormat: "d.m.Y H:i",
+          time_24hr: true,
+          defaultDate: "09.09.2026 23:59",
+          onChange: () => scheduleAutosave()
+        });
+
+        document.getElementById('calIconStart')?.addEventListener('click', () => fpStart.open());
+        document.getElementById('calIconEnd')?.addEventListener('click', () => fpEnd.open());
+      }
+
+      // Adminlik huquqini tekshirish
+      const isAllowed = await verifyAdminAccess();
+      if (!isAllowed) return;
+
+      // Restore saved draft
+      restoreDraft();
+
+      // Dastlabki testlar sonini bilish
+      fetch(`${API_BASE}/api/admin/tests/${currentTelegramId || 0}`, {
+        headers: getAdminAuthHeaders()
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data && Array.isArray(data.tests)) {
+            document.getElementById('myTestsCount').innerText = data.tests.length;
+          }
+        })
+        .catch(() => {});
+    });
+
+    async function verifyAdminAccess() {
+      // 1. Agar Telegram initData mavjud bo'lmasa (brauzerda to'g'ridan-to'g'ri ochilsa)
+      if (!telegramInitData) {
+        document.body.innerHTML = `
+          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:30px; text-align:center; font-family:Inter,sans-serif; background:var(--bg); color:var(--text);">
+            <div style="width:60px; height:60px; border-radius:50%; background:var(--danger-light); display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+              <svg class="icon" style="width:32px; height:32px; color:var(--danger);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <h2 style="font-size:20px; font-weight:700; margin-bottom:8px;">Kirish cheklangan</h2>
+            <p style="color:var(--text-sub); font-size:14px; max-width:340px; line-height:1.6; margin-bottom:24px;">
+              Bu sahifa faqat Telegram bot ichida ochiladi.
+            </p>
+          </div>
+        `;
+        return false;
+      }
+
+      // 2. Adminlik huquqini tekshirish
+      const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+      if (user && user.id) {
+        try {
+          const res = await fetch(`${API_BASE}/api/user/${user.id}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (!data.is_admin) {
+              document.body.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:30px; text-align:center; font-family:Inter,sans-serif; background:var(--bg); color:var(--text);">
+                  <div style="width:60px; height:60px; border-radius:50%; background:var(--danger-light); display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+                    <svg class="icon" style="width:32px; height:32px; color:var(--danger);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                  </div>
+                  <h2 style="font-size:20px; font-weight:700; margin-bottom:8px;">Ruxsat berilmadi</h2>
+                  <p style="color:var(--text-sub); font-size:14px; max-width:340px; line-height:1.6; margin-bottom:24px;">
+                    Kechirasiz, ushbu Admin paneliga faqat siz tayinlagan administratorlar kira oladi.
+                  </p>
+                  <a href="/" style="display:inline-flex; align-items:center; gap:8px; padding:10px 20px; background:var(--primary); color:#fff; border-radius:8px; font-weight:600; text-decoration:none; font-size:14px;">
+                    Bosh sahifaga qaytish
+                  </a>
+                </div>
+              `;
+              return false;
+            }
+          }
+        } catch (e) {
+          console.warn("Admin access check:", e);
+        }
+      }
+      return true;
+    }
