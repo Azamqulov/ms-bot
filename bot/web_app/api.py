@@ -34,6 +34,7 @@ from bot.services.admin_service import (
     update_test_with_questions,
     get_test_participants_stats,
     get_attempt_detailed_answers,
+    delete_attempt_by_id,
 )
 from bot.services.test_service import (
     get_or_create_user,
@@ -619,6 +620,19 @@ async def api_get_attempt_details(
     if not details:
         raise HTTPException(status_code=404, detail="Urinish ma'lumotlari topilmadi yoki ruxsat yo'q.")
     return details
+
+
+@app.delete("/api/admin/attempts/{attempt_id}")
+async def api_delete_attempt(
+    attempt_id: int,
+    admin_telegram_id: int = Depends(require_admin_user),
+):
+    """Talabgorning urinish natijasini o'chirib tashlash"""
+    user = await get_or_create_user(admin_telegram_id, "Admin")
+    success, msg, test_id = await delete_attempt_by_id(attempt_id, user.id)
+    if not success:
+        raise HTTPException(status_code=400, detail=msg)
+    return {"success": True, "message": msg, "test_id": test_id}
 
 
 

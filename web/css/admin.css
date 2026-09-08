@@ -1544,6 +1544,31 @@
       border: 1px solid var(--primary-border);
     }
 
+    .btn-participant-delete {
+      background: rgba(239, 68, 68, 0.08);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 6px;
+      width: 26px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .btn-participant-delete:hover {
+      background: var(--danger);
+      color: #ffffff;
+      border-color: var(--danger);
+      transform: scale(1.08);
+    }
+    .btn-participant-delete:active {
+      transform: scale(0.95);
+    }
+
     /* ================= RESPONSIVE: MOBILE-FIRST MEDIA QUERIES ================= */
 
     /* Small phones: 480px and below */

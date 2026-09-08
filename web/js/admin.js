@@ -1688,6 +1688,11 @@
                       <span>Tahlil</span>
                       <svg class="icon icon-xs" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </span>
+                    <button type="button" class="btn-participant-delete"
+                            onclick="event.stopPropagation(); deleteAttempt(${p.attempt_id}, '${escapeHtml(p.full_name)}')"
+                            title="Talabgor natijasini o'chirish">
+                      <svg class="icon icon-xs" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -2045,6 +2050,49 @@
       } catch (err) {
         showToast("Xatolik: " + err.message, true);
       }
+    }
+
+    async function deleteAttempt(attemptId, studentName) {
+      if (!attemptId) return;
+      const targetName = studentName ? `"${studentName}"` : "ushbu talabgor";
+      if (!confirm(`Haqiqatan ham ${targetName} natijasini o'chirib tashlamoqchimisiz?\n\nBu amal ortga qaytarilmaydi: talabgorning barcha javoblari va to'plagan bali to'liq o'chiriladi.`)) {
+        return;
+      }
+
+      try {
+        showToast("Natija o'chirilmoqda...");
+        const res = await fetch(`${API_BASE}/api/admin/attempts/${attemptId}`, {
+          method: 'DELETE',
+          headers: getAdminAuthHeaders()
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || "Natijani o'chirib bo'lmadi");
+        }
+        showToast("Natija muvaffaqiyatli o'chirildi!");
+
+        // Agar o'sha natija tahlil oynasida ochiq bo'lsa, uni yopamiz
+        if (currentAttemptDetails && currentAttemptDetails.attempt_id === attemptId) {
+          closeModal('attemptDetailsModal');
+        }
+
+        // Joriy test statistikasini qayta yuklaymiz
+        if (currentTestStatsData && currentTestStatsData.test_id) {
+          await openTestStatsModal(currentTestStatsData.test_id);
+        }
+
+        // Testlar ro'yxatidagi hisoblagichlarni ham yangilash
+        if (typeof loadAdminTests === 'function') {
+          loadAdminTests();
+        }
+      } catch (err) {
+        showToast("Xatolik: " + err.message, true);
+      }
+    }
+
+    async function deleteCurrentAttemptFromModal() {
+      if (!currentAttemptDetails || !currentAttemptDetails.attempt_id) return;
+      await deleteAttempt(currentAttemptDetails.attempt_id, currentAttemptDetails.full_name);
     }
 
     function buildStatsPostTextClient(data) {

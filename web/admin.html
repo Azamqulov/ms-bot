@@ -499,9 +499,15 @@
         </div>
       </div>
 
-      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
         <span style="font-size: 11px; color: var(--text-sub);" id="attemptFooterSummary">45 ta savoldan iborat</span>
-        <button type="button" class="btn-action-small" onclick="closeModal('attemptDetailsModal')">Yopish</button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" class="btn-action-small" id="btnDeleteAttemptInModal" style="color:var(--danger); border-color:var(--danger); background:rgba(239, 68, 68, 0.08); display:inline-flex; align-items:center; gap:5px;" onclick="deleteCurrentAttemptFromModal()" title="Ushbu talabgor natijasini butunlay o'chirish">
+            <svg class="icon icon-xs" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span>Natijani o'chirish</span>
+          </button>
+          <button type="button" class="btn-action-small" onclick="closeModal('attemptDetailsModal')">Yopish</button>
+        </div>
       </div>
     </div>
   </div>

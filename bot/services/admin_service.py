@@ -2,6 +2,8 @@
 Admin va Super Admin boshqaruv servisi hamda Test yuklash logikasi.
 """
 
+import logging
+from pathlib import Path
 from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any, Tuple
 from sqlalchemy import select, func
@@ -10,6 +12,8 @@ from sqlalchemy.orm import selectinload
 from bot.config import settings
 from bot.database.session import async_session_maker
 from bot.database.models import User, Test, Question, QuestionGroup, Attempt, AttemptAnswer
+
+logger = logging.getLogger(__name__)
 
 
 def is_super_admin(telegram_id: int) -> bool:
@@ -627,4 +631,39 @@ async def get_attempt_detailed_answers(attempt_id: int, admin_user_id: int) -> O
             "unanswered_count": unanswered_count,
             "breakdown": breakdown,
         }
+
+
+async def delete_attempt_by_id(attempt_id: int, admin_user_id: int) -> Tuple[bool, str, Optional[int]]:
+    """Talabgorning urinish natijasini o'chirish"""
+    async with async_session_maker() as session:
+        user_stmt = select(User).where(User.id == admin_user_id)
+        admin_user = (await session.execute(user_stmt)).scalar_one_or_none()
+
+        att_stmt = (
+            select(Attempt)
+            .options(selectinload(Attempt.test))
+            .where(Attempt.id == attempt_id)
+        )
+        att = (await session.execute(att_stmt)).scalar_one_or_none()
+        if not att or not att.test:
+            return False, "Natija topilmadi", None
+
+        # Ruxsat tekshiruvi: faqat test egasi yoki super admin
+        is_super = admin_user and (admin_user.role == "super_admin" or is_super_admin(admin_user.telegram_id))
+        if admin_user and not is_super and att.test.created_by_user_id != admin_user_id:
+            return False, "Ushbu natijani o'chirishga ruxsatingiz yo'q", None
+
+        test_id = att.test.id
+
+        # Sertifikat rasmi mavjud bo'lsa o'chirish
+        try:
+            cert_path = Path(f"uploads/certificates/cert_{attempt_id}.jpg")
+            if cert_path.exists():
+                cert_path.unlink()
+        except Exception as e:
+            logger.warning(f"Sertifikat faylini o'chirishda xatolik ({attempt_id}): {e}")
+
+        await session.delete(att)
+        await session.commit()
+        return True, "Natija muvaffaqiyatli o'chirildi", test_id
 

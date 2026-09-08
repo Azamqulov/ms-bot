@@ -508,6 +508,78 @@ async def test_attempt_detailed_answers_breakdown():
     assert items[2]["order_no"] == 36
     assert items[2]["status"] == "unanswered"
 
+    # Endi ushbu natijani o'chirib tashlashni tekshirish
+    from bot.services.admin_service import delete_attempt_by_id
+    success, msg, test_id = await delete_attempt_by_id(att_id, admin_uid)
+    assert success is True
+    assert "muvaffaqiyatli o'chirildi" in msg
+
+    # DB dan o'chganini tekshirish
+    async with async_session_maker() as session:
+        check_att = (await session.execute(select(Attempt).where(Attempt.id == att_id))).scalar_one_or_none()
+        assert check_att is None
+        check_ans = (await session.execute(select(AttemptAnswer).where(AttemptAnswer.attempt_id == att_id))).scalars().all()
+        assert len(check_ans) == 0
+
+
+@pytest.mark.asyncio
+async def test_api_delete_attempt_endpoint():
+    """DELETE /api/admin/attempts/{attempt_id} endpointi tekshiruvi"""
+    from httpx import AsyncClient, ASGITransport
+    from sqlalchemy import select
+    from bot.web_app.api import app
+    from bot.web_app.auth import create_mock_init_data
+    from bot.database.session import async_session_maker
+    from bot.database.models import User, Test, Attempt
+
+    async with async_session_maker() as session:
+        import time
+        admin_user = (await session.execute(select(User).where(User.telegram_id == settings.SUPER_ADMIN_ID))).scalar_one()
+        test = Test(
+            title="O'chirish Testi",
+            code=f"DEL{int(time.time()*1000)%10000000}",
+            time_limit_min=150,
+            created_by_user_id=admin_user.id,
+            is_active=True,
+        )
+        session.add(test)
+        await session.commit()
+
+        u = User(telegram_id=int(time.time()*1000)%100000000 + 5000, full_name="O'chiriluvchi O'quvchi", role="student")
+        session.add(u)
+        await session.commit()
+
+        att = Attempt(
+            user_id=u.id,
+            test_id=test.id,
+            status="completed",
+            raw_score=10,
+            final_score=25.0,
+            is_certified=False,
+        )
+        session.add(att)
+        await session.commit()
+        att_id = att.id
+
+    admin_init_data = create_mock_init_data(user_id=settings.SUPER_ADMIN_ID, bot_token=settings.BOT_TOKEN)
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        res = await client.delete(
+            f"/api/admin/attempts/{att_id}",
+            headers={"X-Telegram-Init-Data": admin_init_data}
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert data["success"] is True
+
+        # Qayta o'chirishga urinish (400 xatolik)
+        res_repeat = await client.delete(
+            f"/api/admin/attempts/{att_id}",
+            headers={"X-Telegram-Init-Data": admin_init_data}
+        )
+        assert res_repeat.status_code == 400
+
 
 
 
