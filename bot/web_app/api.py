@@ -7,12 +7,13 @@ import os
 import shutil
 import uuid
 import logging
+import time
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Header
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -44,7 +45,10 @@ from bot.services.test_service import (
 )
 from bot.services.report_service import generate_result_report, generate_teacher_notification
 from bot.services.certificate_service import generate_certificate_image
+from bot.services.attempt_service import process_test_submission
 from bot.core.validator import check_open_answer
+from bot.core.rate_limiter import RateLimitMiddleware
+from bot.core.security import create_student_session_token, verify_student_session_token
 from bot.web_app.auth import require_admin_user
 from aiogram.types import FSInputFile
 
@@ -61,6 +65,9 @@ def get_html_path(filename: str) -> Path:
     return Path(filename)
 
 app = FastAPI(title="Milliy Sertifikat Matematika API & TMA")
+
+# Xavfsizlik: Rate Limiting Middleware (DDoS va spamdan himoya)
+app.add_middleware(RateLimitMiddleware, max_requests=120, window_seconds=60)
 
 app.add_middleware(
     CORSMiddleware,
@@ -95,6 +102,12 @@ class SubmitTestRequest(BaseModel):
     full_name: str
     username: Optional[str] = None
     answers: List[SubmitAnswerItem]
+    session_token: Optional[str] = None
+
+
+class CreateSessionRequest(BaseModel):
+    telegram_id: int
+    test_id: int
 
 
 class UpdateProfileRequest(BaseModel):
@@ -156,6 +169,33 @@ async def serve_admin():
             headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
         )
     return HTMLResponse("<h1>Admin Panel</h1>")
+
+
+@app.get("/healthz")
+async def healthz():
+    """
+    DevOps va Monitoring uchun Salomatlik tekshiruvi (Healthcheck).
+    Ma'lumotlar bazasi aloqasini tekshiradi va HTTP 200 yoki 503 qaytaradi.
+    """
+    db_connected = False
+    try:
+        async with async_session_maker() as session:
+            await session.execute(select(1))
+            db_connected = True
+    except Exception as e:
+        logger.error(f"Healthcheck: DB ulanishida xatolik: {e}")
+
+    status_code = 200 if db_connected else 503
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "status": "healthy" if db_connected else "unhealthy",
+            "database": "connected" if db_connected else "disconnected",
+            "service": "MSBot API",
+            "version": "2.0.0",
+            "timestamp": int(time.time()),
+        },
+    )
 
 
 @app.get("/api/test/{code}")
@@ -238,190 +278,48 @@ async def api_update_user_profile(payload: UpdateProfileRequest):
 
 
 
+@app.post("/api/test/session")
+async def api_create_session(payload: CreateSessionRequest):
+    """
+    Talabaning test topshirish sessiyasi uchun HMAC-SHA256 bilan imzolangan token yaratish.
+    Ushbu token soxtalashtirish (spoofing) va birovning nomidan topshirishning oldini oladi.
+    """
+    token = create_student_session_token(payload.telegram_id, payload.test_id)
+    return {
+        "success": True,
+        "session_token": token,
+        "expires_in_seconds": 18000,
+    }
+
+
 @app.post("/api/test/submit")
-async def api_submit_test(payload: SubmitTestRequest):
+async def api_submit_test(
+    payload: SubmitTestRequest,
+    x_session_token: Optional[str] = Header(None, alias="X-Session-Token"),
+):
     """
     Test javoblarini topshirish, RASH (IRT) modeli bo'yicha baholash
     va natijani Telegram bot orqali foydalanuvchiga yuborish.
+    Sessiya tokeni uzatilgan bo'lsa, HMAC imzosi va muddati tekshiriladi.
     """
-    user = await get_or_create_user(
+    token_to_check = x_session_token or payload.session_token
+    if token_to_check:
+        is_valid, token_payload, err_msg = verify_student_session_token(token_to_check)
+        if not is_valid or not token_payload:
+            raise HTTPException(status_code=401, detail=err_msg or "Sessiya tokeni yaroqsiz.")
+        if token_payload.get("tg_id") != payload.telegram_id or token_payload.get("test_id") != payload.test_id:
+            raise HTTPException(status_code=403, detail="Sessiya tokeni foydalanuvchi yoki testga mos emas.")
+
+    bot = getattr(app.state, "bot", None)
+    result = await process_test_submission(
+        test_id=payload.test_id,
         telegram_id=payload.telegram_id,
         full_name=payload.full_name,
         username=payload.username,
+        answers=payload.answers,
+        bot=bot,
     )
-
-    attempt = await start_new_attempt(user.id, payload.test_id)
-
-    # Savollarni yuklash (to'g'ri javoblar bilan solishtirish uchun)
-    for ans in payload.answers:
-        await save_answer(
-            attempt_id=attempt.id,
-            question_id=ans.question_id,
-            user_answer=ans.user_answer,
-            is_correct=False, # finish_attempt to'liq qayta tekshiradi
-            sub_part_label=ans.sub_part_label,
-        )
-
-    completed_attempt, rasch_result = await finish_attempt(attempt.id)
-
-    # Test ob'ektini va uning hide_answers holatini aniqlash
-    test_obj = None
-    try:
-        async with async_session_maker() as session:
-            t_stmt = select(Test).where(Test.id == payload.test_id)
-            t_res = await session.execute(t_stmt)
-            test_obj = t_res.scalar_one_or_none()
-    except Exception as e:
-        logger.warning(f"Test fetch error in submit: {e}")
-
-    hide_answers = getattr(test_obj, "hide_answers", False) if test_obj else False
-
-    # 0. Rasmiy Sertifikat Blankasini generatsiya qilish
-    cert_url = None
-    cert_file_path = None
-    try:
-        cert_file_path = generate_certificate_image(
-            attempt_id=completed_attempt.id,
-            telegram_id=payload.telegram_id,
-            full_name=payload.full_name or user.full_name or "Talabgor",
-            final_score=rasch_result.final_score,
-            grade=rasch_result.grade,
-            is_certified=rasch_result.is_certified,
-            subject="Matematika",
-            finished_at=completed_attempt.finished_at,
-        )
-        cert_url = f"/uploads/certificates/cert_{completed_attempt.id}.jpg"
-    except Exception as e:
-        logger.error(f"Sertifikat generatsiyasida xatolik: {e}", exc_info=True)
-
-    # Natijani avtomatik Telegram Bot orqali yuborish
-    bot = getattr(app.state, "bot", None)
-    if bot:
-        # 1. Talabgorning o'ziga natija xabarini yuborish
-        if payload.telegram_id:
-            try:
-                if hide_answers:
-                    # Agar natijalar yashirilgan bo'lsa: talabgorga faqat qabul qilingani bildiriladi
-                    test_title_str = test_obj.title if test_obj else "Milliy Sertifikat"
-                    await bot.send_message(
-                        chat_id=payload.telegram_id,
-                        text=(
-                            "✅ <b>Test muvaffaqiyatli yakunlandi!</b>\n\n"
-                            f"🏷 <b>Test:</b> {test_title_str}\n"
-                            "📥 Sizning barcha javoblaringiz qabul qilindi.\n\n"
-                            "🔒 <i>Ushbu testda natijalar yashirilgan. Natijalarni ustozingiz e'lon qiladi.</i>"
-                        ),
-                        parse_mode="HTML"
-                    )
-                else:
-                    # Agar natijalar ochiq bo'lsa: to'liq sertifikat va hisobot yuboriladi
-                    if cert_file_path and os.path.exists(cert_file_path):
-                        cert_status_title = "Sertifikat berilsin" if rasch_result.is_certified else "Sertifikat berilmadi"
-                        cert_grade_title = rasch_result.grade if rasch_result.is_certified else "Talabga javob bermadi"
-                        percent_calc = min(100.0, max(0.0, (rasch_result.final_score / 70.0) * 100.0))
-                        cert_caption = (
-                            f"📄 <b>Umumta'lim fanini bilish darajasi to'g'risida sertifikat</b>\n\n"
-                            f"👤 <b>Talabgor:</b> {payload.full_name or user.full_name}\n"
-                            f"📊 <b>To'plangan ball:</b> {rasch_result.final_score:.1f} ball ({percent_calc:.1f}%)\n"
-                            f"🎖 <b>Daraja:</b> {cert_grade_title}\n"
-                            f"📋 <b>Xulosa:</b> {cert_status_title}"
-                        )
-                        await bot.send_photo(
-                            chat_id=payload.telegram_id,
-                            photo=FSInputFile(cert_file_path),
-                            caption=cert_caption,
-                            parse_mode="HTML"
-                        )
-
-                    report_text = generate_result_report(user, completed_attempt, rasch_result)
-                    await bot.send_message(
-                        chat_id=payload.telegram_id,
-                        text=report_text,
-                        parse_mode="HTML"
-                    )
-            except Exception as e:
-                logger.warning(f"Telegram orqali talabgorga natija yuborishda ogohlantirish: {e}")
-
-        # 2. Test yaratgan odam (muallif / o'qituvchi) ning telegramiga natijani yuborish (har doim to'liq)
-        try:
-            if test_obj and test_obj.created_by_user_id:
-                async with async_session_maker() as session:
-                    c_user = await session.get(User, test_obj.created_by_user_id)
-                    if c_user and c_user.telegram_id:
-                        if cert_file_path and os.path.exists(cert_file_path):
-                            teacher_caption = (
-                                f"📋 <b>O'quvchi natijasi va sertifikati:</b>\n"
-                                f"👤 <b>Talabgor:</b> {payload.full_name or user.full_name}\n"
-                                f"🏷 <b>Test:</b> {test_obj.title} (#{test_obj.code})\n"
-                                f"📊 <b>Ball:</b> {rasch_result.final_score:.1f} / 70 ({rasch_result.grade if rasch_result.is_certified else 'Talabga javob bermadi'})\n"
-                                f"📌 <b>Holat:</b> {'Sertifikat berilsin' if rasch_result.is_certified else 'Sertifikat berilmadi'}"
-                            )
-                            await bot.send_photo(
-                                chat_id=c_user.telegram_id,
-                                photo=FSInputFile(cert_file_path),
-                                caption=teacher_caption,
-                                parse_mode="HTML"
-                            )
-
-                        teacher_text = generate_teacher_notification(
-                            student=user,
-                            test_title=test_obj.title,
-                            test_code=test_obj.code,
-                            attempt=completed_attempt,
-                            rasch_result=rasch_result
-                        )
-                        await bot.send_message(
-                            chat_id=c_user.telegram_id,
-                            text=teacher_text,
-                            parse_mode="HTML"
-                        )
-                        logger.info(f"Natija test yaratuvchisi ({c_user.telegram_id}) ga muvaffaqiyatli yuborildi.")
-        except Exception as e:
-            logger.warning(f"Test yaratuvchisiga Telegram orqali natija yuborishda ogohlantirish: {e}")
-
-    # Agar o'quvchidan natijalar yashirilgan bo'lsa, WebApp ga faqat xabar qaytaramiz
-    if hide_answers:
-        return {
-            "attempt_id": completed_attempt.id,
-            "hide_answers": True,
-            "message": "Test muvaffaqiyatli yakunlandi! Natijalarni ustozingiz e'lon qiladi.",
-        }
-
-    detailed_results = []
-    try:
-        async with async_session_maker() as session:
-            ans_stmt = (
-                select(AttemptAnswer)
-                .options(selectinload(AttemptAnswer.question))
-                .where(AttemptAnswer.attempt_id == completed_attempt.id)
-                .order_by(AttemptAnswer.id)
-            )
-            ans_res = await session.execute(ans_stmt)
-            for a in ans_res.scalars().all():
-                detailed_results.append({
-                    "question_id": a.question_id,
-                    "order_no": a.question.order_no if a.question else None,
-                    "sub_part_label": a.sub_part_label,
-                    "user_answer": a.user_answer,
-                    "is_correct": a.is_correct,
-                })
-    except Exception as e:
-        logger.warning(f"Detailed results fetch error: {e}")
-
-    return {
-        "attempt_id": completed_attempt.id,
-        "hide_answers": False,
-        "raw_score": rasch_result.raw_score,
-        "total_items": rasch_result.total_items,
-        "theta": rasch_result.theta,
-        "standard_error": rasch_result.standard_error,
-        "final_score": rasch_result.final_score,
-        "grade": rasch_result.grade,
-        "is_certified": rasch_result.is_certified,
-        # Sertifikat URL faqat sertifikat olgan o'quvchilargagina qaytariladi
-        "certificate_url": cert_url if rasch_result.is_certified else None,
-        "details": detailed_results,
-    }
+    return result
 
 
 # ==================== ADMIN API: RASM VA TEST YUKLASH ====================

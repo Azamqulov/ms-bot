@@ -4,7 +4,7 @@
  */
 
 // Faol Cloudflare Tunnel yoki Server manzili
-let DEFAULT_API_BASE = "https://fifth-alien-engaging-anderson.trycloudflare.com";
+let DEFAULT_API_BASE = "https://prayers-skating-patch-awareness.trycloudflare.com";
 
 /**
  * Backend API URL manzilini aniqlash:
