@@ -840,23 +840,7 @@
     }
 
     function setAccessType(type) {
-      selectedAccessType = type;
-      const openBtn = document.getElementById('tabOpen');
-      const closedBtn = document.getElementById('tabClosed');
-      const hint = document.getElementById('accessTypeHint');
-      const testCodeGroup = document.getElementById('testCodeGroup');
-
-      if (type === 'open') {
-        openBtn?.classList.add('active');
-        closedBtn?.classList.remove('active');
-        if (hint) hint.innerText = "Test umumiy ro'yxatda chiqadi va barcha o'quvchilar erkin (kodsiz) kirishi mumkin";
-        if (testCodeGroup) testCodeGroup.style.display = 'none';
-      } else {
-        openBtn?.classList.remove('active');
-        closedBtn?.classList.add('active');
-        if (hint) hint.innerText = "O'quvchilar maxsus test kodini kiritib tizimda qatnashadi";
-        if (testCodeGroup) testCodeGroup.style.display = 'block';
-      }
+      selectedAccessType = type || 'closed';
       scheduleAutosave();
     }
 
@@ -1038,7 +1022,7 @@
         const raw = localStorage.getItem('admin_draft_test');
         if (!raw) {
           handleTestTypeChange('permanent');
-          setAccessType('open');
+          setAccessType('closed');
           return;
         }
         const draft = JSON.parse(raw);
@@ -1061,8 +1045,7 @@
           handleTestTypeChange('permanent');
         }
 
-        if (draft.accessType) setAccessType(draft.accessType);
-        else setAccessType('open');
+        setAccessType(draft.accessType || 'closed');
         if (draft.answerMode) setAnswerMode(draft.answerMode);
 
         if (draft.checkboxStates) {
@@ -1217,7 +1200,7 @@
       const timeLimit = Math.max(1, rawTime);
       const subject = "Matematika";
       const testType = document.querySelector('#selectTestType .custom-option.selected')?.getAttribute('data-value') || 'permanent';
-      const actualAccessType = (testType === 'timed') ? selectedAccessType : 'open';
+      const actualAccessType = 'closed';
       const startTime = (testType === 'timed') ? document.getElementById('startTime').value.trim() : null;
       const endTime = (testType === 'timed') ? document.getElementById('endTime').value.trim() : null;
       const reqChannel = document.getElementById('requiredChannelInput').value.trim();
@@ -1227,13 +1210,10 @@
         document.getElementById('testTitle').focus();
         return;
       }
-      if (actualAccessType === 'closed' && !code) {
-        showToast("Iltimos, Yopiq test uchun Test kodini kiriting!", true);
+      if (!code) {
+        showToast("Iltimos, Test kodini kiriting!", true);
         document.getElementById('testCode').focus();
         return;
-      }
-      if (actualAccessType === 'open' && !code) {
-        code = `MS-OPEN-${Math.floor(1000 + Math.random() * 9000)}`;
       }
 
       // Takroriy kod tekshiruvi (yangi test yaratishda)

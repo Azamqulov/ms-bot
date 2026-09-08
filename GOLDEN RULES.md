@@ -106,6 +106,7 @@
   2) Yozma savollarning `alternative_answers` (nuqta/vergul: `12.0` va `12,0`, kasr va o'nlik) hisobga olinmayotgani to'g'rilandi.
   3) Yopiq savollarda registr (kichik/katta harflar `a` vs `A`) va probellar (`" A "`) `.strip().upper()` bilan to'liq normallashtirildi.
   4) Yangi test `tests/test_evaluation_open_closed.py` qo'shildi va barcha 30 ta test 100% muvaffaqiyatli o'tdi.
+- [x] [2026-09-08] Admin panelidan foydalanuvchi talabiga ko'ra ortiqcha "Testga qatnashish turi" (Ochiq test / Yopiq test) bloki butunlay olib tashlandi. Barcha testlar to'g'ridan-to'g'ri "Test kodi (Kupon)" bilan ishlaydi.
 
 ## 📋 Roadmap & Upcoming Tasks (Backlog)
 - [ ] Faza 2: Savollar uchun video/matnli yechimlar havolasi.
