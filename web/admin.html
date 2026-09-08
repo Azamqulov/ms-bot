@@ -192,7 +192,9 @@
             <input type="text" class="form-input" id="groupContextTextInput" style="height:38px; font-size:13px;" placeholder="Masalan: Parallelepiped shaklidagi yopiq quti..." onfocus="registerActiveInput(this)" oninput="saveGroupContextText(this.value)">
             <div class="answer-tools">
               <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('groupContextTextInput', 'symbols')" title="Formula">Σ</button>
-              <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('groupContextTextInput', 'greek')" title="Klaviatura">⌨️</button>
+              <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('groupContextTextInput', 'greek')" title="Klaviatura">
+                <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6.01" y2="8"></line><line x1="10" y1="8" x2="10.01" y2="8"></line><line x1="14" y1="8" x2="14.01" y2="8"></line><line x1="18" y1="8" x2="18.01" y2="8"></line><line x1="6" y1="12" x2="6.01" y2="12"></line><line x1="10" y1="12" x2="10.01" y2="12"></line><line x1="14" y1="12" x2="14.01" y2="12"></line><line x1="18" y1="12" x2="18.01" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg>
+              </button>
             </div>
           </div>
           <div class="katex-preview" id="katexPreview_groupContext" style="font-size:12px;">
@@ -377,19 +379,31 @@
         <!-- KPI ko'rsatkichlar kartochkalari -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px;" id="statsKpiGrid">
           <div style="background: var(--card-sub); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center;">
-            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px;">👥 Qatnashuvchilar</div>
+            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <svg class="icon icon-xs" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              <span>Qatnashuvchilar</span>
+            </div>
             <div style="font-size: 18px; font-weight: 800; color: var(--text);" id="kpiParticipants">0 ta</div>
           </div>
           <div style="background: var(--card-sub); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center;">
-            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px;">⭐ O'rtacha ball</div>
+            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <svg class="icon icon-xs" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <span>O'rtacha ball</span>
+            </div>
             <div style="font-size: 18px; font-weight: 800; color: var(--primary);" id="kpiAvgScore">0.0</div>
           </div>
           <div style="background: var(--card-sub); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center;">
-            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px;">🏆 Eng yuqori ball</div>
+            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+              <span>Eng yuqori ball</span>
+            </div>
             <div style="font-size: 18px; font-weight: 800; color: var(--success);" id="kpiHighestScore">0.0</div>
           </div>
           <div style="background: var(--card-sub); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center;">
-            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px;">📜 Sertifikat olganlar</div>
+            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <svg class="icon icon-xs" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <span>Sertifikat olganlar</span>
+            </div>
             <div style="font-size: 18px; font-weight: 800; color: #8b5cf6;" id="kpiCertified">0 ta</div>
           </div>
         </div>
@@ -447,16 +461,19 @@
         <!-- Filtr tugmalari (Barchasi, To'g'ri, Xato, Yechilmagan) -->
         <div class="attempt-filters-bar" id="attemptFilterTabs">
           <button type="button" class="attempt-filter-btn active" id="btnFilterAll" onclick="setAttemptFilter('all')">
-            Barchasi (<span id="cntFilterAll">45</span>)
+            <span>Barchasi (<span id="cntFilterAll">45</span>)</span>
           </button>
           <button type="button" class="attempt-filter-btn filter-correct" id="btnFilterCorrect" onclick="setAttemptFilter('correct')">
-            ✅ To'g'ri (<span id="cntFilterCorrect">0</span>)
+            <svg class="icon icon-xs" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>To'g'ri (<span id="cntFilterCorrect">0</span>)</span>
           </button>
           <button type="button" class="attempt-filter-btn filter-wrong" id="btnFilterWrong" onclick="setAttemptFilter('wrong')">
-            ❌ Xato (<span id="cntFilterWrong">0</span>)
+            <svg class="icon icon-xs" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <span>Xato (<span id="cntFilterWrong">0</span>)</span>
           </button>
           <button type="button" class="attempt-filter-btn filter-unanswered" id="btnFilterUnanswered" onclick="setAttemptFilter('unanswered')">
-            ⚪️ Yechilmagan (<span id="cntFilterUnanswered">0</span>)
+            <svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><line x1="9" y1="12" x2="15" y2="12"></line></svg>
+            <span>Yechilmagan (<span id="cntFilterUnanswered">0</span>)</span>
           </button>
         </div>
 

@@ -115,7 +115,7 @@
               <input type="text" class="form-input" id="qTextInput_${i}" style="height:38px; font-size:13px;" placeholder="${i}-savol matni yoki formulasi (ixtiyoriy)..." value="${escapeHtml(questionsMeta[i].text || '')}" onfocus="registerActiveInput(this)" oninput="saveQuestionText(${i}, this.value)">
               <div class="answer-tools">
                 <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('qTextInput_${i}', 'symbols')" title="Formula">Σ</button>
-                <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('qTextInput_${i}', 'greek')" title="Klaviatura">⌨️</button>
+                <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('qTextInput_${i}', 'greek')" title="Klaviatura"><svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6.01" y2="8"></line><line x1="10" y1="8" x2="10.01" y2="8"></line><line x1="14" y1="8" x2="14.01" y2="8"></line><line x1="18" y1="8" x2="18.01" y2="8"></line><line x1="6" y1="12" x2="6.01" y2="12"></line><line x1="10" y1="12" x2="10.01" y2="12"></line><line x1="14" y1="12" x2="14.01" y2="12"></line><line x1="18" y1="12" x2="18.01" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg></button>
               </div>
             </div>
             <div class="katex-preview" id="katexPreview_q_${i}">
@@ -332,7 +332,7 @@
               <input type="text" class="form-input" id="openTextInput_${i}" style="height:38px; font-size:13px;" placeholder="${i}-savol matni yoki formulasi..." value="${escapeHtml(openQuestionsMeta[i].text || '')}" onfocus="registerActiveInput(this)" oninput="saveOpenQuestionText(${i}, this.value)">
               <div class="answer-tools">
                 <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('openTextInput_${i}', 'symbols')" title="Formula">Σ</button>
-                <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('openTextInput_${i}', 'greek')" title="Klaviatura">⌨️</button>
+                <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('openTextInput_${i}', 'greek')" title="Klaviatura"><svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6.01" y2="8"></line><line x1="10" y1="8" x2="10.01" y2="8"></line><line x1="14" y1="8" x2="14.01" y2="8"></line><line x1="18" y1="8" x2="18.01" y2="8"></line><line x1="6" y1="12" x2="6.01" y2="12"></line><line x1="10" y1="12" x2="10.01" y2="12"></line><line x1="14" y1="12" x2="14.01" y2="12"></line><line x1="18" y1="12" x2="18.01" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg></button>
               </div>
             </div>
             <div class="katex-preview" id="katexPreview_open_${i}">
@@ -439,7 +439,7 @@
                    oninput="updateOpenAns(${qNum}, '${variant}', ${idx}, this.value)">
             <div class="answer-tools">
               <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('${fieldId}', 'symbols')" title="Formula">Σ</button>
-              <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('${fieldId}', 'greek')" title="Klaviatura">⌨️</button>
+              <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('${fieldId}', 'greek')" title="Klaviatura"><svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6.01" y2="8"></line><line x1="10" y1="8" x2="10.01" y2="8"></line><line x1="14" y1="8" x2="14.01" y2="8"></line><line x1="18" y1="8" x2="18.01" y2="8"></line><line x1="6" y1="12" x2="6.01" y2="12"></line><line x1="10" y1="12" x2="10.01" y2="12"></line><line x1="14" y1="12" x2="14.01" y2="12"></line><line x1="18" y1="12" x2="18.01" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg></button>
             </div>
           </div>
           <button type="button" class="del-btn" onclick="removeAnswerRow(${qNum}, '${variant}', ${idx})" title="O'chirish">
@@ -1469,7 +1469,7 @@
             <p style="font-weight:600; margin-bottom:8px;">Server manzili ulanmagan!</p>
             <p style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">Testlar ro'yxatini yuklash uchun server manzilini kiriting.</p>
             <button type="button" class="btn-action-small" style="background:var(--primary); color:#fff; border-color:var(--primary);" onclick="openApiConfigModal()">
-              ⚙️ Server sozlamasi
+              <span style="display:inline-flex; align-items:center; gap:6px;"><svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Server sozlamasi</span>
             </button>
           </div>
         `;
@@ -1560,7 +1560,7 @@
               <p style="font-weight:600; margin-bottom:8px;">Server bilan aloqa uzildi!</p>
               <p style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">Bot va tunnel ishlab turganini tekshiring.</p>
               <button type="button" class="btn-action-small" style="background:var(--primary); color:#fff; border-color:var(--primary);" onclick="openApiConfigModal()">
-                ⚙️ Server sozlamasi
+                <span style="display:inline-flex; align-items:center; gap:6px;"><svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Server sozlamasi</span>
               </button>
             </div>
           `;
@@ -1664,9 +1664,9 @@
                       ${escapeHtml(p.full_name)}
                     </div>
                     <div style="font-size:11px; color:var(--text-sub); display:flex; align-items:center; gap:8px; margin-top:3px; flex-wrap:wrap;">
-                      ${p.phone_number ? `<span>📞 ${escapeHtml(p.phone_number)}</span>` : ''}
-                      ${p.username ? `<span>@${escapeHtml(p.username)}</span>` : ''}
-                      <span>🕒 ${p.finished_at || p.started_at}</span>
+                      ${p.phone_number ? `<span style="display:inline-flex; align-items:center; gap:3px;"><svg class="icon icon-xs" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>${escapeHtml(p.phone_number)}</span>` : ''}
+                      ${p.username ? `<span style="display:inline-flex; align-items:center; gap:2px;"><svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"></path></svg>${escapeHtml(p.username)}</span>` : ''}
+                      <span style="display:inline-flex; align-items:center; gap:3px;"><svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>${p.finished_at || p.started_at}</span>
                     </div>
                   </div>
                 </div>
@@ -1684,8 +1684,9 @@
                     <span style="font-size:11px; color:var(--text-sub); font-weight:500;">
                       (${p.raw_score} ta to'g'ri)
                     </span>
-                    <span style="font-size:10px; font-weight:700; color:var(--primary); background:var(--primary-light); border:1px solid var(--primary-border); padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:2px;">
-                      Tahlil ➜
+                    <span style="font-size:10px; font-weight:700; color:var(--primary); background:var(--primary-light); border:1px solid var(--primary-border); padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;">
+                      <span>Tahlil</span>
+                      <svg class="icon icon-xs" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </span>
                   </div>
                 </div>
@@ -1747,7 +1748,7 @@
           } catch (e) {}
         }
 
-        showToast("✅ Natijalar Telegram profilingizga yuborildi!");
+        showToast("Natijalar Telegram profilingizga yuborildi!");
       } catch (err) {
         showToast("Xatolik: " + err.message, true);
       } finally {
@@ -1824,7 +1825,14 @@
           const isWrong = q.status === 'wrong';
           const badgeBg = isAllCorr ? 'rgba(16, 185, 129, 0.15)' : (isPartCorr ? 'rgba(245, 158, 11, 0.15)' : (isWrong ? 'rgba(239, 68, 68, 0.15)' : 'rgba(148, 163, 184, 0.15)'));
           const badgeColor = isAllCorr ? '#059669' : (isPartCorr ? '#d97706' : (isWrong ? '#dc2626' : '#64748b'));
-          const badgeText = isAllCorr ? "✅ To'liq to'g'ri" : (isPartCorr ? "⚠️ Qisman to'g'ri" : (isWrong ? "❌ Noto'g'ri" : "⚪️ Yechilmagan"));
+          const badgeIcon = isAllCorr 
+            ? `<svg class="icon icon-xs" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>` 
+            : (isPartCorr 
+                ? `<svg class="icon icon-xs" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>` 
+                : (isWrong 
+                    ? `<svg class="icon icon-xs" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>` 
+                    : `<svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><line x1="9" y1="12" x2="15" y2="12"></line></svg>`));
+          const badgeText = isAllCorr ? "To'liq to'g'ri" : (isPartCorr ? "Qisman to'g'ri" : (isWrong ? "Noto'g'ri" : "Yechilmagan"));
 
           return `
             <div class="question-analysis-card" id="analysisCard_${q.order_no}">
@@ -1833,8 +1841,9 @@
                   <span class="q-order-badge open">#${q.order_no}-savol</span>
                   <span style="font-size:11px; color:var(--text-sub); font-weight:500;">Ochiq (yozma) savol</span>
                 </div>
-                <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; background:${badgeBg}; color:${badgeColor}; border:1px solid ${badgeColor}30;">
-                  ${badgeText}
+                <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; background:${badgeBg}; color:${badgeColor}; border:1px solid ${badgeColor}30; display:inline-flex; align-items:center; gap:4px;">
+                  ${badgeIcon}
+                  <span>${badgeText}</span>
                 </span>
               </div>
 
@@ -1843,12 +1852,20 @@
                   const pCorr = p.is_correct;
                   const pAns = p.user_answer ? escapeHtml(p.user_answer) : "(bo'sh)";
                   const pStatusColor = pCorr ? '#059669' : (p.user_answer ? '#dc2626' : '#64748b');
-                  const pIcon = pCorr ? '✅' : (p.user_answer ? '❌' : '⚪️');
+                  const pIcon = pCorr 
+                    ? `<svg class="icon icon-xs" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>` 
+                    : (p.user_answer 
+                        ? `<svg class="icon icon-xs" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>` 
+                        : `<svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><line x1="9" y1="12" x2="15" y2="12"></line></svg>`);
+                  const pStatusLabel = pCorr ? "To'g'ri" : (p.user_answer ? "Xato" : "Yechilmagan");
                   return `
                     <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:8px 12px; display:flex; flex-direction:column; gap:4px;">
                       <div style="display:flex; align-items:center; justify-content:space-between; font-size:11px; font-weight:700; color:var(--text);">
                         <span>${p.label.toUpperCase()}) band</span>
-                        <span style="color:${pStatusColor}; font-size:11px;">${pIcon} ${pCorr ? "To'g'ri" : (p.user_answer ? "Xato" : "Yechilmagan")}</span>
+                        <span style="color:${pStatusColor}; font-size:11px; display:inline-flex; align-items:center; gap:4px;">
+                          ${pIcon}
+                          <span>${pStatusLabel}</span>
+                        </span>
                       </div>
                       <div style="font-size:11px; color:var(--text-sub); display:flex; align-items:center; justify-content:space-between;">
                         <span>Yozilgan javob:</span>
@@ -1870,7 +1887,12 @@
           const isWrong = q.status === 'wrong';
           const statusBg = isCorr ? 'rgba(16, 185, 129, 0.15)' : (isWrong ? 'rgba(239, 68, 68, 0.15)' : 'rgba(148, 163, 184, 0.15)');
           const statusColor = isCorr ? '#059669' : (isWrong ? '#dc2626' : '#64748b');
-          const statusIcon = isCorr ? "✅ To'g'ri" : (isWrong ? "❌ Noto'g'ri" : "⚪️ Yechilmagan");
+          const statusIcon = isCorr 
+            ? `<svg class="icon icon-xs" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>` 
+            : (isWrong 
+                ? `<svg class="icon icon-xs" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>` 
+                : `<svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><line x1="9" y1="12" x2="15" y2="12"></line></svg>`);
+          const statusText = isCorr ? "To'g'ri" : (isWrong ? "Noto'g'ri" : "Yechilmagan");
           const userAnsText = q.user_answer ? escapeHtml(q.user_answer) : "Belgilanmagan";
           const userAnsClass = isCorr ? 'correct' : (q.user_answer ? 'wrong' : 'empty');
 
@@ -1883,8 +1905,9 @@
                     ${q.order_no <= 32 ? 'Variantli test' : 'Kontekstli test'}
                   </span>
                 </div>
-                <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}30;">
+                <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}30; display:inline-flex; align-items:center; gap:4px;">
                   ${statusIcon}
+                  <span>${statusText}</span>
                 </span>
               </div>
 
@@ -1932,7 +1955,9 @@
           const initial = (data.full_name || 'T').trim().charAt(0).toUpperCase();
           const pct = Math.min(100, Math.max(0, Math.round((Number(data.final_score || 0) / 75) * 100)));
           const gradeClass = data.is_certified ? 'certified' : 'uncertified';
-          const gradeText = data.is_certified ? `🏆 ${data.grade || 'Sertifikat'} (Sertifikat berildi)` : `❌ Sertifikat berilmadi`;
+          const gradeText = data.is_certified 
+            ? `<span style="display:inline-flex; align-items:center; gap:4px;"><svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg> <span>${escapeHtml(data.grade || 'Sertifikat')} (Sertifikat berildi)</span></span>` 
+            : `<span style="display:inline-flex; align-items:center; gap:4px;"><svg class="icon icon-xs" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> <span>Sertifikat berilmadi</span></span>`;
           const barColor = data.is_certified ? 'linear-gradient(90deg, #10b981, #059669)' : 'linear-gradient(90deg, #ef4444, #f59e0b)';
 
           heroElem.innerHTML = `
@@ -1942,9 +1967,9 @@
                 <div>
                   <div class="attempt-user-name">${escapeHtml(data.full_name || 'Noma\'lum')}</div>
                   <div class="attempt-user-sub">
-                    ${data.phone_number ? `<span>📞 ${escapeHtml(data.phone_number)}</span>` : ''}
-                    ${data.username ? `<span>@${escapeHtml(data.username)}</span>` : ''}
-                    <span>🕒 ${data.finished_at || 'Yakunlangan'}</span>
+                    ${data.phone_number ? `<span style="display:inline-flex; align-items:center; gap:3px;"><svg class="icon icon-xs" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>${escapeHtml(data.phone_number)}</span>` : ''}
+                    ${data.username ? `<span style="display:inline-flex; align-items:center; gap:2px;"><svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"></path></svg>${escapeHtml(data.username)}</span>` : ''}
+                    <span style="display:inline-flex; align-items:center; gap:3px;"><svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>${data.finished_at || 'Yakunlangan'}</span>
                   </div>
                 </div>
               </div>
