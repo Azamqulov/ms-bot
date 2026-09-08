@@ -59,7 +59,9 @@ def start_tunnel():
         log("[WARN] cloudflared topilmadi, tunnelsiz davom etilmoqda.")
         return None
 
-    cf_log = Path("cf_tunnel.log")
+    data_dir = Path(__file__).parent / "data"
+    data_dir.mkdir(exist_ok=True)
+    cf_log = data_dir / "cf_tunnel.log"
     cf_log.write_text("", encoding="utf-8")
 
     log("[TUNNEL] Cloudflare tunnel ishga tushirilmoqda...")

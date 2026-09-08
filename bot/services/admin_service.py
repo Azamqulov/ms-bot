@@ -2,7 +2,6 @@
 Admin va Super Admin boshqaruv servisi hamda Test yuklash logikasi.
 """
 
-import json
 from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any, Tuple
 from sqlalchemy import select, func
@@ -493,43 +492,4 @@ async def update_test_with_questions(
                         q_obj.section = q_in["section"]
 
         await session.commit()
-        return True, "Test va javob kalitlari muvaffaqiyatli yangilandi!"
-
-
-
-def get_sample_test_template() -> str:
-    """Adminlar to'ldirishi uchun qulay JSON shablon namunasi"""
-    template = {
-        "code": "MOCK-1",
-        "title": "Milliy Sertifikat Matematika Sinovi",
-        "description": "45 ta savolli mock test",
-        "time_limit_min": 150,
-        "questions": [
-            {
-                "order_no": 1,
-                "type": "Y-1",
-                "section": "Algebra",
-                "difficulty_b": -1.0,
-                "text": "Hisoblang: 2.5 * 4 - 3",
-                "options": {
-                    "A": "7",
-                    "B": "8",
-                    "C": "6",
-                    "D": "5"
-                },
-                "correct_answer": "A"
-            },
-            {
-                "order_no": 2,
-                "type": "O",
-                "section": "Geometriya",
-                "difficulty_b": 0.5,
-                "text": "Uchburchak katetlari 3 va 4.\na) Gipotenuzani toping.\nb) Yuzini toping.",
-                "sub_parts": [
-                    {"label": "a", "correct_answer": "5", "difficulty_b": 0.3},
-                    {"label": "b", "correct_answer": "6", "difficulty_b": 0.7}
-                ]
-            }
-        ]
-    }
-    return json.dumps(template, indent=2, ensure_ascii=False)
+        return True, "Test muvaffaqiyatli yangilandi!"
