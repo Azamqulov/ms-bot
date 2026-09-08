@@ -181,10 +181,32 @@ async def show_rasch_info(message: Message):
     await message.answer(text)
 
 
+@router.message(Command("id"))
+async def cmd_get_id(message: Message):
+    """Foydalanuvchining shaxsiy Telegram Chat ID sini ko'rsatish"""
+    chat_id = message.chat.id
+    full_name = message.from_user.full_name or "Talabgor"
+    username = f"@{message.from_user.username}" if message.from_user.username else "mavjud emas"
+    
+    id_text = (
+        "🆔 <b>SIZNING TELEGRAM MA'LUMOTLARINGIZ:</b>\n\n"
+        f"• <b>Telegram Chat ID:</b> <code>{chat_id}</code> <i>(nusxalash uchun ustiga bosing)</i>\n"
+        f"• <b>Ism-familiya:</b> {full_name}\n"
+        f"• <b>Username:</b> {username}\n\n"
+        "💡 <i>Ushbu Chat ID orqali administratorlar sizga Admin huquqini berishlari yoki shaxsingizni tasdiqlashlari mumkin.</i>"
+    )
+    await message.answer(id_text)
+
+
 @router.message(F.text == "❓ Yordam")
 @router.message(Command("help"))
 async def show_help(message: Message):
+    chat_id = message.chat.id
+    full_name = message.from_user.full_name or "Talabgor"
+
     text = (
+        f"🆔 <b>Sizning Telegram Chat ID:</b> <code>{chat_id}</code> <i>(nusxalash uchun ustiga bosing)</i>\n"
+        f"👤 <b>Foydalanuvchi:</b> {full_name}\n\n"
         "🎓 <b>MILLIY SERTIFIKAT (MATEMATIKA) SINOV BOTI</b>\n\n"
         "Ushbu bot Bilim va malakalarni baholash agentligi (DTM) standarti asosida "
         "Matematika fanidan Milliy Sertifikat imtihoniga tayyorgarlik ko'rish, bilimingizni "
@@ -210,7 +232,8 @@ async def show_help(message: Message):
         "• Bot bo'yicha har qanday savol va takliflar;\n"
         "• Yangi test javoblarini yaratish (Admin huquqi olish);\n"
         "• Shaxsiy maslahat va yordam uchun:\n\n"
-        "👉 <b>Bosh admin:</b> @ITCenter_01"
+        f"👉 <b>Bosh admin:</b> @ITCenter_01\n"
+        f"💡 <i>(Adminga yozayotganda Chat ID'ingizni yuboring: <code>{chat_id}</code>)</i>"
     )
     from aiogram.utils.keyboard import InlineKeyboardBuilder
     from aiogram.types import InlineKeyboardButton
