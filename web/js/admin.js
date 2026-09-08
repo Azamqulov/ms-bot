@@ -851,13 +851,13 @@
       const hint = document.getElementById('answerModeHint');
 
       if (mode === 'write') {
-        writeBtn.classList.add('active');
-        photoBtn.classList.remove('active');
-        hint.innerText = "O'quvchi har bir savol uchun javobni matn/formula orqali yozib jo'natadi";
+        writeBtn?.classList.add('active');
+        photoBtn?.classList.remove('active');
+        if (hint) hint.innerText = "O'quvchi har bir savol uchun javobni matn/formula orqali yozib jo'natadi";
       } else {
-        writeBtn.classList.remove('active');
-        photoBtn.classList.add('active');
-        hint.innerText = "O'quvchi yechim varaqasini rasmga olib jo'natadi va o'qituvchi tekshiradi";
+        writeBtn?.classList.remove('active');
+        photoBtn?.classList.add('active');
+        if (hint) hint.innerText = "O'quvchi yechim varaqasini rasmga olib jo'natadi va o'qituvchi tekshiradi";
       }
       scheduleAutosave();
     }
@@ -1115,11 +1115,12 @@
             }
           });
           if (checkboxStates.reqSub) {
-            document.getElementById('channelInputWrap').classList.add('open');
+            document.getElementById('channelInputWrap')?.classList.add('open');
           }
         }
         if (draft.channelInput) {
-          document.getElementById('requiredChannelInput').value = draft.channelInput;
+          const chanInp = document.getElementById('requiredChannelInput');
+          if (chanInp) chanInp.value = draft.channelInput;
         }
 
         if (draft.answers1to35) Object.assign(answers1to35, draft.answers1to35);
@@ -1209,9 +1210,9 @@
       groupContextData.text = '';
       groupContextData.image = '';
       groupContextData.options = { A: '', B: '', C: '', D: '', E: '', F: '' };
-      const grpText = document.getElementById('groupContextText');
+      const grpText = document.getElementById('groupContextTextInput');
       if (grpText) grpText.value = '';
-      const grpPreview = document.getElementById('katexPreview_group');
+      const grpPreview = document.getElementById('katexPreview_groupContext');
       if (grpPreview) grpPreview.innerHTML = "Formula ko'rinishi shu yerda chiqadi...";
 
       // Chiqarish tugmasini asliga qaytarish
