@@ -107,6 +107,11 @@
   3) Yopiq savollarda registr (kichik/katta harflar `a` vs `A`) va probellar (`" A "`) `.strip().upper()` bilan to'liq normallashtirildi.
   4) Yangi test `tests/test_evaluation_open_closed.py` qo'shildi va barcha 30 ta test 100% muvaffaqiyatli o'tdi.
 - [x] [2026-09-08] Admin panelidan foydalanuvchi talabiga ko'ra ortiqcha "Testga qatnashish turi" (Ochiq test / Yopiq test) bloki butunlay olib tashlandi. Barcha testlar to'g'ridan-to'g'ri "Test kodi (Kupon)" bilan ishlaydi.
+- [x] [2026-09-08] Testni saqlash va chiqarishda (Publish) xatoliklar va takroriy kodlar haqida to'liq xabarnoma (Notification) tizimi joriy qilindi:
+  1) Yangi premium `#alertModal` oynasi yaratildi: takroriy kod, bo'sh maydon yoki server xatolarida foydalanuvchiga tushunarli sarlavha, xabar va SVG belgisi bilan ogohlantirish oynasi chiqadi.
+  2) Xatolik yuz bergan maydonga (`testCode` yoki `testTitle`) avtomatik ravishda smooth scroll bilan boriladi, fokus qilinadi va 3 soniyalik qizil tebranish (shake pulse) animatsiyasi ulanadi.
+  3) `.toast` butunlay yangilandi: ekranning yuqori markaziga (`top: 20px, left: 50%`) ko'chirildi, SVG ikonkalar bilan boyitildi va z-index: 3500 qilib ko'rinarliligi kafolatlandi.
+  4) Backendda tranzaksiyaning IntegrityError xatosi ushlanib, foydalanuvchiga doim aniq o'zbek tilida tushunarli javob qaytarilishi ta'minlandi. Barcha 30 ta test 100% muvaffaqiyatli o'tdi.
 
 ## 📋 Roadmap & Upcoming Tasks (Backlog)
 - [ ] Faza 2: Savollar uchun video/matnli yechimlar havolasi.

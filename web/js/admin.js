@@ -957,12 +957,69 @@
     }
 
     // ================= TOAST VA MODALLAR =================
+    let toastTimeoutId = null;
     function showToast(text, isError = false) {
       const t = document.getElementById('toastMsg');
-      t.innerText = text;
+      if (!t) return;
+      if (toastTimeoutId) clearTimeout(toastTimeoutId);
+
+      const iconSvg = isError
+        ? '<svg class="icon" style="width:18px;height:18px;color:#ffffff;flex-shrink:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>'
+        : '<svg class="icon" style="width:18px;height:18px;color:#ffffff;flex-shrink:0;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+
+      t.innerHTML = `${iconSvg}<span>${text}</span>`;
       t.className = 'toast' + (isError ? ' error' : '');
       t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 3500);
+      toastTimeoutId = setTimeout(() => {
+        t.classList.remove('show');
+      }, 4000);
+    }
+
+    function showAlertModal(title, message, isError = true, onAction = null) {
+      const titleEl = document.getElementById('alertModalTitle');
+      const bodyEl = document.getElementById('alertModalBody');
+      const iconEl = document.getElementById('alertModalIcon');
+      const btnEl = document.getElementById('btnAlertModalAction');
+
+      if (titleEl) titleEl.innerText = title;
+      if (bodyEl) bodyEl.innerText = message;
+      if (iconEl) {
+        if (isError) {
+          iconEl.style.background = 'rgba(239, 68, 68, 0.12)';
+          iconEl.style.color = 'var(--danger)';
+          iconEl.innerHTML = '<svg class="icon" style="width:32px;height:32px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+        } else {
+          iconEl.style.background = 'var(--success-light)';
+          iconEl.style.color = 'var(--success)';
+          iconEl.innerHTML = '<svg class="icon" style="width:32px;height:32px;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        }
+      }
+
+      if (btnEl) {
+        btnEl.onclick = () => {
+          closeModal('alertModal');
+          if (typeof onAction === 'function') onAction();
+        };
+      }
+
+      if (window.Telegram?.WebApp?.HapticFeedback) {
+        try {
+          window.Telegram.WebApp.HapticFeedback.notificationOccurred(isError ? 'error' : 'success');
+        } catch (e) {}
+      }
+
+      openModal('alertModal');
+    }
+
+    function highlightInputError(inputId) {
+      const el = document.getElementById(inputId);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      try { el.focus(); } catch (e) {}
+      el.classList.add('input-error-highlight');
+      setTimeout(() => {
+        el.classList.remove('input-error-highlight');
+      }, 3000);
     }
 
     function openModal(id) {
@@ -1193,8 +1250,11 @@
       let code = document.getElementById('testCode').value.trim().toUpperCase();
       const rawTime = parseInt(document.getElementById('testTimeLimit').value);
       if (isNaN(rawTime) || rawTime <= 0) {
-        showToast("Vaqt chegarasi musbat butun son (kamida 1 daqiqa) bo'lishi kerak!", true);
-        document.getElementById('testTimeLimit').focus();
+        showAlertModal("Noto'g'ri vaqt", "Vaqt chegarasi musbat butun son (kamida 1 daqiqa) bo'lishi kerak!", true, () => {
+          highlightInputError('testTimeLimit');
+        });
+        showToast("Vaqt chegarasi kamida 1 daqiqa bo'lishi kerak!", true);
+        highlightInputError('testTimeLimit');
         return;
       }
       const timeLimit = Math.max(1, rawTime);
@@ -1206,13 +1266,19 @@
       const reqChannel = document.getElementById('requiredChannelInput').value.trim();
 
       if (!title) {
+        showAlertModal("Test nomi kiritilmagan", "Iltimos, test nomini kiriting!", true, () => {
+          highlightInputError('testTitle');
+        });
         showToast("Iltimos, Test nomini kiriting!", true);
-        document.getElementById('testTitle').focus();
+        highlightInputError('testTitle');
         return;
       }
       if (!code) {
+        showAlertModal("Test kodi kiritilmagan", "Iltimos, o'quvchilar testga kirishi uchun Test kodini (kupon) kiriting yoki 'Tasodifiy kod' tugmasini bosing!", true, () => {
+          highlightInputError('testCode');
+        });
         showToast("Iltimos, Test kodini kiriting!", true);
-        document.getElementById('testCode').focus();
+        highlightInputError('testCode');
         return;
       }
 
@@ -1220,9 +1286,16 @@
       if (!editingTestId && window.myTestsCache && Array.isArray(window.myTestsCache)) {
         const isDuplicate = window.myTestsCache.some(t => (t.code || '').trim().toUpperCase() === code);
         if (isDuplicate) {
-          showToast(`"${code}" kodli test allaqachon mavjud! Iltimos, boshqa kod kiriting yoki 'Tasodifiy kod' tugmasini bosing.`, true);
-          const codeInp = document.getElementById('testCode');
-          if (codeInp) codeInp.focus();
+          showAlertModal(
+            "Test kodi allaqachon mavjud!",
+            `"${code}" kodli test bazangizda allaqachon mavjud!\n\nIltimos, boshqa kod kiriting yoki 'Tasodifiy kod' tugmasi orqali yangi kod oling.`,
+            true,
+            () => {
+              highlightInputError('testCode');
+            }
+          );
+          showToast(`"${code}" kodi allaqachon mavjud!`, true);
+          highlightInputError('testCode');
           return;
         }
       }
@@ -1332,12 +1405,22 @@
           const data = await res.json().catch(() => ({}));
           if (res.ok && data.success) {
             showToast("Test va javob kalitlari muvaffaqiyatli saqlandi!");
-            cancelEditMode();
-            switchAdminTab('list');
+            showAlertModal(
+              "Muvaffaqiyatli saqlandi!",
+              `"${title}" testi va barcha javob kalitlari muvaffaqiyatli yangilandi.`,
+              false,
+              () => {
+                cancelEditMode();
+                switchAdminTab('list');
+              }
+            );
           } else {
-            showToast("Xatolik: " + (data.detail || data.message || "Saqlab bo'lmadi"), true);
+            const errDetail = (data && (data.detail || data.message)) || "Saqlab bo'lmadi";
+            showAlertModal("Saqlashda xatolik", errDetail, true);
+            showToast("Xatolik: " + errDetail, true);
           }
         } catch (err) {
+          showAlertModal("Xatolik yuz berdi", "Saqlashda xatolik: " + err.message, true);
           showToast("Xatolik: " + err.message, true);
         } finally {
           publishBtn.disabled = false;
@@ -1405,14 +1488,38 @@
           showToast(`Test saqlandi! Kod: ${data.code}`);
           loadMyTests();
         } else {
-          showToast("Xatolik: " + (data.detail || data.message || "Yuklab bo'lmadi"), true);
+          const errDetail = (data && (data.detail || data.message)) || "Yuklab bo'lmadi";
+          const isDup = errDetail.toLowerCase().includes('allaqachon mavjud') || errDetail.toLowerCase().includes('mavjud') || errDetail.toLowerCase().includes('kod');
+          if (isDup) {
+            showAlertModal(
+              "Test kodi band!",
+              `"${code}" kodli test bazada allaqachon mavjud!\n\nIltimos, boshqa kod kiriting yoki 'Tasodifiy kod' tugmasi orqali yangi kod oling.`,
+              true,
+              () => {
+                highlightInputError('testCode');
+              }
+            );
+            highlightInputError('testCode');
+          } else {
+            showAlertModal("Testni saqlashda xatolik", errDetail, true);
+          }
+          showToast("Xatolik: " + errDetail, true);
         }
       } catch (err) {
         if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
-          showToast("Server bilan ulanish uzildi! Bot va tunnel ishlab turganini tekshiring yoki yuqoridagi 'Server sozlamasi' orqali manzilni yangilang.", true);
+          showAlertModal(
+            "Server bilan aloqa yo'q!",
+            "Server yoki bot bilan ulanish uzildi. Iltimos, bot va server ishlab turganini tekshiring yoki yuqoridagi 'Server sozlamasi' orqali manzilni yangilang.",
+            true,
+            () => {
+              openApiConfigModal();
+            }
+          );
+          showToast("Server bilan ulanish uzildi!", true);
           updateStatusBarUI('offline', "Server bilan aloqa yo'q! (Sozlashni bosing)");
           openApiConfigModal();
         } else {
+          showAlertModal("Xatolik yuz berdi", "Server bilan ulanishda xatolik: " + err.message, true);
           showToast("Server bilan ulanishda xatolik: " + err.message, true);
         }
       } finally {

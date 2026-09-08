@@ -1259,31 +1259,52 @@
     /* Toast Notification */
     .toast {
       position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: #1e293b;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-30px);
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       color: #ffffff;
-      padding: 12px 20px;
-      border-radius: 8px;
+      padding: 12px 22px;
+      border-radius: 12px;
       font-size: 13px;
-      font-weight: 500;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      font-weight: 600;
+      box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.12);
       display: flex;
       align-items: center;
       gap: 10px;
-      z-index: 3000;
-      transform: translateY(100px);
+      z-index: 3500;
       opacity: 0;
-      transition: all 0.25s ease;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 92vw;
+      text-align: center;
     }
 
     .toast.show {
-      transform: translateY(0);
+      transform: translateX(-50%) translateY(0);
       opacity: 1;
+      pointer-events: auto;
     }
 
     .toast.error {
-      background: var(--danger);
+      background: rgba(220, 38, 38, 0.96);
+      color: #ffffff;
+      box-shadow: 0 12px 30px -4px rgba(220, 38, 38, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2);
+    }
+
+    /* Input Error Shake & Pulse Highlight */
+    @keyframes inputShakePulse {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    .input-error-highlight {
+      border-color: var(--danger) !important;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+      animation: inputShakePulse 0.4s ease-in-out;
     }
 
     /* ================= ATTEMPT DETAILS & ANALYSIS STYLES ================= */

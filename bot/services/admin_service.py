@@ -193,9 +193,16 @@ async def create_test_with_questions(
             )
             session.add(q_obj)
 
-        await session.commit()
-        await session.refresh(new_test)
-        return True, f"Test muvaffaqiyatli yuklandi! Kod: {clean_code}", new_test
+        try:
+            await session.commit()
+            await session.refresh(new_test)
+            return True, f"Test muvaffaqiyatli yuklandi! Kod: {clean_code}", new_test
+        except Exception as e:
+            await session.rollback()
+            err_msg = str(e)
+            if "UNIQUE constraint" in err_msg or "duplicate key" in err_msg or "tests_code_key" in err_msg:
+                return False, f"'{clean_code}' kodi allaqachon mavjud! Boshqa kod tanlang.", None
+            return False, f"Ma'lumotlar bazasida xatolik yuz berdi: {err_msg}", None
 
 
 async def get_test_by_code(code: str) -> Optional[Test]:

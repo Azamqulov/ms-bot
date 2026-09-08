@@ -431,6 +431,31 @@ async def test_duplicate_test_code_prevention():
     assert test2 is None
     assert "allaqachon mavjud" in msg2
 
+    # 3. /api/admin/create-test orqali ham duplicate kod uchun 400 xatolik va aniq xabar qaytishi
+    from httpx import AsyncClient, ASGITransport
+    from bot.web_app.api import app
+    from bot.web_app.auth import create_mock_init_data
+
+    valid_admin_init = create_mock_init_data(
+        user_id=settings.SUPER_ADMIN_ID,
+        bot_token=settings.BOT_TOKEN,
+        is_valid=True,
+    )
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        res_dup = await client.post(
+            "/api/admin/create-test",
+            json={
+                "code": unique_code,
+                "title": "API Duplicate Test",
+                "time_limit_min": 150,
+                "questions": [{"order_no": 1, "type": "Y-1", "correct_answer": "A"}],
+            },
+            headers={"X-Telegram-Init-Data": valid_admin_init},
+        )
+        assert res_dup.status_code == 400
+        assert "allaqachon mavjud" in res_dup.json()["detail"]
+
 
 @pytest.mark.asyncio
 async def test_attempt_detailed_answers_breakdown():
