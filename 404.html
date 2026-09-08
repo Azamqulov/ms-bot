@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Milliy Sertifikat — Sahifa yuklanmoqda...</title>
+  <script>
+    (function() {
+      var pathname = window.location.pathname.toLowerCase();
+      var search = window.location.search || '';
+      var hash = window.location.hash || '';
+      
+      // Agar admin sahifasiga o'tish bo'lsa
+      if (pathname.includes('admin')) {
+        var targetAdmin = window.location.origin + window.location.pathname.replace(/\/admin(\.html)?\/?$/, '') + '/web/admin.html' + search + hash;
+        window.location.replace(targetAdmin);
+      } else {
+        var targetIndex = window.location.origin + window.location.pathname.replace(/\/([^\/]*)$/, '') + '/web/index.html' + search + hash;
+        window.location.replace(targetIndex);
+      }
+    })();
+  </script>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 40px; background: #f8fafc; color: #334155;">
+  <p>Sahifa yuklanmoqda... Agar sahifa ochilmasa, <a href="web/index.html" style="color: #2563eb; font-weight: 600;">bu yerni bosing</a>.</p>
+</body>
+</html>

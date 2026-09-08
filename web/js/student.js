@@ -175,10 +175,7 @@
             if (data.is_admin) {
               const wrap = document.getElementById('adminPanelLinkWrap');
               if (wrap) wrap.style.display = 'flex';
-              const adminLink = document.getElementById('btnAdminPanelLink');
-              if (adminLink && window.location.hostname.includes('github.io')) {
-                adminLink.href = 'web/admin.html';
-              }
+              updateAdminLink();
             }
           }
         } catch (e) {
@@ -1060,14 +1057,48 @@
       showScreen('screenCode');
     }
 
+    function getAdminPanelUrl() {
+      // 1. Fayl protokoli orqali ochilgan bo'lsa
+      if (window.location.protocol === 'file:') {
+        return new URL('admin.html', window.location.href).href;
+      }
+      
+      const currentUrl = new URL(window.location.href);
+      let targetPath;
+      
+      // 2. Agar yo'l ichida /web/ bo'lsa (masalan GitHub Pages: /ms-bot/web/index.html)
+      if (currentUrl.pathname.includes('/web/')) {
+        const base = currentUrl.pathname.substring(0, currentUrl.pathname.lastIndexOf('/web/'));
+        targetPath = base + '/web/admin.html';
+      } else if (currentUrl.hostname.includes('github.io')) {
+        // GitHub Pages repository root bo'lsa (/ms-bot/ yoki /ms-bot/index.html)
+        const repo = currentUrl.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
+        targetPath = (repo ? repo : '') + '/web/admin.html';
+      } else {
+        // FastAPI / localhost server
+        targetPath = '/admin';
+      }
+      
+      const dest = new URL(targetPath, window.location.origin);
+      // Barcha URL parametrlari (tg_id, api va hk) ni o'tkazish
+      dest.search = window.location.search;
+      dest.hash = window.location.hash;
+      return dest.toString();
+    }
+
+    function navigateToAdminPanel(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      window.location.href = getAdminPanelUrl();
+    }
+    window.navigateToAdminPanel = navigateToAdminPanel;
+
     function updateAdminLink() {
       const link = document.getElementById('btnAdminPanelLink');
       if (!link) return;
-      if (window.location.protocol === 'file:' || window.location.hostname.endsWith('github.io')) {
-        link.href = 'web/admin.html';
-      } else {
-        link.href = '/admin';
-      }
+      link.href = getAdminPanelUrl();
     }
 
     // ================= DASTUR ISHGA TUSHGANDA VA F5 BOSILGANDA TIKLASH =================

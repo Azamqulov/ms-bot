@@ -93,6 +93,7 @@
 - [x] [2026-09-07] Boshqa foydalanuvchilar test topshirganda ularning natijalari admin ID si (1685356708) bilan yozilib ketishi va "Natijalarim"da ko'rinmaslik muammosi to'liq tuzatildi: web/index.html da studentTelegramId, query param va Telegram WebApp user ID dinamik bog'landi, hardcoded admin ID fallback butunlay olib tashlandi.
 - [x] [2026-09-07] 20 ta Pytest testlari 100% muvaffaqiyatli o'tdi.
 - [x] [2026-09-07] Server va bot parallel holda fonda ishlamoqda.
+- [x] [2026-09-08] Admin foydalanuvchilar "Admin panelga o'tish" tugmasini bosganda yuzaga kelgan GitHub Pages 404 (File not found) xatosi to'liq bartaraf etildi: `getAdminPanelUrl` dinamik yo'l aniqlash funksiyasi joriy qilindi, `navigateToAdminPanel` orqali query parametrlar saqlangan holda to'g'ri `web/admin.html` ga yo'naltirildi, root `404.html` va `admin/index.html` redirection ko'priklari qo'shildi, backendda `/web` statik marshruti ta'minlandi.
 
 ## 📋 Roadmap & Upcoming Tasks (Backlog)
 - [ ] Faza 2: Savollar uchun video/matnli yechimlar havolasi.

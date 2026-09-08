@@ -58,8 +58,8 @@ UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 def get_html_path(filename: str) -> Path:
-    """Faylni root (.) yoki web/ papkasidan qidirish"""
-    for candidate in [Path(filename), Path("web") / filename]:
+    """Faylni web/ yoki root (.) papkasidan qidirish"""
+    for candidate in [Path("web") / filename, Path(filename)]:
         if candidate.exists():
             return candidate
     return Path(filename)
@@ -80,6 +80,7 @@ app.add_middleware(
 # Rasmlar va Statik fayllarni ulash
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 if Path("web").exists():
+    app.mount("/web", StaticFiles(directory="web"), name="web")
     app.mount("/static", StaticFiles(directory="web"), name="static")
     if (Path("web") / "css").exists():
         app.mount("/css", StaticFiles(directory="web/css"), name="css")

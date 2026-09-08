@@ -964,7 +964,8 @@
       } else if (window.history.length > 1) {
         window.history.back();
       } else {
-        window.location.href = '/';
+        const dest = window.location.protocol === 'file:' ? 'index.html' : (window.location.pathname.includes('/web/') ? 'index.html' : (window.location.hostname.includes('github.io') ? 'index.html' : '/'));
+        window.location.href = dest + window.location.search;
       }
     }
 
@@ -1363,7 +1364,7 @@
 
     function viewCreatedTest() {
       if (!lastCreatedTestCode) return;
-      const base = window.location.hostname.includes('github.io') ? '../index.html' : '/';
+      const base = window.location.pathname.includes('/web/') ? 'index.html' : (window.location.hostname.includes('github.io') ? 'index.html' : '/');
       const apiParam = API_BASE ? `&api=${encodeURIComponent(API_BASE)}` : '';
       window.location.href = `${base}?code=${encodeURIComponent(lastCreatedTestCode)}${apiParam}`;
     }
@@ -1445,7 +1446,7 @@
                   <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                   Tahrirlash
                 </button>
-                <button type="button" class="btn-action-small" onclick="window.open((window.location.hostname.includes('github.io') ? '../index.html' : '/') + '?code=' + encodeURIComponent('${escapeHtml(t.code)}') + (API_BASE ? '&api=' + encodeURIComponent(API_BASE) : ''), '_blank')">
+                <button type="button" class="btn-action-small" onclick="window.open((window.location.pathname.includes('/web/') ? 'index.html' : (window.location.hostname.includes('github.io') ? 'index.html' : '/')) + '?code=' + encodeURIComponent('${escapeHtml(t.code)}') + (API_BASE ? '&api=' + encodeURIComponent(API_BASE) : ''), '_blank')">
                   <svg class="icon" style="width:13px; height:13px;" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   Ko'rish
                 </button>
