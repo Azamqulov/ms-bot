@@ -420,46 +420,70 @@
   </div>
 
   <!-- Modal: O'quvchi Savolma-Savol Javoblari Tahlili -->
-  <div class="modal-overlay" id="attemptDetailsModal" style="z-index: 1050;">
-    <div class="modal-card" style="max-width: 650px; max-height: 90vh; display: flex; flex-direction: column;">
-      <div class="modal-header">
-        <div>
-          <span id="attemptDetailsTitle" style="font-size: 15px; font-weight: 700;">Natija tahlili</span>
-          <div id="attemptDetailsSubtitle" style="font-size: 11px; color: var(--text-sub); margin-top: 2px;">Savollar bo'yicha javoblar</div>
+  <div class="modal-overlay" id="attemptDetailsModal" style="z-index: 2200;">
+    <div class="modal-card" style="max-width: 680px; max-height: 92vh; display: flex; flex-direction: column;">
+      <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+          <button type="button" class="btn-action-small" onclick="closeModal('attemptDetailsModal')" style="padding: 4px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; border-radius: 6px;" title="Natijalar ro'yxatiga qaytish">
+            <svg class="icon" style="width: 12px; height: 12px;" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>Orqaga</span>
+          </button>
+          <div style="min-width: 0;">
+            <div id="attemptDetailsTitle" style="font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Natija tahlili</div>
+            <div id="attemptDetailsSubtitle" style="font-size: 11px; color: var(--text-sub); margin-top: 1px;">Savollar bo'yicha batafsil tekshiruv</div>
+          </div>
         </div>
         <button type="button" class="icon-btn" style="border:none;" onclick="closeModal('attemptDetailsModal')">
           <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
-      <div class="modal-body" style="padding: 14px; overflow-y: auto; flex: 1;">
-        <!-- KPI ko'rsatkichlar -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;" id="attemptKpiGrid">
-          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 8px; text-align: center;">
-            <div style="font-size: 10px; color: #059669; font-weight: 600;">✅ To'g'ri</div>
-            <div style="font-size: 16px; font-weight: 800; color: #059669;" id="attemptKpiCorrect">0 ta</div>
-          </div>
-          <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 8px; text-align: center;">
-            <div style="font-size: 10px; color: #dc2626; font-weight: 600;">❌ Xato</div>
-            <div style="font-size: 16px; font-weight: 800; color: #dc2626;" id="attemptKpiWrong">0 ta</div>
-          </div>
-          <div style="background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 8px; padding: 8px; text-align: center;">
-            <div style="font-size: 10px; color: #64748b; font-weight: 600;">⚪️ Yechilmagan</div>
-            <div style="font-size: 16px; font-weight: 800; color: #64748b;" id="attemptKpiUnanswered">0 ta</div>
-          </div>
+      <div class="modal-body" style="padding: 14px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 12px;">
+        <!-- Hero summary card (Talabgor ma'lumotlari va Ball) -->
+        <div id="attemptHeroCard" class="attempt-hero-card">
+          <!-- Dinamik to'ldiriladi -->
         </div>
 
-        <div style="font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">
-          Barcha savollar bo'yicha javoblar:
+        <!-- Filtr tugmalari (Barchasi, To'g'ri, Xato, Yechilmagan) -->
+        <div class="attempt-filters-bar" id="attemptFilterTabs">
+          <button type="button" class="attempt-filter-btn active" id="btnFilterAll" onclick="setAttemptFilter('all')">
+            Barchasi (<span id="cntFilterAll">45</span>)
+          </button>
+          <button type="button" class="attempt-filter-btn filter-correct" id="btnFilterCorrect" onclick="setAttemptFilter('correct')">
+            ✅ To'g'ri (<span id="cntFilterCorrect">0</span>)
+          </button>
+          <button type="button" class="attempt-filter-btn filter-wrong" id="btnFilterWrong" onclick="setAttemptFilter('wrong')">
+            ❌ Xato (<span id="cntFilterWrong">0</span>)
+          </button>
+          <button type="button" class="attempt-filter-btn filter-unanswered" id="btnFilterUnanswered" onclick="setAttemptFilter('unanswered')">
+            ⚪️ Yechilmagan (<span id="cntFilterUnanswered">0</span>)
+          </button>
+        </div>
+
+        <!-- 45-Savol Xaritasi (Quick Navigation Matrix) -->
+        <div class="matrix-box">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px;">Savollar xaritasi (1–45):</span>
+            <span style="font-size: 10px; color: var(--text-sub);">Savolga sakrash uchun raqamni bosing</span>
+          </div>
+          <div id="attemptMatrixGrid" class="matrix-bubble-grid">
+            <!-- Dinamik 1..45 pufakchalar -->
+          </div>
         </div>
 
         <!-- Savollar ro'yxati -->
-        <div id="attemptAnswersList" style="display: flex; flex-direction: column; gap: 6px;">
-          <!-- Dinamik chiziladi -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px;">
+            Savollar tahlili:
+          </div>
+          <div id="attemptAnswersList" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Dinamik savollar kartochkalari -->
+          </div>
         </div>
       </div>
 
-      <div class="modal-footer" style="display: flex; justify-content: flex-end; align-items: center;">
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 11px; color: var(--text-sub);" id="attemptFooterSummary">45 ta savoldan iborat</span>
         <button type="button" class="btn-action-small" onclick="closeModal('attemptDetailsModal')">Yopish</button>
       </div>
     </div>

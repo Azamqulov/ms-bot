@@ -1268,6 +1268,264 @@
       background: var(--danger);
     }
 
+    /* ================= ATTEMPT DETAILS & ANALYSIS STYLES ================= */
+    .attempt-hero-card {
+      background: var(--card-sub);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .attempt-hero-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .attempt-user-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .attempt-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #6366f1);
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+    }
+    .attempt-user-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .attempt-user-sub {
+      font-size: 11px;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 2px;
+      flex-wrap: wrap;
+    }
+    .attempt-score-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+    }
+    .attempt-score-val {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.1;
+    }
+    .attempt-grade-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .attempt-grade-pill.certified {
+      background: rgba(16, 185, 129, 0.12);
+      color: #059669;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .attempt-grade-pill.uncertified {
+      background: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    /* Progress bar */
+    .attempt-progress-wrap {
+      width: 100%;
+      background: var(--border);
+      border-radius: 6px;
+      height: 6px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+    .attempt-progress-bar {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.4s ease;
+    }
+
+    /* Filter buttons */
+    .attempt-filters-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .attempt-filter-btn {
+      background: var(--card-sub);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .attempt-filter-btn:hover {
+      background: var(--card-bg);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .attempt-filter-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+    }
+    .attempt-filter-btn.filter-correct.active {
+      background: #059669;
+      border-color: #059669;
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+    }
+    .attempt-filter-btn.filter-wrong.active {
+      background: #dc2626;
+      border-color: #dc2626;
+      box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);
+    }
+    .attempt-filter-btn.filter-unanswered.active {
+      background: #64748b;
+      border-color: #64748b;
+      box-shadow: 0 2px 6px rgba(100, 116, 139, 0.25);
+    }
+
+    /* Matrix 45-bubble grid */
+    .matrix-box {
+      background: var(--card-sub);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .matrix-bubble-grid {
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      gap: 4px;
+    }
+    @media (max-width: 600px) {
+      .matrix-bubble-grid {
+        grid-template-columns: repeat(9, 1fr);
+      }
+    }
+    .matrix-bubble {
+      height: 28px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .matrix-bubble:hover {
+      transform: scale(1.15);
+      z-index: 2;
+    }
+    .matrix-bubble.correct {
+      background: rgba(16, 185, 129, 0.15);
+      color: #059669;
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+    .matrix-bubble.wrong {
+      background: rgba(239, 68, 68, 0.15);
+      color: #dc2626;
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+    .matrix-bubble.unanswered {
+      background: var(--card-bg);
+      color: var(--text-sub);
+      border-color: var(--border);
+    }
+
+    /* Question Card Styling */
+    .question-analysis-card {
+      background: var(--card-sub);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .question-analysis-card:hover {
+      border-color: var(--primary-border);
+    }
+    .question-analysis-card.highlight {
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+    }
+    .q-order-badge {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 8px;
+    }
+    .q-order-badge.open {
+      color: #8b5cf6;
+      border-color: rgba(139, 92, 246, 0.3);
+      background: rgba(139, 92, 246, 0.08);
+    }
+    .ans-pill {
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 5px;
+      display: inline-block;
+      min-width: 24px;
+      text-align: center;
+    }
+    .ans-pill.correct {
+      background: rgba(16, 185, 129, 0.15);
+      color: #059669;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .ans-pill.wrong {
+      background: rgba(239, 68, 68, 0.15);
+      color: #dc2626;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .ans-pill.empty {
+      background: var(--card-bg);
+      color: var(--text-sub);
+      border: 1px dashed var(--border);
+      font-weight: 500;
+      font-size: 11px;
+    }
+    .ans-pill.key {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
+    }
+
     /* ================= RESPONSIVE: MOBILE-FIRST MEDIA QUERIES ================= */
 
     /* Small phones: 480px and below */

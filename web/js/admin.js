@@ -1644,21 +1644,26 @@
       container.innerHTML = `
         <div style="display:flex; flex-direction:column; gap:8px;">
           ${participants.map((p, idx) => {
-            const gradeColor = (p.grade && (p.grade.startsWith('A') || p.grade.startsWith('B'))) ? 'var(--success)' : (p.grade && p.grade.startsWith('C') ? 'var(--primary)' : 'var(--danger)');
+            const isCert = Boolean(p.is_certified);
+            const gradeBg = isCert ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.08)';
+            const gradeColor = isCert ? '#059669' : '#dc2626';
+            const gradeBorder = isCert ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.2)';
+            const gradeLabel = isCert ? (p.grade || 'Sertifikat') : 'Sertifikatsiz';
+
             return `
-              <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:8px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; transition:all 0.15s ease;"
+              <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:10px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer; transition:all 0.15s ease;"
                    onclick="openAttemptDetailsModal(${p.attempt_id})"
                    onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-1px)';"
                    onmouseout="this.style.borderColor='var(--border)'; this.style.transform='none';">
-                <div style="display:flex; align-items:center; gap:10px; min-width:0;">
-                  <div style="width:28px; height:28px; border-radius:50%; background:${idx === 0 ? '#fef3c7' : (idx === 1 ? '#f1f5f9' : (idx === 2 ? '#ffedd5' : 'var(--border)'))}; color:${idx === 0 ? '#b45309' : (idx === 1 ? '#475569' : (idx === 2 ? '#c2410c' : 'var(--text-sub)'))}; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0;">
+                <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+                  <div style="width:30px; height:30px; border-radius:50%; background:${idx === 0 ? '#fef3c7' : (idx === 1 ? '#f1f5f9' : (idx === 2 ? '#ffedd5' : 'var(--border)'))}; color:${idx === 0 ? '#b45309' : (idx === 1 ? '#475569' : (idx === 2 ? '#c2410c' : 'var(--text-sub)'))}; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
                     ${p.rank || idx + 1}
                   </div>
                   <div style="min-width:0;">
                     <div style="font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                       ${escapeHtml(p.full_name)}
                     </div>
-                    <div style="font-size:11px; color:var(--text-sub); display:flex; align-items:center; gap:8px; margin-top:2px; flex-wrap:wrap;">
+                    <div style="font-size:11px; color:var(--text-sub); display:flex; align-items:center; gap:8px; margin-top:3px; flex-wrap:wrap;">
                       ${p.phone_number ? `<span>📞 ${escapeHtml(p.phone_number)}</span>` : ''}
                       ${p.username ? `<span>@${escapeHtml(p.username)}</span>` : ''}
                       <span>🕒 ${p.finished_at || p.started_at}</span>
@@ -1666,20 +1671,22 @@
                   </div>
                 </div>
 
-                <div style="text-align:right; flex-shrink:0;">
-                  <div style="font-size:16px; font-weight:800; color:var(--primary);">
-                    ${p.final_score} <span style="font-size:11px; font-weight:500; color:var(--text-sub);">ball</span>
-                  </div>
-                  <div style="display:flex; align-items:center; justify-content:flex-end; gap:6px; margin-top:2px;">
-                    <span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:${gradeColor}15; color:${gradeColor}; border:1px solid ${gradeColor}30;">
-                      ${p.grade || 'Baholanmagan'}
+                <div style="text-align:right; flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:3px;">
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:${gradeBg}; color:${gradeColor}; border:1px solid ${gradeBorder};">
+                      ${gradeLabel}
                     </span>
-                    <span style="font-size:10px; color:var(--text-sub);">
+                    <span style="font-size:16px; font-weight:800; color:var(--primary); line-height:1;">
+                      ${p.final_score} <span style="font-size:11px; font-weight:500; color:var(--text-sub);">ball</span>
+                    </span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+                    <span style="font-size:11px; color:var(--text-sub); font-weight:500;">
                       (${p.raw_score} ta to'g'ri)
                     </span>
-                  </div>
-                  <div style="font-size:11px; color:var(--primary); font-weight:600; margin-top:3px;">
-                    Savollar tahlili 👉
+                    <span style="font-size:10px; font-weight:700; color:var(--primary); background:var(--primary-light); border:1px solid var(--primary-border); padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:2px;">
+                      Tahlil ➜
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1752,6 +1759,151 @@
     }
 
     // ================= O'QUVCHINING HAR BIR SAVOLINI TAHLIL QILISH MODALI =================
+    let currentAttemptDetails = null;
+    let currentAttemptFilter = 'all';
+
+    function setAttemptFilter(filter) {
+      currentAttemptFilter = filter;
+      ['all', 'correct', 'wrong', 'unanswered'].forEach(f => {
+        const btn = document.getElementById(`btnFilter${f.charAt(0).toUpperCase() + f.slice(1)}`);
+        if (btn) btn.classList.toggle('active', f === filter);
+      });
+      renderAttemptAnswersList();
+    }
+
+    function jumpToQuestion(orderNo) {
+      if (currentAttemptDetails && currentAttemptDetails.breakdown) {
+        const q = currentAttemptDetails.breakdown.find(x => x.order_no === orderNo);
+        if (q) {
+          const qStatus = (q.status === 'partially_correct') ? 'wrong' : q.status;
+          if (currentAttemptFilter !== 'all' && currentAttemptFilter !== qStatus) {
+            setAttemptFilter('all');
+          }
+        }
+      }
+
+      setTimeout(() => {
+        const elem = document.getElementById(`analysisCard_${orderNo}`);
+        if (elem) {
+          elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          elem.classList.add('highlight');
+          setTimeout(() => elem.classList.remove('highlight'), 1800);
+        }
+      }, 60);
+    }
+
+    function renderAttemptAnswersList() {
+      const container = document.getElementById('attemptAnswersList');
+      if (!container || !currentAttemptDetails) return;
+
+      const breakdown = currentAttemptDetails.breakdown || [];
+      let filtered = breakdown;
+      if (currentAttemptFilter === 'correct') {
+        filtered = breakdown.filter(q => q.status === 'correct');
+      } else if (currentAttemptFilter === 'wrong') {
+        filtered = breakdown.filter(q => q.status === 'wrong' || q.status === 'partially_correct');
+      } else if (currentAttemptFilter === 'unanswered') {
+        filtered = breakdown.filter(q => q.status === 'unanswered');
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:30px 16px; color:var(--text-sub); background:var(--card-sub); border:1px dashed var(--border); border-radius:10px;">
+            <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px;">Ushbu toifada savollar mavjud emas</div>
+            <div style="font-size:11px;">Barcha savollarni ko'rish uchun yuqoridagi "Barchasi" filtrini bosing.</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(q => {
+        if (q.sub_parts && Array.isArray(q.sub_parts) && q.sub_parts.length > 0) {
+          // Ochiq savol (36-45)
+          const isAllCorr = q.status === 'correct';
+          const isPartCorr = q.status === 'partially_correct';
+          const isWrong = q.status === 'wrong';
+          const badgeBg = isAllCorr ? 'rgba(16, 185, 129, 0.15)' : (isPartCorr ? 'rgba(245, 158, 11, 0.15)' : (isWrong ? 'rgba(239, 68, 68, 0.15)' : 'rgba(148, 163, 184, 0.15)'));
+          const badgeColor = isAllCorr ? '#059669' : (isPartCorr ? '#d97706' : (isWrong ? '#dc2626' : '#64748b'));
+          const badgeText = isAllCorr ? "✅ To'liq to'g'ri" : (isPartCorr ? "⚠️ Qisman to'g'ri" : (isWrong ? "❌ Noto'g'ri" : "⚪️ Yechilmagan"));
+
+          return `
+            <div class="question-analysis-card" id="analysisCard_${q.order_no}">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="q-order-badge open">#${q.order_no}-savol</span>
+                  <span style="font-size:11px; color:var(--text-sub); font-weight:500;">Ochiq (yozma) savol</span>
+                </div>
+                <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; background:${badgeBg}; color:${badgeColor}; border:1px solid ${badgeColor}30;">
+                  ${badgeText}
+                </span>
+              </div>
+
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:8px; margin-top:2px;">
+                ${q.sub_parts.map(p => {
+                  const pCorr = p.is_correct;
+                  const pAns = p.user_answer ? escapeHtml(p.user_answer) : "(bo'sh)";
+                  const pStatusColor = pCorr ? '#059669' : (p.user_answer ? '#dc2626' : '#64748b');
+                  const pIcon = pCorr ? '✅' : (p.user_answer ? '❌' : '⚪️');
+                  return `
+                    <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:8px 12px; display:flex; flex-direction:column; gap:4px;">
+                      <div style="display:flex; align-items:center; justify-content:space-between; font-size:11px; font-weight:700; color:var(--text);">
+                        <span>${p.label.toUpperCase()}) band</span>
+                        <span style="color:${pStatusColor}; font-size:11px;">${pIcon} ${pCorr ? "To'g'ri" : (p.user_answer ? "Xato" : "Yechilmagan")}</span>
+                      </div>
+                      <div style="font-size:11px; color:var(--text-sub); display:flex; align-items:center; justify-content:space-between;">
+                        <span>Yozilgan javob:</span>
+                        <b style="color:${pStatusColor};">${pAns}</b>
+                      </div>
+                      <div style="font-size:11px; color:var(--text-sub); display:flex; align-items:center; justify-content:space-between;">
+                        <span>To'g'ri kalit:</span>
+                        <b style="color:var(--success);">${escapeHtml(p.correct_answer || '-')}</b>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        } else {
+          // Variantli savol (1-35)
+          const isCorr = q.status === 'correct';
+          const isWrong = q.status === 'wrong';
+          const statusBg = isCorr ? 'rgba(16, 185, 129, 0.15)' : (isWrong ? 'rgba(239, 68, 68, 0.15)' : 'rgba(148, 163, 184, 0.15)');
+          const statusColor = isCorr ? '#059669' : (isWrong ? '#dc2626' : '#64748b');
+          const statusIcon = isCorr ? "✅ To'g'ri" : (isWrong ? "❌ Noto'g'ri" : "⚪️ Yechilmagan");
+          const userAnsText = q.user_answer ? escapeHtml(q.user_answer) : "Belgilanmagan";
+          const userAnsClass = isCorr ? 'correct' : (q.user_answer ? 'wrong' : 'empty');
+
+          return `
+            <div class="question-analysis-card" id="analysisCard_${q.order_no}">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="q-order-badge">#${q.order_no}-savol</span>
+                  <span style="font-size:11px; color:var(--text-sub); font-weight:500;">
+                    ${q.order_no <= 32 ? 'Variantli test' : 'Kontekstli test'}
+                  </span>
+                </div>
+                <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}30;">
+                  ${statusIcon}
+                </span>
+              </div>
+
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:8px 12px; flex-wrap:wrap;">
+                <div style="font-size:12px; display:flex; align-items:center; gap:8px;">
+                  <span style="color:var(--text-sub);">Belgilangan javob:</span>
+                  <span class="ans-pill ${userAnsClass}">${userAnsText}</span>
+                </div>
+                <div style="font-size:12px; display:flex; align-items:center; gap:8px;">
+                  <span style="color:var(--text-sub);">To'g'ri kalit:</span>
+                  <span class="ans-pill key">${escapeHtml(q.correct_answer || '-')}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+    }
+
     async function openAttemptDetailsModal(attemptId) {
       if (!attemptId) return;
       try {
@@ -1764,104 +1916,105 @@
           throw new Error(err.detail || "Savollar tahlilini yuklab bo'lmadi");
         }
         const data = await res.json();
+        currentAttemptDetails = data;
+        currentAttemptFilter = 'all';
 
+        // Modal sarlavhalari
         const titleElem = document.getElementById('attemptDetailsTitle');
         if (titleElem) titleElem.innerText = `${data.full_name || 'Talabgor'} — Natija tahlili`;
 
         const subElem = document.getElementById('attemptDetailsSubtitle');
-        if (subElem) {
-          const certTxt = data.is_certified ? `✅ Sertifikat (${data.grade || ''})` : `❌ Sertifikat berilmadi`;
-          subElem.innerText = `${data.test_title || ''} • To'plangan: ${data.final_score} ball • ${certTxt}`;
+        if (subElem) subElem.innerText = `${data.test_title || ''} (#${data.test_code || ''})`;
+
+        // Hero Summary Card
+        const heroElem = document.getElementById('attemptHeroCard');
+        if (heroElem) {
+          const initial = (data.full_name || 'T').trim().charAt(0).toUpperCase();
+          const pct = Math.min(100, Math.max(0, Math.round((Number(data.final_score || 0) / 75) * 100)));
+          const gradeClass = data.is_certified ? 'certified' : 'uncertified';
+          const gradeText = data.is_certified ? `🏆 ${data.grade || 'Sertifikat'} (Sertifikat berildi)` : `❌ Sertifikat berilmadi`;
+          const barColor = data.is_certified ? 'linear-gradient(90deg, #10b981, #059669)' : 'linear-gradient(90deg, #ef4444, #f59e0b)';
+
+          heroElem.innerHTML = `
+            <div class="attempt-hero-top">
+              <div class="attempt-user-meta">
+                <div class="attempt-avatar">${initial}</div>
+                <div>
+                  <div class="attempt-user-name">${escapeHtml(data.full_name || 'Noma\'lum')}</div>
+                  <div class="attempt-user-sub">
+                    ${data.phone_number ? `<span>📞 ${escapeHtml(data.phone_number)}</span>` : ''}
+                    ${data.username ? `<span>@${escapeHtml(data.username)}</span>` : ''}
+                    <span>🕒 ${data.finished_at || 'Yakunlangan'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="attempt-score-badge">
+                <div class="attempt-score-val">${data.final_score} <span style="font-size:12px; font-weight:600; color:var(--text-sub);">/ 75 ball</span></div>
+                <span class="attempt-grade-pill ${gradeClass}">
+                  ${gradeText}
+                </span>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:4px; margin-top:4px;">
+              <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-sub);">
+                <span>Natija ko'rsatkichi: <b>${pct}%</b></span>
+                <span>Jami: <b>${data.raw_score || 0} ta to'g'ri</b></span>
+              </div>
+              <div class="attempt-progress-wrap">
+                <div class="attempt-progress-bar" style="width:${pct}%; background:${barColor};"></div>
+              </div>
+            </div>
+          `;
         }
 
-        const cElem = document.getElementById('attemptKpiCorrect');
-        if (cElem) cElem.innerText = `${data.correct_count || 0} ta`;
+        // Filtr hisoblagichlari
+        const cAll = document.getElementById('cntFilterAll');
+        if (cAll) cAll.innerText = data.total_items || 45;
 
-        const wElem = document.getElementById('attemptKpiWrong');
-        if (wElem) wElem.innerText = `${data.wrong_count || 0} ta`;
+        const cCorr = document.getElementById('cntFilterCorrect');
+        if (cCorr) cCorr.innerText = data.correct_count || 0;
 
-        const uElem = document.getElementById('attemptKpiUnanswered');
-        if (uElem) uElem.innerText = `${data.unanswered_count || 0} ta`;
+        const cWrong = document.getElementById('cntFilterWrong');
+        if (cWrong) cWrong.innerText = data.wrong_count || 0;
 
-        const listContainer = document.getElementById('attemptAnswersList');
-        if (!listContainer) return;
+        const cUnans = document.getElementById('cntFilterUnanswered');
+        if (cUnans) cUnans.innerText = data.unanswered_count || 0;
 
-        const breakdown = data.breakdown || [];
-        if (breakdown.length === 0) {
-          listContainer.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-sub);">Savollar tahlili topilmadi.</div>`;
-        } else {
-          listContainer.innerHTML = breakdown.map(q => {
-            if (q.sub_parts && Array.isArray(q.sub_parts) && q.sub_parts.length > 0) {
-              // Ochiq savol (36-45)
-              const isAllCorr = q.status === 'correct';
-              const isPartCorr = q.status === 'partially_correct';
-              const isWrong = q.status === 'wrong';
-              const badgeBg = isAllCorr ? 'rgba(16, 185, 129, 0.15)' : (isPartCorr ? 'rgba(245, 158, 11, 0.15)' : (isWrong ? 'rgba(239, 68, 68, 0.15)' : 'rgba(148, 163, 184, 0.15)'));
-              const badgeColor = isAllCorr ? '#059669' : (isPartCorr ? '#d97706' : (isWrong ? '#dc2626' : '#64748b'));
-              const badgeText = isAllCorr ? "✅ To'liq to'g'ri" : (isPartCorr ? "⚠️ Qisman to'g'ri" : (isWrong ? "❌ Noto'g'ri" : "⚪️ Yechilmagan"));
+        // Reset filter buttons state
+        ['all', 'correct', 'wrong', 'unanswered'].forEach(f => {
+          const btn = document.getElementById(`btnFilter${f.charAt(0).toUpperCase() + f.slice(1)}`);
+          if (btn) btn.classList.toggle('active', f === 'all');
+        });
 
-              return `
-                <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:8px;">
-                  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-                    <span style="font-weight:700; font-size:13px; color:var(--text);">${q.order_no}-savol (Ochiq savol):</span>
-                    <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; background:${badgeBg}; color:${badgeColor}; border:1px solid ${badgeColor}30;">
-                      ${badgeText}
-                    </span>
-                  </div>
-                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                    ${q.sub_parts.map(p => {
-                      const pCorr = p.is_correct;
-                      const pAns = p.user_answer ? escapeHtml(p.user_answer) : "(bo'sh)";
-                      const pStatusColor = pCorr ? '#059669' : (p.user_answer ? '#dc2626' : '#64748b');
-                      const pIcon = pCorr ? '✅' : (p.user_answer ? '❌' : '⚪️');
-                      return `
-                        <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:6px; padding:6px 10px; font-size:11px;">
-                          <div style="font-weight:700; margin-bottom:4px; display:flex; justify-content:space-between; color:var(--text);">
-                            <span>${p.label.toUpperCase()}) band</span>
-                            <span>${pIcon}</span>
-                          </div>
-                          <div style="color:var(--text-sub); margin-bottom:2px;">
-                            Tanlangan: <b style="color:${pStatusColor};">${pAns}</b>
-                          </div>
-                          <div style="color:var(--text-sub);">
-                            To'g'ri: <b style="color:var(--success);">${escapeHtml(p.correct_answer || '-')}</b>
-                          </div>
-                        </div>
-                      `;
-                    }).join('')}
-                  </div>
-                </div>
-              `;
-            } else {
-              // Variantli savol (1-35)
-              const isCorr = q.status === 'correct';
-              const isWrong = q.status === 'wrong';
-              const statusBg = isCorr ? 'rgba(16, 185, 129, 0.15)' : (isWrong ? 'rgba(239, 68, 68, 0.15)' : 'rgba(148, 163, 184, 0.15)');
-              const statusColor = isCorr ? '#059669' : (isWrong ? '#dc2626' : '#64748b');
-              const statusIcon = isCorr ? "✅ To'g'ri" : (isWrong ? "❌ Noto'g'ri" : "⚪️ Yechilmagan");
-              const userAnsText = q.user_answer ? escapeHtml(q.user_answer) : '(belgilanmagan)';
-
-              return `
-                <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:8px; padding:9px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    <span style="font-weight:700; font-size:13px; color:var(--text); min-width:65px;">${q.order_no}-savol:</span>
-                    <span style="font-size:12px; color:var(--text-sub);">
-                      Belgilangan: <b style="color:${statusColor};">${userAnsText}</b>
-                    </span>
-                  </div>
-                  <div style="display:flex; align-items:center; gap:12px;">
-                    <span style="font-size:12px; color:var(--text-sub);">
-                      To'g'ri javob: <b style="color:var(--success);">${escapeHtml(q.correct_answer || '-')}</b>
-                    </span>
-                    <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}30;">
-                      ${statusIcon}
-                    </span>
-                  </div>
-                </div>
-              `;
+        // 45-Savol Xaritasi (Quick Navigation Matrix)
+        const matrixElem = document.getElementById('attemptMatrixGrid');
+        if (matrixElem) {
+          const breakdown = data.breakdown || [];
+          matrixElem.innerHTML = breakdown.map(q => {
+            let dotClass = 'unanswered';
+            let dotTitle = `${q.order_no}-savol: Javob berilmagan`;
+            if (q.status === 'correct') {
+              dotClass = 'correct';
+              dotTitle = `${q.order_no}-savol: To'g'ri`;
+            } else if (q.status === 'wrong' || q.status === 'partially_correct') {
+              dotClass = 'wrong';
+              dotTitle = `${q.order_no}-savol: Xato`;
             }
+            return `
+              <div class="matrix-bubble ${dotClass}" title="${dotTitle}" onclick="jumpToQuestion(${q.order_no})">
+                ${q.order_no}
+              </div>
+            `;
           }).join('');
         }
+
+        // Savollar ro'yxatini render qilish
+        renderAttemptAnswersList();
+
+        const footerElem = document.getElementById('attemptFooterSummary');
+        if (footerElem) footerElem.innerText = `Jami: ${data.total_items || 45} ta savol (${data.correct_count || 0} ta to'g'ri, ${data.wrong_count || 0} ta xato)`;
 
         openModal('attemptDetailsModal');
       } catch (err) {
