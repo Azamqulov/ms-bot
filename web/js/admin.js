@@ -1074,19 +1074,6 @@
       }, 500);
     }
 
-    function openApiConfigModal() {
-      const current = localStorage.getItem('MS_API_BASE_URL') || API_BASE || '';
-      const newUrl = prompt("Backend Server (yoki Cloudflare Tunnel) URL manzilini kiriting:\nMasalan: https://xxx.trycloudflare.com", current);
-      if (newUrl !== null) {
-        const clean = newUrl.trim().replace(/\/+$/, '');
-        if (clean) {
-          localStorage.setItem('MS_API_BASE_URL', clean);
-          API_BASE = clean;
-          showToast("Server manzili saqlandi! Sahifa yangilanmoqda...");
-          setTimeout(() => window.location.reload(), 800);
-        }
-      }
-    }
 
     function restoreDraft() {
       try {
@@ -1663,10 +1650,10 @@
         if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
           container.innerHTML = `
             <div style="text-align:center; padding:30px 16px; color:var(--danger);">
-              <p style="font-weight:600; margin-bottom:8px;">Server bilan aloqa uzildi!</p>
-              <p style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">Bot va tunnel ishlab turganini tekshiring.</p>
-              <button type="button" class="btn-action-small" style="background:var(--primary); color:#fff; border-color:var(--primary);" onclick="openApiConfigModal()">
-                <span style="display:inline-flex; align-items:center; gap:6px;"><svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Server sozlamasi</span>
+              <p style="font-weight:600; margin-bottom:8px;">Serverga ulanishda xatolik yuz berdi</p>
+              <p style="font-size:13px; color:var(--text-sub); margin-bottom:14px;">Ma'lumotlar yuklanmadi. Iltimos, internet aloqasini tekshiring va qayta urining.</p>
+              <button type="button" class="btn-action-small" style="background:var(--primary); color:#fff; border-color:var(--primary); padding:8px 16px; border-radius:8px; font-weight:600;" onclick="loadMyTests()">
+                🔄 Qayta yuklash
               </button>
             </div>
           `;
