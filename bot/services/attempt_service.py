@@ -75,6 +75,8 @@ async def _send_background_telegram_notifications(
                             parse_mode="HTML",
                         )
 
+                    now_utc = datetime.now(timezone.utc)
+
                     class DummyAttempt:
                         id = attempt_id
                         raw_score = rasch_result.raw_score
@@ -82,7 +84,8 @@ async def _send_background_telegram_notifications(
                         theta = rasch_result.theta
                         sem = rasch_result.standard_error
                         grade = rasch_result.grade
-                        finished_at = datetime.now(timezone.utc)
+                        started_at = now_utc
+                        finished_at = now_utc
 
                     report = generate_result_report(user, DummyAttempt(), rasch_result)
                     await bot.send_message(
@@ -114,6 +117,8 @@ async def _send_background_telegram_notifications(
                                 parse_mode="HTML",
                             )
 
+                        now_utc = datetime.now(timezone.utc)
+
                         class DummyAttempt:
                             id = attempt_id
                             raw_score = rasch_result.raw_score
@@ -121,9 +126,18 @@ async def _send_background_telegram_notifications(
                             theta = rasch_result.theta
                             sem = rasch_result.standard_error
                             grade = rasch_result.grade
-                            finished_at = datetime.now(timezone.utc)
+                            started_at = now_utc
+                            finished_at = now_utc
 
-                        t_report = generate_teacher_notification(user, DummyAttempt(), rasch_result, test_obj)
+                        t_title = test_obj.title or "Milliy Sertifikat"
+                        t_code = test_obj.code or "STANDART"
+                        t_report = generate_teacher_notification(
+                            student=user,
+                            test_title=t_title,
+                            test_code=t_code,
+                            attempt=DummyAttempt(),
+                            rasch_result=rasch_result,
+                        )
                         await bot.send_message(
                             chat_id=creator.telegram_id,
                             text=t_report,
