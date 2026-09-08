@@ -1074,6 +1074,20 @@
       }, 500);
     }
 
+    function openApiConfigModal() {
+      const current = localStorage.getItem('MS_API_BASE_URL') || API_BASE || '';
+      const newUrl = prompt("Backend Server (yoki Cloudflare Tunnel) URL manzilini kiriting:\nMasalan: https://xxx.trycloudflare.com", current);
+      if (newUrl !== null) {
+        const clean = newUrl.trim().replace(/\/+$/, '');
+        if (clean) {
+          localStorage.setItem('MS_API_BASE_URL', clean);
+          API_BASE = clean;
+          showToast("Server manzili saqlandi! Sahifa yangilanmoqda...");
+          setTimeout(() => window.location.reload(), 800);
+        }
+      }
+    }
+
     function restoreDraft() {
       try {
         const raw = localStorage.getItem('admin_draft_test');
@@ -1084,18 +1098,19 @@
         }
         const draft = JSON.parse(raw);
 
-        if (draft.title) document.getElementById('testTitle').value = draft.title;
-        if (draft.code) document.getElementById('testCode').value = draft.code;
-        if (draft.timeLimit) document.getElementById('testTimeLimit').value = draft.timeLimit;
-        if (draft.startTime) document.getElementById('startTime').value = draft.startTime;
-        if (draft.endTime) document.getElementById('endTime').value = draft.endTime;
+        if (draft.title && document.getElementById('testTitle')) document.getElementById('testTitle').value = draft.title;
+        if (draft.code && document.getElementById('testCode')) document.getElementById('testCode').value = draft.code;
+        if (draft.timeLimit && document.getElementById('testTimeLimit')) document.getElementById('testTimeLimit').value = draft.timeLimit;
+        if (draft.startTime && document.getElementById('startTime')) document.getElementById('startTime').value = draft.startTime;
+        if (draft.endTime && document.getElementById('endTime')) document.getElementById('endTime').value = draft.endTime;
 
         if (draft.testType) {
           const opt = document.querySelector(`#selectTestType .custom-option[data-value="${draft.testType}"]`);
           if (opt) {
             document.querySelectorAll('#selectTestType .custom-option').forEach(o => o.classList.remove('selected'));
             opt.classList.add('selected');
-            document.querySelector('#selectTestType .selected-text').innerText = opt.innerText;
+            const selText = document.querySelector('#selectTestType .selected-text');
+            if (selText) selText.innerText = opt.innerText;
             handleTestTypeChange(draft.testType);
           }
         } else {
