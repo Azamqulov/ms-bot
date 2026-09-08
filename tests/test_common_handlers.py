@@ -25,9 +25,10 @@ async def test_show_help_displays_user_chat_id():
     message.answer.assert_called_once()
     sent_text = message.answer.call_args[0][0]
     
-    # Check that chat id is clearly included
+    # Check that chat id and heading are clearly included
     assert "123456789" in sent_text
-    assert "Sizning Telegram Chat ID:" in sent_text
+    assert "BOTDAN FOYDALANISH BO'YICHA QO'LLANMA:" in sent_text
+    assert "Sizning Telegram chat ID raqamingiz:" in sent_text
     assert "Ali Valiyev" in sent_text
 
 
