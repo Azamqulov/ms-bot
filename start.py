@@ -43,8 +43,8 @@ def update_html_files(tunnel_url: str):
         root / "web" / "admin.html",
         root / "admin.html",
     ]
-    pattern = re.compile(r'const DEFAULT_API_BASE\s*=\s*"[^"]*";')
-    replacement = f'const DEFAULT_API_BASE = "{tunnel_url}";'
+    pattern = re.compile(r'(?:const|let)\s+DEFAULT_API_BASE\s*=\s*"[^"]*";')
+    replacement = f'let DEFAULT_API_BASE = "{tunnel_url}";'
     for f in html_files:
         if f.exists():
             text = f.read_text(encoding="utf-8")
