@@ -12,6 +12,7 @@ services:
     volumes:
       - ./uploads:/app/uploads
       - ./data:/app/data
+      - ./web:/app/web
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 30s

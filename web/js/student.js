@@ -207,9 +207,9 @@
       const el = document.getElementById('userDisplayName');
       if (!el) return;
       if (studentFullName && isValidPersonName(studentFullName)) {
-        el.innerText = `${studentFullName}${studentPhone ? ' (' + studentPhone + ')' : ''}`;
+        el.innerText = studentFullName;
       } else {
-        el.innerHTML = '<span style="color:var(--primary); font-weight:600; text-decoration:underline; cursor:pointer;" onclick="editStudentName()">Ism-familiyangizni kiriting ✍️</span>' + (studentPhone ? ` (${studentPhone})` : '');
+        el.innerHTML = '<span style="color:var(--primary); font-weight:600; text-decoration:underline; cursor:pointer;" onclick="editStudentName()">Ism-familiyangizni kiriting ✍️</span>';
       }
     }
 
