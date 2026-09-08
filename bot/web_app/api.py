@@ -11,7 +11,7 @@ import time
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Header
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Header, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -385,9 +385,82 @@ async def api_upload_image(
         return {"url": f"/uploads/{filename}", "filename": filename}
 
 
+def get_bot_instance() -> Optional[Any]:
+    bot = getattr(app.state, "bot", None)
+    if not bot and settings.BOT_TOKEN and "TEST_BOT_TOKEN" not in settings.BOT_TOKEN:
+        try:
+            from aiogram import Bot
+            from aiogram.enums import ParseMode
+            from aiogram.client.default import DefaultBotProperties
+            bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+        except Exception as e:
+            logger.warning(f"Aiogram Bot yaratishda xatolik: {e}")
+    return bot
+
+
+async def notify_creator_test_created(
+    admin_telegram_id: int,
+    test_code: str,
+    test_title: str,
+    question_count: int,
+    time_limit_min: int,
+):
+    """Admin yangi test yaratganda uning Telegram botiga darhol xabar, kod va bot manzilini yuborish"""
+    bot = get_bot_instance()
+    if not bot:
+        logger.warning(f"Bot instansiyasi mavjud emas, test ({test_code}) xabari yuborilmadi.")
+        return
+    try:
+        from urllib.parse import quote
+        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+        bot_username = "ms_matematikabot"
+        deep_link = f"https://t.me/{bot_username}?start={test_code}"
+        share_text = (
+            f"🎯 {test_title} test sinovi!\n\n"
+            f"🔑 Test kodi: {test_code}\n"
+            f"🤖 Bot manzili: @{bot_username}\n\n"
+            f"Testda qatnashish uchun bosing: {deep_link}"
+        )
+        share_url = f"https://t.me/share/url?url={quote(deep_link)}&text={quote(share_text)}"
+
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="📢 O'quvchilarga ulashish",
+                        url=share_url,
+                    )
+                ]
+            ]
+        )
+
+        msg_text = (
+            f"✅ <b>Test muvaffaqiyatli yaratildi va saqlandi!</b>\n\n"
+            f"📋 <b>Test nomi:</b> {test_title}\n"
+            f"🔑 <b>Test kodi (Kupon):</b> <code>{test_code}</code>\n"
+            f"❓ <b>Savollar soni:</b> {question_count} ta\n"
+            f"⏱ <b>Vaqt chegarasi:</b> {time_limit_min} daqiqa\n\n"
+            f"🤖 <b>Test topshirish boti:</b> @{bot_username}\n"
+            f"🔗 <b>To'g'ridan-to'g'ri havola:</b>\n{deep_link}\n\n"
+            f"📢 <i>Ushbu xabarni yoki kodni o'quvchilaringizga ulashing. O'quvchilar botga kirib kodni kiritish orqali darhol testda qatnashishlari mumkin!</i>"
+        )
+
+        await bot.send_message(
+            chat_id=admin_telegram_id,
+            text=msg_text,
+            parse_mode="HTML",
+            reply_markup=keyboard,
+        )
+        logger.info(f"Muallif ({admin_telegram_id}) ga test yaratilganligi haqida Telegram xabari yuborildi: {test_code}")
+    except Exception as e:
+        logger.error(f"Muallifga ({admin_telegram_id}) test xabarini yuborishda xatolik: {e}")
+
+
 @app.post("/api/admin/create-test")
 async def api_create_test(
     payload: CreateTestPayload,
+    background_tasks: BackgroundTasks,
     admin_telegram_id: int = Depends(require_admin_user),
 ):
     """Admin tomonidan yangi test yaratish (haqiqiy tasdiqlangan admin_telegram_id ishlatiladi)"""
@@ -409,6 +482,16 @@ async def api_create_test(
 
     if not success or not test_obj:
         raise HTTPException(status_code=400, detail=msg)
+
+    # Muallifning Telegram botiga test kodi va bot manzilini darhol orqa fonda yuborish
+    background_tasks.add_task(
+        notify_creator_test_created,
+        admin_telegram_id=admin_telegram_id,
+        test_code=test_obj.code,
+        test_title=test_obj.title,
+        question_count=test_obj.question_count,
+        time_limit_min=test_obj.time_limit_min,
+    )
 
     return {
         "success": True,
@@ -536,16 +619,8 @@ async def api_send_telegram_stats(
     messages = format_telegram_stats_post(stats)
     full_text = "\n\n".join(messages)
 
-    # Bot nusxasini olish yoki yaratish
-    bot = getattr(app.state, "bot", None)
-    if not bot and settings.BOT_TOKEN and "TEST_BOT_TOKEN" not in settings.BOT_TOKEN:
-        try:
-            from aiogram import Bot
-            from aiogram.enums import ParseMode
-            from aiogram.client.default import DefaultBotProperties
-            bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-        except Exception as e:
-            logger.warning(f"Aiogram Bot yaratishda xatolik: {e}")
+    # Bot nusxasini olish
+    bot = get_bot_instance()
 
     # Manzilni tozalash va aniqlash
     raw_target = payload.target_chat.strip() if (payload and payload.target_chat and payload.target_chat.strip()) else ""

@@ -113,6 +113,11 @@
   3) `.toast` butunlay yangilandi: ekranning yuqori markaziga (`top: 20px, left: 50%`) ko'chirildi, SVG ikonkalar bilan boyitildi va z-index: 3500 qilib ko'rinarliligi kafolatlandi.
   4) Backendda tranzaksiyaning IntegrityError xatosi ushlanib, foydalanuvchiga doim aniq o'zbek tilida tushunarli javob qaytarilishi ta'minlandi. Barcha 30 ta test 100% muvaffaqiyatli o'tdi.
 
+- [x] [2026-09-08] Test muvaffaqiyatli saqlanganda muallifning Telegram botiga avtomatik xabar va havola yuborish hamda `@ms_matematikabot` integratsiyasi to'liq joriy qilindi:
+  1) Backendda (`bot/web_app/api.py`) `notify_creator_test_created` background taski ulandi: yangi test yaratilishi bilanoq test nomi, kodi, savollar soni, vaqti, `@ms_matematikabot` manzili va to'g'ridan-to'g'ri `https://t.me/ms_matematikabot?start={code}` havolasi bilan birga muallifning shaxsiy Telegram botiga chiroyli xabar yuboriladi.
+  2) O'quvchilar guruhlari/kanallariga bitta tugma bilan ulashish uchun `📢 O'quvchilarga ulashish` (Telegram share URL) inline tugmasi joylandi.
+  3) WebApp muvaffaqiyatli saqlash modalida (`#successModal`) va kod nusxalash funksiyasida (`copySuccessTestCode`) rasmiy bot manzili `@ms_matematikabot` ga to'g'rilandi. Barcha 31 ta test 100% muvaffaqiyatli o'tdi.
+
 ## 📋 Roadmap & Upcoming Tasks (Backlog)
 - [ ] Faza 2: Savollar uchun video/matnli yechimlar havolasi.
 - [ ] Faza 2: Mavzular (bo'limlar) bo'yicha tahlil.

@@ -1,18 +1,568 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="uz" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel — Yo'naltirilmoqda...</title>
-  <script>
-    (function() {
-      var target = "web/admin.html" + window.location.search + window.location.hash;
-      window.location.replace(target);
-    })();
-  </script>
-  <meta http-equiv="refresh" content="0; url=web/admin.html">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Test qo'shish — Milliy Sertifikat Admin</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- KaTeX for Beautiful Math Formula Rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
+  <!-- Flatpickr for Date & Time Selection -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+  <link rel="stylesheet" href="css/admin.css">
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 40px; background: #f8fafc; color: #334155;">
-  <p>Admin panel yuklanmoqda... Agar sahifa ochilmasa, <a href="web/admin.html" style="color: #2563eb; font-weight: 600;">bu yerni bosing</a>.</p>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <h1>
+        <svg class="icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        <span id="pageHeaderTitle">Test qo'shish</span>
+      </h1>
+      <div class="header-actions">
+        <button class="icon-btn" id="btnResetDraft" title="Formani tozalash" onclick="confirmResetDraft()">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+        </button>
+        <button class="icon-btn" id="themeToggle" title="Mavzuni almashtirish">
+          <svg class="icon" id="themeIcon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        </button>
+        <button class="icon-btn" onclick="handleExitAdmin()" title="Yopish">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Navigation Switcher -->
+    <div class="admin-nav-bar">
+      <button type="button" class="admin-nav-btn active" id="navCreateTab" onclick="switchAdminTab('create')">
+        <svg class="icon" style="width:16px; height:16px;" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Yangi test yaratish
+      </button>
+      <button type="button" class="admin-nav-btn" id="navListTab" onclick="switchAdminTab('list')">
+        <svg class="icon" style="width:16px; height:16px;" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+        Mening testlarim (<span id="myTestsCount">0</span>)
+      </button>
+    </div>
+
+    <!-- ================= TAB 1: TEST YARATISH FORMASI ================= -->
+    <div class="form-body" id="createTestForm">
+      <!-- Edit Mode Banner -->
+      <div id="editModeBanner" style="display:none; align-items:center; justify-content:space-between; background:var(--primary-light); border:1px solid var(--primary-border); border-radius:8px; padding:10px 14px; margin-bottom:14px;">
+        <div style="font-size:13px; font-weight:600; color:var(--primary); display:flex; align-items:center; gap:8px;">
+          <svg class="icon" style="width:16px; height:16px;" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          <span id="editModeText">Test javoblarini tahrirlash</span>
+        </div>
+        <button type="button" class="btn-action-small" onclick="cancelEditMode()" style="background:var(--card-bg); font-size:11px; padding:4px 8px; color:var(--text);">
+          Bekor qilish
+        </button>
+      </div>
+        <!-- Test nomi -->
+      <div class="form-group">
+        <label class="form-label">Test nomi</label>
+        <input type="text" class="form-input" id="testTitle" placeholder="Masalan: Milliy Sertifikat Matematika (1-variant)" value="" oninput="scheduleAutosave()">
+      </div>
+
+      <!-- Test turi -->
+      <div class="form-group">
+        <label class="form-label">Test turi</label>
+        <div class="custom-select-wrap" id="selectTestType">
+          <div class="custom-select-display">
+            <span class="selected-text">Doimiy test</span>
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+          <div class="custom-select-options">
+            <div class="custom-option selected" data-value="permanent">Doimiy test</div>
+            <div class="custom-option" data-value="timed">Vaqtli test</div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Vaqt chegarasi (Doimiy va Vaqtli test uchun) -->
+      <div class="form-group" id="testTimeLimitGroup">
+        <label class="form-label">Vaqt (daqiqa)</label>
+        <input type="number" class="form-input" id="testTimeLimit" value="150" min="1" max="600" step="1"
+               onkeydown="if(['-', '+', 'e', 'E', '.'].includes(event.key)) event.preventDefault();"
+               oninput="this.value = this.value.replace(/[^0-9]/g, ''); scheduleAutosave();"
+               onblur="if(!this.value || parseInt(this.value) < 1) this.value = 150;">
+      </div>
+
+      <!-- Test kodi (Har doim ko'rsatiladi, barcha testlar kodli) -->
+      <div class="form-group" id="testCodeGroup">
+        <label class="form-label">
+          <span>Test kodi (Kupon)</span>
+          <button type="button" style="background:none; border:none; color:var(--primary); font-size:11px; font-weight:600; cursor:pointer;" onclick="generateRandomCode()">Tasodifiy kod</button>
+        </label>
+        <input type="text" class="form-input" id="testCode" placeholder="Masalan: MS-2026-A" value="" style="text-transform:uppercase; font-weight:700;" oninput="this.value = this.value.toUpperCase(); scheduleAutosave();">
+      </div>
+
+      <!-- Faqat Vaqtli test tanlanganda chiqadigan bo'lim (Doimiy testda yashiriladi) -->
+      <div id="timedSettingsWrap" style="display:none; flex-direction:column; gap:18px;">
+        <!-- Boshlash vaqti -->
+        <div class="form-group" id="startTimeGroup">
+          <label class="form-label">Boshlash vaqti</label>
+          <div class="input-with-icon">
+            <input type="text" class="form-input" id="startTime" value="07.09.2026 09:00" placeholder="Sanani tanlang...">
+            <svg class="icon input-icon-right" id="calIconStart" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </div>
+          <p class="form-hint">Testga javob berish shu vaqtdan boshlanadi</p>
+        </div>
+
+        <!-- Tugash vaqti -->
+        <div class="form-group" id="endTimeGroup">
+          <label class="form-label">Tugash vaqti</label>
+          <div class="input-with-icon">
+            <input type="text" class="form-input" id="endTime" value="09.09.2026 23:59" placeholder="Sanani tanlang...">
+            <svg class="icon input-icon-right" id="calIconEnd" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </div>
+          <p class="form-hint">Bu vaqt tugagandan keyin testga qatnashish mumkin bo'lmaydi va javoblar avtomatik jo'natiladi</p>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 1–32 SAVOLLAR: BIR TO'G'RI JAVOBLI TESTLAR -->
+      <div class="section-title">
+        <div>
+          <span>1–32 Savollar (Klassik variantli testlar)</span>
+          <div style="font-size:12px; color:var(--text-sub); font-weight:500;">Har biri 4 ta variant (A, B, C, D)</div>
+        </div>
+        <button type="button" class="btn-quick-keys" onclick="openQuickKeysModal()">
+          <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          Tezkor kalitlar (1–35)
+        </button>
+      </div>
+
+      <div class="keys-container" id="keysList1to32">
+        <!-- 1 dan 32 gacha dinamik generatsiya qilinadi -->
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 33–35 SAVOLLAR: GURUHLANGAN TESTLAR (A–F) -->
+      <div class="section-title">
+        <div>
+          <span>33–35 Savollar (Guruhlangan testlar)</span>
+          <div style="font-size:12px; color:var(--text-sub); font-weight:500;">Har biri 6 ta variant (A, B, C, D, E, F) — to'g'ri kalitni belgilang</div>
+        </div>
+      </div>
+
+      <div class="keys-container" id="keysList33to35">
+        <!-- 33, 34, 35 toza kalit qatorlari dinamik chiqadi -->
+      </div>
+
+      <!-- Ixtiyoriy qo'shimcha kontekst matni yoki chizma -->
+      <div style="margin-top:6px; margin-bottom:16px;">
+        <button type="button" id="btnToggleGroupDetails" onclick="toggleGroupMetaDetails()" style="background:none; border:none; color:var(--text-sub); font-size:12px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:6px 0;">
+          <svg class="icon icon-sm" style="width:14px; height:14px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+          <span id="toggleGroupDetailsText">+ Kontekst matni yoki chizma qo'shish (ixtiyoriy)</span>
+        </button>
+
+        <div id="groupMetaDetailsWrap" style="display:none; margin-top:8px; background:var(--card-sub); border:1px dashed var(--border); border-radius:8px; padding:12px; flex-direction:column; gap:10px;">
+          <div style="font-size:12px; font-weight:600; color:var(--text-sub);">33–35-savollar uchun umumiy shart (ixtiyoriy):</div>
+          <div class="answer-field-wrap">
+            <input type="text" class="form-input" id="groupContextTextInput" style="height:38px; font-size:13px;" placeholder="Masalan: Parallelepiped shaklidagi yopiq quti..." onfocus="registerActiveInput(this)" oninput="saveGroupContextText(this.value)">
+            <div class="answer-tools">
+              <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('groupContextTextInput', 'symbols')" title="Formula">Σ</button>
+              <button type="button" class="tool-icon-btn" onclick="openKeyboardForSpecificInput('groupContextTextInput', 'greek')" title="Klaviatura">
+                <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6.01" y2="8"></line><line x1="10" y1="8" x2="10.01" y2="8"></line><line x1="14" y1="8" x2="14.01" y2="8"></line><line x1="18" y1="8" x2="18.01" y2="8"></line><line x1="6" y1="12" x2="6.01" y2="12"></line><line x1="10" y1="12" x2="10.01" y2="12"></line><line x1="14" y1="12" x2="14.01" y2="12"></line><line x1="18" y1="12" x2="18.01" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg>
+              </button>
+            </div>
+          </div>
+          <div class="katex-preview" id="katexPreview_groupContext" style="font-size:12px;">
+            Formula ko'rinishi shu yerda chiqadi...
+          </div>
+
+          <div style="font-size:12px; font-weight:600; color:var(--text-sub);">Umumiy chizma yoki masala rasmi:</div>
+          <div class="upload-action-row">
+            <button type="button" class="btn-upload" onclick="triggerFileUpload('groupContext')">
+              <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              Chizmani yuklash
+            </button>
+            <input type="text" class="form-input" id="groupImgUrlInput" style="flex:1; height:34px; font-size:12px;" placeholder="Yoki rasm URL havolasi..." oninput="saveGroupImage(this.value)">
+          </div>
+          <div id="imgPreviewBox_group" style="display:none;">
+            <div class="img-preview-wrap">
+              <img class="image-preview-thumbnail" id="imgThumb_group" src="" alt="Umumiy chizma">
+              <span style="font-size:12px; flex:1; color:var(--text-sub); word-break:break-all;" id="imgName_group"></span>
+              <button type="button" class="del-btn" onclick="removeGroupImage()" title="Rasmni o'chirish">
+                <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Checkbox: Yozma javoblarni avtomatik tekshirish -->
+      <div class="feature-card" onclick="toggleCheckbox('autoCheck')">
+        <div class="custom-checkbox checked" id="cb_autoCheck">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <div class="feature-info">
+          <div class="feature-title">Yozma javoblarni avtomatik tekshirish</div>
+          <div class="feature-desc">
+            Bu funksiya yoqilgan bo'lsa, o'quvchilar javob yuborganda tizim ularni avtomatik tekshiradi. Siz quyida har bir variant uchun to'g'ri javob variantlarini kiriting. O'quvchi shulardan birisini yozsa, avtomatik to'g'ri deb hisoblanadi.
+            <br><b>Eslatma:</b> Avtomatik tekshirilgan javoblarni keyinchalik o'qituvchi qayta ko'rib chiqishi va bahoni o'zgartirishi mumkin.
+          </div>
+        </div>
+      </div>
+
+      <!-- Checkbox: Test yakunlangandan keyin natijalarni yashirish -->
+      <div class="feature-card plain" onclick="toggleCheckbox('hideAnswers')">
+        <div class="custom-checkbox" id="cb_hideAnswers">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <div class="feature-info">
+          <div class="feature-title">Test yakunlangandan keyin natijalarni yashirish</div>
+          <div class="feature-desc">
+            Bu funksiya yoqilgan bo'lsa, o'quvchilar testni yakunlaganda natijalar va to'g'ri javoblar ko'rsatilmaydi ("Natijalarni ustozingiz e'lon qiladi" xabari beriladi). Natijalar faqat ustozning o'ziga boradi.
+          </div>
+        </div>
+      </div>
+
+      <!-- Yozish rejimini tanlang banner -->
+      <div style="background:var(--primary-light); border:1px solid var(--primary-border); border-radius:8px; padding:12px 14px;">
+        <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px;">Yozish rejimini tanlang</div>
+        <div style="font-size:12px; color:var(--text-sub); line-height:1.4;">
+          O'quvchilar 36-45 gacha bo'lgan savollarni yozadi. Quyida har bir savol uchun nechta variant borligini belgilang (odatiy holda 2 ta: a, b).
+        </div>
+      </div>
+
+      <!-- 36 dan 45 gacha Ochiq Savollar Kartochkalari -->
+      <div id="openQuestionsContainer" style="display:flex; flex-direction:column; gap:14px;">
+        <!-- Dinamik render qilinadi -->
+      </div>
+
+      <!-- Submit Section -->
+      <div class="submit-section">
+        <button type="button" class="btn-publish" id="btnPublishTest" onclick="publishFullTest()">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          TESTNI CHIQARISH VA SAQLASH
+        </button>
+      </div>
+    </div>
+
+    <!-- ================= TAB 2: MENING TESTLARIM (BOSHQARUV) ================= -->
+    <div id="testsListTab">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div style="font-size:16px; font-weight:700; color:var(--text);">Barcha yaratilgan testlar</div>
+        <button type="button" class="btn-action-small" onclick="loadMyTests()">
+          <svg class="icon" style="width:14px; height:14px;" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          Yangilash
+        </button>
+      </div>
+      <div id="testsListContainer" style="display:flex; flex-direction:column; gap:12px;">
+        <!-- Yuklanmoqda... -->
+        <div style="text-align:center; padding:30px 10px; color:var(--text-sub);">Testlar yuklanmoqda...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: TEZKOR KALITLARNI KIRITISH ================= -->
+  <div class="modal-overlay" id="quickKeysModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>Tezkor kalitlarni to'ldirish (1–35)</span>
+        <button type="button" class="icon-btn" style="border:none;" onclick="closeModal('quickKeysModal')">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px; color:var(--text-sub);">
+          35 ta savolning kalitlarini bir zumda joylang.
+          <br>Formatlar: <code>ABCDABCD...</code> yoki <code>A B C D...</code> yoki <code>1A 2B 3C...</code>
+        </p>
+        <textarea id="quickKeysInput" class="form-input" style="height:120px; padding:10px; font-family:monospace; font-size:15px; text-transform:uppercase;" placeholder="Masalan: ABCDABCDABCDABCDABCDABCDABCDABCDABCDA"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-action-small" onclick="closeModal('quickKeysModal')">Bekor qilish</button>
+        <button type="button" class="btn-action-small" style="background:var(--primary); color:#ffffff; border-color:var(--primary);" onclick="applyQuickKeys()">Kalitlarni o'rnatish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: MUVAFFAQIYATLI SAQLASH ================= -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal-card">
+      <div class="modal-body" style="text-align:center; padding:30px 20px 20px;">
+        <div style="width:60px; height:60px; border-radius:50%; background:var(--success-light); color:var(--success); display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">
+          <svg class="icon" style="width:36px; height:36px;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h3 style="font-size:18px; font-weight:700; color:var(--text); margin-bottom:6px;">Test muvaffaqiyatli saqlandi!</h3>
+        <p style="font-size:13px; color:var(--text-sub); margin-bottom:16px;" id="successModalDesc">Test kodi orqali o'quvchilar testni boshlashlari mumkin.</p>
+
+        <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:14px; text-align:left;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:11px; font-weight:600; color:var(--text-sub); margin-bottom:2px;">TEST KODI:</div>
+              <div style="font-size:20px; font-weight:800; color:var(--primary); letter-spacing:1px;" id="successModalCode">MS-2026-A</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:11px; font-weight:600; color:var(--text-sub); margin-bottom:2px;">TEST BOTI:</div>
+              <a href="https://t.me/ms_matematikabot" target="_blank" style="font-size:13px; font-weight:700; color:var(--primary); text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                @ms_matematikabot
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button type="button" class="btn-publish" style="height:44px; font-size:13px;" onclick="copySuccessTestCode()">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            KOD VA HAVOLANI NUSXALASH
+          </button>
+          <button type="button" class="btn-action-small" style="height:40px; justify-content:center;" onclick="viewCreatedTest()">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            Web-ilovada testni ochish
+          </button>
+          <button type="button" class="btn-action-small" style="height:40px; justify-content:center;" onclick="closeModal('successModal'); switchAdminTab('list');">
+            Mening testlarimga o'tish
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: TASDIQLASH DIALOGI ================= -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span id="confirmModalTitle">Tasdiqlash</span>
+        <button type="button" class="icon-btn" style="border:none;" onclick="closeModal('confirmModal')">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="confirmModalBody">
+        Haqiqatan ham ushbu amalni bajarmoqchimisiz?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-action-small" onclick="closeModal('confirmModal')">Bekor qilish</button>
+        <button type="button" class="btn-action-small danger" id="btnConfirmAction">Ha, bajarish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: OGOHLANTIRISH / XATOLIK DIALOGI ================= -->
+  <div class="modal-overlay" id="alertModal" style="z-index: 3100;">
+    <div class="modal-card" style="max-width: 440px; text-align: center; padding: 26px 22px 20px;">
+      <div id="alertModalIcon" style="width: 58px; height: 58px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: var(--danger); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+        <svg class="icon" style="width: 32px; height: 32px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      </div>
+      <h3 id="alertModalTitle" style="font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 8px;">Ogohlantirish</h3>
+      <p id="alertModalBody" style="font-size: 13px; color: var(--text-sub); margin-bottom: 20px; line-height: 1.5; white-space: pre-line;">Xatolik yuz berdi.</p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button type="button" class="btn-publish" style="height: 42px; width: 100%; font-size: 13px; justify-content: center;" id="btnAlertModalAction" onclick="closeModal('alertModal')">Tushundim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: TEST STATISTIKASI VA NATIJALARI ================= -->
+  <div class="modal-overlay" id="testStatsModal">
+    <div class="modal-card" style="max-width: 680px; max-height: 88vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <div>
+          <span id="statsModalTitle" style="font-size: 15px; font-weight: 700;">Test statistikasi</span>
+          <div id="statsModalSubtitle" style="font-size: 11px; color: var(--text-sub); margin-top: 2px;">Qatnashuvchilar natijalari</div>
+        </div>
+        <button type="button" class="icon-btn" style="border:none;" onclick="closeModal('testStatsModal')">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding: 16px; overflow-y: auto; flex: 1;">
+        <!-- KPI ko'rsatkichlar kartochkalari -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px;" id="statsKpiGrid">
+          <div style="background: var(--card-sub); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <svg class="icon icon-xs" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              <span>Qatnashuvchilar</span>
+            </div>
+            <div style="font-size: 18px; font-weight: 800; color: var(--text);" id="kpiParticipants">0 ta</div>
+          </div>
+          <div style="background: var(--card-sub); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <svg class="icon icon-xs" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <span>O'rtacha ball</span>
+            </div>
+            <div style="font-size: 18px; font-weight: 800; color: var(--primary);" id="kpiAvgScore">0.0</div>
+          </div>
+          <div style="background: var(--card-sub); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+              <span>Eng yuqori ball</span>
+            </div>
+            <div style="font-size: 18px; font-weight: 800; color: var(--success);" id="kpiHighestScore">0.0</div>
+          </div>
+          <div style="background: var(--card-sub); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <svg class="icon icon-xs" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <span>Sertifikat olganlar</span>
+            </div>
+            <div style="font-size: 18px; font-weight: 800; color: #8b5cf6;" id="kpiCertified">0 ta</div>
+          </div>
+        </div>
+
+        <!-- Qidiruv qatori -->
+        <div style="margin-bottom: 12px; position: relative;">
+          <input type="text" class="form-input" id="statsSearchInput" placeholder="O'quvchi ism-familiyasi yoki telefonini qidirish..." style="height: 36px; font-size: 12px; padding-left: 32px;" oninput="filterStatsList(this.value)">
+          <svg class="icon" style="position: absolute; left: 10px; top: 11px; width: 14px; height: 14px; color: var(--text-sub);" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </div>
+
+        <!-- Natijalar ro'yxati -->
+        <div id="statsTableContainer">
+          <!-- Dinamik ro'yxat chiqadi -->
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <span style="font-size: 11px; color: var(--text-sub);" id="statsFooterInfo">Jami: 0 ta natija</span>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button type="button" class="btn-action-small" id="btnSendStatsTelegram" onclick="sendStatsDirectlyToTelegram()" style="background: linear-gradient(135deg, #0284c7, #2563eb); color: #ffffff; border: none; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 6px rgba(37,99,235,0.25); transition: all 0.2s ease;">
+            <svg class="icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            <span>Telegramga post qilish</span>
+          </button>
+          <button type="button" class="btn-action-small" onclick="closeModal('testStatsModal')">Yopish</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: O'quvchi Savolma-Savol Javoblari Tahlili -->
+  <div class="modal-overlay" id="attemptDetailsModal" style="z-index: 2200;">
+    <div class="modal-card" style="max-width: 680px; max-height: 92vh; display: flex; flex-direction: column;">
+      <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+          <button type="button" class="btn-action-small" onclick="closeModal('attemptDetailsModal')" style="padding: 4px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; border-radius: 6px;" title="Natijalar ro'yxatiga qaytish">
+            <svg class="icon" style="width: 12px; height: 12px;" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>Orqaga</span>
+          </button>
+          <div style="min-width: 0;">
+            <div id="attemptDetailsTitle" style="font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Natija tahlili</div>
+            <div id="attemptDetailsSubtitle" style="font-size: 11px; color: var(--text-sub); margin-top: 1px;">Savollar bo'yicha batafsil tekshiruv</div>
+          </div>
+        </div>
+        <button type="button" class="icon-btn" style="border:none;" onclick="closeModal('attemptDetailsModal')">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding: 14px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 12px;">
+        <!-- Hero summary card (Talabgor ma'lumotlari va Ball) -->
+        <div id="attemptHeroCard" class="attempt-hero-card">
+          <!-- Dinamik to'ldiriladi -->
+        </div>
+
+        <!-- Filtr tugmalari (Barchasi, To'g'ri, Xato, Yechilmagan) -->
+        <div class="attempt-filters-bar" id="attemptFilterTabs">
+          <button type="button" class="attempt-filter-btn active" id="btnFilterAll" onclick="setAttemptFilter('all')">
+            <span>Barchasi (<span id="cntFilterAll">45</span>)</span>
+          </button>
+          <button type="button" class="attempt-filter-btn filter-correct" id="btnFilterCorrect" onclick="setAttemptFilter('correct')">
+            <svg class="icon icon-xs" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>To'g'ri (<span id="cntFilterCorrect">0</span>)</span>
+          </button>
+          <button type="button" class="attempt-filter-btn filter-wrong" id="btnFilterWrong" onclick="setAttemptFilter('wrong')">
+            <svg class="icon icon-xs" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <span>Xato (<span id="cntFilterWrong">0</span>)</span>
+          </button>
+          <button type="button" class="attempt-filter-btn filter-unanswered" id="btnFilterUnanswered" onclick="setAttemptFilter('unanswered')">
+            <svg class="icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><line x1="9" y1="12" x2="15" y2="12"></line></svg>
+            <span>Yechilmagan (<span id="cntFilterUnanswered">0</span>)</span>
+          </button>
+        </div>
+
+        <!-- 45-Savol Xaritasi (Quick Navigation Matrix) -->
+        <div class="matrix-box">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px;">Savollar xaritasi (1–45):</span>
+            <span style="font-size: 10px; color: var(--text-sub);">Savolga sakrash uchun raqamni bosing</span>
+          </div>
+          <div id="attemptMatrixGrid" class="matrix-bubble-grid">
+            <!-- Dinamik 1..45 pufakchalar -->
+          </div>
+        </div>
+
+        <!-- Savollar ro'yxati -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px;">
+            Savollar tahlili:
+          </div>
+          <div id="attemptAnswersList" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Dinamik savollar kartochkalari -->
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <span style="font-size: 11px; color: var(--text-sub);" id="attemptFooterSummary">45 ta savoldan iborat</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" class="btn-action-small" id="btnDeleteAttemptInModal" style="color:var(--danger); border-color:var(--danger); background:rgba(239, 68, 68, 0.08); display:inline-flex; align-items:center; gap:5px;" onclick="deleteCurrentAttemptFromModal()" title="Ushbu talabgor natijasini butunlay o'chirish">
+            <svg class="icon icon-xs" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span>Natijani o'chirish</span>
+          </button>
+          <button type="button" class="btn-action-small" onclick="closeModal('attemptDetailsModal')">Yopish</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden File Input for Image Uploads -->
+  <input type="file" id="globalImageFileInput" accept="image/*" style="display:none;" onchange="handleFileSelected(this)">
+
+  <!-- ================= VIRTUAL FORMULA KEYBOARD ================= -->
+  <div class="keyboard-drawer" id="mathKeyboard">
+    <div class="kb-header">
+      <div class="kb-tabs">
+        <button type="button" class="kb-tab" data-tab="123" onclick="switchKbTab('123')">123</button>
+        <button type="button" class="kb-tab" data-tab="symbols" onclick="switchKbTab('symbols')">∞≠∈</button>
+        <button type="button" class="kb-tab" data-tab="abc" onclick="switchKbTab('abc')">abc</button>
+        <button type="button" class="kb-tab active" data-tab="greek" onclick="switchKbTab('greek')">αβγ</button>
+      </div>
+      <div class="kb-actions">
+        <button type="button" class="kb-action-btn" onclick="kbUndo()" title="Ortga">
+          <svg class="icon" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+        </button>
+        <button type="button" class="kb-action-btn" onclick="kbRedo()" title="Oldinga">
+          <svg class="icon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        </button>
+        <button type="button" class="kb-action-btn" onclick="kbCopy()" title="Nusxalash">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        </button>
+        <button type="button" class="kb-action-btn" onclick="closeKeyboard()" title="Yopish" style="color:var(--danger); margin-left:6px;">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="kb-keys-layout" id="kbKeysBody">
+      <!-- Dinamik tabga qarab tugmalar chiqadi -->
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toastMsg"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/admin.js"></script>
 </body>
 </html>

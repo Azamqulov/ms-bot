@@ -1502,7 +1502,7 @@
           resetCreateForm(true); // Yangi test uchun formani to'liq tozalab qo'yamiz
 
           document.getElementById('successModalCode').innerText = data.code;
-          document.getElementById('successModalDesc').innerText = `"${title}" testi muvaffaqiyatli saqlandi. O'quvchilar ushbu kod orqali testda qatnashishlari mumkin!`;
+          document.getElementById('successModalDesc').innerText = `"${title}" testi muvaffaqiyatli saqlandi va Telegram botingizga (@ms_matematikabot) xabar yuborildi. O'quvchilar ushbu kod orqali testda qatnashishlari mumkin!`;
           document.getElementById('successModal').classList.add('active');
 
           showToast(`Test saqlandi! Kod: ${data.code}`);
@@ -1552,9 +1552,9 @@
 
     function copySuccessTestCode() {
       if (!lastCreatedTestCode) return;
-      const text = `Milliy Sertifikat Test Kodi: ${lastCreatedTestCode}\nBot: @matematika_milliy_sertifikat_bot`;
+      const text = `🎯 Milliy Sertifikat Test Sinovi\n\n📝 Test kodi: ${lastCreatedTestCode}\n🤖 Test topshirish boti: @ms_matematikabot\n🔗 Havola: https://t.me/ms_matematikabot?start=${encodeURIComponent(lastCreatedTestCode)}\n\n💡 O'quvchilar botga kirib yoki havolani bosib, testda qatnashishlari mumkin!`;
       navigator.clipboard.writeText(text);
-      showToast("Kod va havola nusxalandi!");
+      showToast("Kod va bot manzili nusxalandi!");
     }
 
     function viewCreatedTest() {

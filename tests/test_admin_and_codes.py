@@ -606,5 +606,38 @@ async def test_api_delete_attempt_endpoint():
         assert res_repeat.status_code == 400
 
 
+@pytest.mark.asyncio
+async def test_create_test_triggers_creator_notification(monkeypatch):
+    """Admin yangi test yaratganda muallifga Telegram xabari va @ms_matematikabot havolasi yuborilishini tekshirish"""
+    from bot.web_app.api import notify_creator_test_created, app
+    from unittest.mock import AsyncMock, MagicMock
+
+    mock_bot = MagicMock()
+    mock_bot.send_message = AsyncMock()
+    monkeypatch.setattr(app.state, "bot", mock_bot, raising=False)
+
+    test_telegram_id = 987654321
+    code = "TEST-NOTIFY-99"
+    title = "Matematika Test Xabarnoma"
+
+    await notify_creator_test_created(
+        admin_telegram_id=test_telegram_id,
+        test_code=code,
+        test_title=title,
+        question_count=45,
+        time_limit_min=150,
+    )
+
+    assert mock_bot.send_message.called
+    call_args = mock_bot.send_message.call_args
+    assert call_args.kwargs["chat_id"] == test_telegram_id
+    msg_text = call_args.kwargs["text"]
+    assert code in msg_text
+    assert title in msg_text
+    assert "@ms_matematikabot" in msg_text
+    assert f"https://t.me/ms_matematikabot?start={code}" in msg_text
+
+
+
 
 
