@@ -714,6 +714,21 @@
       background: linear-gradient(135deg, #10b981, #059669);
       color: #fff;
       margin-bottom: 12px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
+
+    .grade-badge.grade-badge-certified {
+      background: linear-gradient(135deg, #10b981, #059669) !important;
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+    }
+
+    .grade-badge.grade-badge-failed {
+      background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+      box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+      font-size: 22px;
+      font-weight: 800;
+      padding: 10px 22px;
     }
 
     .score-number {

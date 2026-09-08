@@ -909,7 +909,16 @@
     // ================= NATIJA VA DIAGNOSTIKANI CHIQARISH =================
     function displayResult(res) {
       showScreen('screenResult');
-      document.getElementById('resGrade').innerText = res.grade;
+      const gradeEl = document.getElementById('resGrade');
+      gradeEl.innerText = res.grade;
+      if (res.is_certified) {
+        gradeEl.classList.remove('grade-badge-failed');
+        gradeEl.classList.add('grade-badge-certified');
+      } else {
+        gradeEl.classList.remove('grade-badge-certified');
+        gradeEl.classList.add('grade-badge-failed');
+      }
+
       document.getElementById('resFinalScore').innerText = `${res.final_score.toFixed(1)} / 75`;
       document.getElementById('resRawScore').innerText = `${res.raw_score} / ${res.total_items}`;
       document.getElementById('resTheta').innerText = `${res.theta >= 0 ? '+' : ''}${res.theta.toFixed(2)} logit`;
