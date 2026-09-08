@@ -1439,8 +1439,8 @@
       }
     }
 
-    // Backend API Base URL Resolver (100% Avtomatik)
-    const DEFAULT_API_BASE = "https://recipient-acquire-distant-implications.trycloudflare.com";
+    // Backend API Base URL Resolver (100% Avtomatik va O'z-o'zini tiklovchi)
+    let DEFAULT_API_BASE = "https://recipient-acquire-distant-implications.trycloudflare.com";
 
     function getApiBaseUrl() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -1450,14 +1450,37 @@
         localStorage.setItem('MS_API_BASE_URL', clean);
         return clean;
       }
-      const saved = localStorage.getItem('MS_API_BASE_URL');
-      if (saved && !saved.includes('localhost')) return saved;
-      if (!window.location.hostname.includes('github.io')) {
-        return window.location.origin;
+      if (window.location.hostname.includes('github.io')) {
+        return DEFAULT_API_BASE;
       }
+      const saved = localStorage.getItem('MS_API_BASE_URL');
+      if (saved && !saved.includes('localhost') && !saved.includes('trycloudflare.com')) return saved;
       return DEFAULT_API_BASE;
     }
-    const API_BASE = getApiBaseUrl(); 
+    let API_BASE = getApiBaseUrl();
+
+    // Avtomatik qayta urinish va o'z-o'zini tiklovchi API so'rov funksiyasi
+    async function apiFetch(path, options = {}) {
+      const cleanPath = path.startsWith('/') ? path : `/${path}`;
+      let targetBase = API_BASE;
+      try {
+        const res = await fetch(`${targetBase}${cleanPath}`, options);
+        return res;
+      } catch (err) {
+        if (DEFAULT_API_BASE && targetBase !== DEFAULT_API_BASE) {
+          console.warn("[API] Ulanish xatosi! DEFAULT_API_BASE ga o'tilmoqda:", DEFAULT_API_BASE);
+          try {
+            const fallbackRes = await fetch(`${DEFAULT_API_BASE}${cleanPath}`, options);
+            API_BASE = DEFAULT_API_BASE;
+            localStorage.setItem('MS_API_BASE_URL', DEFAULT_API_BASE);
+            return fallbackRes;
+          } catch (fallbackErr) {
+            console.error("[API] Fallback ham ulanmadi:", fallbackErr);
+          }
+        }
+        throw err;
+      }
+    } 
 
 
     let currentTest = null;
@@ -1563,7 +1586,7 @@
       // 5. Agar studentTelegramId bo'lsa, backend bazasidan to'liq ma'lumotlarni tekshirish
       if (studentTelegramId) {
         try {
-          const res = await fetch(`${API_BASE}/api/user/${studentTelegramId}`);
+          const res = await apiFetch(`/api/user/${studentTelegramId}`);
           if (res.ok) {
             const data = await res.json();
             if (data.phone_number && !studentPhone) {
@@ -1645,9 +1668,9 @@
 
       // Serverda ham foydalanuvchi profilini yangilash
       const tgId = (new URLSearchParams(window.location.search)).get('tg_id') || tg?.initDataUnsafe?.user?.id;
-      if (tgId && API_BASE) {
+      if (tgId) {
         try {
-          await fetch(`${API_BASE}/api/user/update-profile`, {
+          await apiFetch('/api/user/update-profile', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1748,9 +1771,8 @@
       }
 
       showToast("Test yuklanmoqda...");
-
       try {
-        const res = await fetch(`${API_BASE}/api/test/${encodeURIComponent(code)}`);
+        const res = await apiFetch(`/api/test/${encodeURIComponent(code)}`);
         if (res.status === 404) {
           showToast(`Kechirasiz, '${code}' kodli test topilmadi! Kodni to'g'ri kiritganingizni tekshiring.`, true);
           return;
@@ -2238,7 +2260,7 @@
       }
 
       try {
-        const res = await fetch(`${API_BASE}/api/test/submit`, {
+        const res = await apiFetch('/api/test/submit', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({

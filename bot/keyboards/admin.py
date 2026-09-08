@@ -23,6 +23,10 @@ def get_admin_dashboard_keyboard(is_super: bool) -> InlineKeyboardMarkup:
     else:
         admin_url = base_admin_url
 
+    import time
+    delimiter = "&" if "?" in admin_url else "?"
+    admin_url = f"{admin_url}{delimiter}v={int(time.time())}"
+
     builder.row(
         InlineKeyboardButton(
             text="🌐 Veb Konstruktorni ochish (TMA)",
