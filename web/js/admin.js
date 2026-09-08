@@ -64,6 +64,9 @@
         createForm.style.display = 'flex';
         listTab.style.display = 'none';
         headerTitle.innerText = "Test qo'shish";
+        if (editingTestId) {
+          resetCreateForm(true);
+        }
       } else {
         createBtn.classList.remove('active');
         listBtn.classList.add('active');
@@ -1001,6 +1004,7 @@
 
     // ================= AUTOSAVE & RESTORE =================
     function scheduleAutosave() {
+      if (editingTestId) return; // Tahrirlash rejimida qoralama (draft) ga yozmaymiz
       clearTimeout(autosaveTimer);
       autosaveTimer = setTimeout(() => {
         try {
@@ -1109,20 +1113,93 @@
       }
     }
 
+    function resetCreateForm(forceNewCode = true) {
+      editingTestId = null;
+      const banner = document.getElementById('editModeBanner');
+      if (banner) banner.style.display = 'none';
+
+      // Test nomi
+      const titleInput = document.getElementById('testTitle');
+      if (titleInput) titleInput.value = '';
+
+      // Test kodi
+      const codeInput = document.getElementById('testCode');
+      if (codeInput) {
+        codeInput.disabled = false;
+        if (forceNewCode) {
+          const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+          const randomLetter = letters[Math.floor(Math.random() * letters.length)];
+          const randomNum = Math.floor(1000 + Math.random() * 9000);
+          codeInput.value = `MS-${randomNum}-${randomLetter}`;
+        } else {
+          codeInput.value = '';
+        }
+      }
+
+      // Vaqt va sanalar
+      const timeInput = document.getElementById('testTimeLimit');
+      if (timeInput) timeInput.value = '150';
+      const startInput = document.getElementById('startTime');
+      if (startInput) startInput.value = '';
+      const endInput = document.getElementById('endTime');
+      if (endInput) endInput.value = '';
+      const channelInput = document.getElementById('requiredChannelInput');
+      if (channelInput) channelInput.value = '';
+
+      // Checkboxlar
+      checkboxStates.autoCheck = true;
+      checkboxStates.hideAnswers = false;
+      checkboxStates.reqSub = false;
+      ['autoCheck', 'hideAnswers', 'reqSub'].forEach(name => {
+        const elem = document.getElementById(`cb_${name}`);
+        if (elem) {
+          if (checkboxStates[name]) elem.classList.add('checked');
+          else elem.classList.remove('checked');
+        }
+      });
+      const chanWrap = document.getElementById('channelInputWrap');
+      if (chanWrap) chanWrap.classList.remove('open');
+
+      // Savollar keshini tozalash
+      for (let k in answers1to35) delete answers1to35[k];
+      for (let k in questionsMeta) delete questionsMeta[k];
+      for (let k in openQuestionsData) delete openQuestionsData[k];
+      for (let k in openQuestionsMeta) delete openQuestionsMeta[k];
+
+      groupContextData.text = '';
+      groupContextData.image = '';
+      groupContextData.options = { A: '', B: '', C: '', D: '', E: '', F: '' };
+      const grpText = document.getElementById('groupContextText');
+      if (grpText) grpText.value = '';
+      const grpPreview = document.getElementById('katexPreview_group');
+      if (grpPreview) grpPreview.innerHTML = "Formula ko'rinishi shu yerda chiqadi...";
+
+      // Chiqarish tugmasini asliga qaytarish
+      const publishBtn = document.getElementById('btnPublishTest');
+      if (publishBtn) {
+        publishBtn.innerHTML = `
+          <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          TESTNI CHIQARISH VA SAQLASH
+        `;
+        publishBtn.style.background = '';
+      }
+
+      // Lokal qoralamani tozalaymiz
+      localStorage.removeItem('admin_draft_test');
+
+      // Qayta initsializatsiya
+      initQuestions1to32();
+      initQuestions1to35();
+      initOpenQuestions();
+    }
+
     function confirmResetDraft() {
       openConfirmModal(
         "Formani tozalash",
         "Haqiqatan ham kiritilgan barcha ma'lumotlarni tozalab, yangitdan boshlamoqchimisiz?",
         () => {
-          localStorage.removeItem('admin_draft_test');
-          for (let k in answers1to35) delete answers1to35[k];
-          for (let k in questionsMeta) delete questionsMeta[k];
-          for (let k in openQuestionsData) delete openQuestionsData[k];
-          for (let k in openQuestionsMeta) delete openQuestionsMeta[k];
-          initQuestions1to35();
-          initOpenQuestions();
-          generateRandomCode();
-          showToast("Forma tozalandi!");
+          resetCreateForm(true);
+          showToast("Forma muvaffaqiyatli tozalandi!");
         }
       );
     }
@@ -1157,6 +1234,17 @@
       }
       if (actualAccessType === 'open' && !code) {
         code = `MS-OPEN-${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+
+      // Takroriy kod tekshiruvi (yangi test yaratishda)
+      if (!editingTestId && window.myTestsCache && Array.isArray(window.myTestsCache)) {
+        const isDuplicate = window.myTestsCache.some(t => (t.code || '').trim().toUpperCase() === code);
+        if (isDuplicate) {
+          showToast(`"${code}" kodli test allaqachon mavjud! Iltimos, boshqa kod kiriting yoki 'Tasodifiy kod' tugmasini bosing.`, true);
+          const codeInp = document.getElementById('testCode');
+          if (codeInp) codeInp.focus();
+          return;
+        }
       }
 
       const publishBtn = document.getElementById('btnPublishTest');
@@ -1328,13 +1416,14 @@
 
         if (res.ok && data.success) {
           lastCreatedTestCode = data.code;
-          localStorage.removeItem('admin_draft_test'); // tozalaymiz
+          resetCreateForm(true); // Yangi test uchun formani to'liq tozalab qo'yamiz
 
           document.getElementById('successModalCode').innerText = data.code;
           document.getElementById('successModalDesc').innerText = `"${title}" testi muvaffaqiyatli saqlandi. O'quvchilar ushbu kod orqali testda qatnashishlari mumkin!`;
           document.getElementById('successModal').classList.add('active');
 
           showToast(`Test saqlandi! Kod: ${data.code}`);
+          loadMyTests();
         } else {
           showToast("Xatolik: " + (data.detail || data.message || "Yuklab bo'lmadi"), true);
         }
@@ -1400,6 +1489,7 @@
         }
 
         if (res.ok && Array.isArray(data.tests)) {
+          window.myTestsCache = data.tests;
           document.getElementById('myTestsCount').innerText = data.tests.length;
 
           if (data.tests.length === 0) {
@@ -1556,7 +1646,10 @@
           ${participants.map((p, idx) => {
             const gradeColor = (p.grade && (p.grade.startsWith('A') || p.grade.startsWith('B'))) ? 'var(--success)' : (p.grade && p.grade.startsWith('C') ? 'var(--primary)' : 'var(--danger)');
             return `
-              <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:8px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:8px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; transition:all 0.15s ease;"
+                   onclick="openAttemptDetailsModal(${p.attempt_id})"
+                   onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-1px)';"
+                   onmouseout="this.style.borderColor='var(--border)'; this.style.transform='none';">
                 <div style="display:flex; align-items:center; gap:10px; min-width:0;">
                   <div style="width:28px; height:28px; border-radius:50%; background:${idx === 0 ? '#fef3c7' : (idx === 1 ? '#f1f5f9' : (idx === 2 ? '#ffedd5' : 'var(--border)'))}; color:${idx === 0 ? '#b45309' : (idx === 1 ? '#475569' : (idx === 2 ? '#c2410c' : 'var(--text-sub)'))}; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0;">
                     ${p.rank || idx + 1}
@@ -1585,6 +1678,9 @@
                       (${p.raw_score} ta to'g'ri)
                     </span>
                   </div>
+                  <div style="font-size:11px; color:var(--primary); font-weight:600; margin-top:3px;">
+                    Savollar tahlili 👉
+                  </div>
                 </div>
               </div>
             `;
@@ -1608,14 +1704,169 @@
       renderStatsParticipants(filtered);
     }
 
-    function openSendStatsDialog() {
-      if (!currentTestStatsData) {
-        showToast("Statistika ma'lumotlari topilmadi!", true);
+    // ================= TELEGRAMGA BIR BOSISHDA POST YUBORISH =================
+    async function sendStatsDirectlyToTelegram() {
+      if (!currentTestStatsData || !currentTestStatsData.test_id) {
+        showToast("Statistika ma'lumotlari mavjud emas!", true);
         return;
       }
-      const chatInp = document.getElementById('statsTargetChatInput');
-      if (chatInp) chatInp.value = '';
-      openModal('sendStatsDialogModal');
+
+      const btn = document.getElementById('btnSendStatsTelegram');
+      const origHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `
+          <svg class="icon spin" style="width:14px; height:14px;" viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+          <span>Yuborilmoqda...</span>
+        `;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/tests/${currentTestStatsData.test_id}/send-telegram-post`, {
+          method: 'POST',
+          headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({}) // bo'sh bo'lsa server to'g'ridan-to'g'ri adminning o'ziga yuboradi
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.detail || "Telegramga yuborib bo'lmadi");
+        }
+
+        // Shuningdek matnni clipboardga nusxalab qo'yamiz (ixtiyoriy foydalanish uchun)
+        if (data.post_text) {
+          try {
+            await navigator.clipboard.writeText(data.post_text);
+          } catch (e) {}
+        }
+
+        showToast("✅ Natijalar Telegram profilingizga yuborildi!");
+      } catch (err) {
+        showToast("Xatolik: " + err.message, true);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+        }
+      }
+    }
+
+    // ================= O'QUVCHINING HAR BIR SAVOLINI TAHLIL QILISH MODALI =================
+    async function openAttemptDetailsModal(attemptId) {
+      if (!attemptId) return;
+      try {
+        showToast("Savollar tahlili yuklanmoqda...");
+        const res = await fetch(`${API_BASE}/api/admin/attempts/${attemptId}/details`, {
+          headers: getAdminAuthHeaders()
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || "Savollar tahlilini yuklab bo'lmadi");
+        }
+        const data = await res.json();
+
+        const titleElem = document.getElementById('attemptDetailsTitle');
+        if (titleElem) titleElem.innerText = `${data.full_name || 'Talabgor'} — Natija tahlili`;
+
+        const subElem = document.getElementById('attemptDetailsSubtitle');
+        if (subElem) {
+          const certTxt = data.is_certified ? `✅ Sertifikat (${data.grade || ''})` : `❌ Sertifikat berilmadi`;
+          subElem.innerText = `${data.test_title || ''} • To'plangan: ${data.final_score} ball • ${certTxt}`;
+        }
+
+        const cElem = document.getElementById('attemptKpiCorrect');
+        if (cElem) cElem.innerText = `${data.correct_count || 0} ta`;
+
+        const wElem = document.getElementById('attemptKpiWrong');
+        if (wElem) wElem.innerText = `${data.wrong_count || 0} ta`;
+
+        const uElem = document.getElementById('attemptKpiUnanswered');
+        if (uElem) uElem.innerText = `${data.unanswered_count || 0} ta`;
+
+        const listContainer = document.getElementById('attemptAnswersList');
+        if (!listContainer) return;
+
+        const breakdown = data.breakdown || [];
+        if (breakdown.length === 0) {
+          listContainer.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-sub);">Savollar tahlili topilmadi.</div>`;
+        } else {
+          listContainer.innerHTML = breakdown.map(q => {
+            if (q.sub_parts && Array.isArray(q.sub_parts) && q.sub_parts.length > 0) {
+              // Ochiq savol (36-45)
+              const isAllCorr = q.status === 'correct';
+              const isPartCorr = q.status === 'partially_correct';
+              const isWrong = q.status === 'wrong';
+              const badgeBg = isAllCorr ? 'rgba(16, 185, 129, 0.15)' : (isPartCorr ? 'rgba(245, 158, 11, 0.15)' : (isWrong ? 'rgba(239, 68, 68, 0.15)' : 'rgba(148, 163, 184, 0.15)'));
+              const badgeColor = isAllCorr ? '#059669' : (isPartCorr ? '#d97706' : (isWrong ? '#dc2626' : '#64748b'));
+              const badgeText = isAllCorr ? "✅ To'liq to'g'ri" : (isPartCorr ? "⚠️ Qisman to'g'ri" : (isWrong ? "❌ Noto'g'ri" : "⚪️ Yechilmagan"));
+
+              return `
+                <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:8px;">
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                    <span style="font-weight:700; font-size:13px; color:var(--text);">${q.order_no}-savol (Ochiq savol):</span>
+                    <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; background:${badgeBg}; color:${badgeColor}; border:1px solid ${badgeColor}30;">
+                      ${badgeText}
+                    </span>
+                  </div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    ${q.sub_parts.map(p => {
+                      const pCorr = p.is_correct;
+                      const pAns = p.user_answer ? escapeHtml(p.user_answer) : "(bo'sh)";
+                      const pStatusColor = pCorr ? '#059669' : (p.user_answer ? '#dc2626' : '#64748b');
+                      const pIcon = pCorr ? '✅' : (p.user_answer ? '❌' : '⚪️');
+                      return `
+                        <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:6px; padding:6px 10px; font-size:11px;">
+                          <div style="font-weight:700; margin-bottom:4px; display:flex; justify-content:space-between; color:var(--text);">
+                            <span>${p.label.toUpperCase()}) band</span>
+                            <span>${pIcon}</span>
+                          </div>
+                          <div style="color:var(--text-sub); margin-bottom:2px;">
+                            Tanlangan: <b style="color:${pStatusColor};">${pAns}</b>
+                          </div>
+                          <div style="color:var(--text-sub);">
+                            To'g'ri: <b style="color:var(--success);">${escapeHtml(p.correct_answer || '-')}</b>
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              `;
+            } else {
+              // Variantli savol (1-35)
+              const isCorr = q.status === 'correct';
+              const isWrong = q.status === 'wrong';
+              const statusBg = isCorr ? 'rgba(16, 185, 129, 0.15)' : (isWrong ? 'rgba(239, 68, 68, 0.15)' : 'rgba(148, 163, 184, 0.15)');
+              const statusColor = isCorr ? '#059669' : (isWrong ? '#dc2626' : '#64748b');
+              const statusIcon = isCorr ? "✅ To'g'ri" : (isWrong ? "❌ Noto'g'ri" : "⚪️ Yechilmagan");
+              const userAnsText = q.user_answer ? escapeHtml(q.user_answer) : '(belgilanmagan)';
+
+              return `
+                <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:8px; padding:9px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-weight:700; font-size:13px; color:var(--text); min-width:65px;">${q.order_no}-savol:</span>
+                    <span style="font-size:12px; color:var(--text-sub);">
+                      Belgilangan: <b style="color:${statusColor};">${userAnsText}</b>
+                    </span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="font-size:12px; color:var(--text-sub);">
+                      To'g'ri javob: <b style="color:var(--success);">${escapeHtml(q.correct_answer || '-')}</b>
+                    </span>
+                    <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}30;">
+                      ${statusIcon}
+                    </span>
+                  </div>
+                </div>
+              `;
+            }
+          }).join('');
+        }
+
+        openModal('attemptDetailsModal');
+      } catch (err) {
+        showToast("Xatolik: " + err.message, true);
+      }
     }
 
     function buildStatsPostTextClient(data) {
@@ -1651,79 +1902,6 @@
         });
       }
       return post;
-    }
-
-    async function executeSendStatsTelegram() {
-      if (!currentTestStatsData || !currentTestStatsData.test_id) {
-        showToast("Statistika ma'lumotlari mavjud emas!", true);
-        return;
-      }
-
-      const btn = document.getElementById('btnExecuteSendTelegram');
-      const origText = btn ? btn.innerHTML : '';
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span>Yuborilmoqda...</span>';
-      }
-
-      const chatInp = document.getElementById('statsTargetChatInput');
-      const targetChat = chatInp ? chatInp.value.trim() : '';
-
-      try {
-        const payload = targetChat ? { target_chat: targetChat } : {};
-        const res = await fetch(`${API_BASE}/api/admin/tests/${currentTestStatsData.test_id}/send-telegram-post`, {
-          method: 'POST',
-          headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.detail || "Telegramga yuborib bo'lmadi");
-        }
-
-        const data = await res.json();
-
-        // Shuningdek matnni clipboardga nusxalash
-        if (data.post_text) {
-          try {
-            await navigator.clipboard.writeText(data.post_text);
-          } catch (e) {}
-        }
-
-        closeModal('sendStatsDialogModal');
-        showToast(data.message || "Natijalar Telegramga yuborildi!");
-      } catch (err) {
-        // Agar server xatosi bo'lsa yoki offline bo'lsa, mijoz tomonida matnni tayyorlab clipboardga nusxalash
-        const fallbackText = buildStatsPostTextClient(currentTestStatsData);
-        try {
-          await navigator.clipboard.writeText(fallbackText);
-          closeModal('sendStatsDialogModal');
-          showToast("Matn nusxalandi! Telegram kanalingizga joylashingiz mumkin.");
-        } catch (clipErr) {
-          showToast("Xatolik: " + err.message, true);
-        }
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = origText;
-        }
-      }
-    }
-
-    async function copyStatsPostToClipboard() {
-      if (!currentTestStatsData) {
-        showToast("Statistika ma'lumotlari topilmadi!", true);
-        return;
-      }
-      const text = buildStatsPostTextClient(currentTestStatsData);
-      try {
-        await navigator.clipboard.writeText(text);
-        closeModal('sendStatsDialogModal');
-        showToast("✅ Natijalar posti nusxalandi! Telegramga joylashingiz mumkin.");
-      } catch (err) {
-        showToast("Nusxalashda xatolik yuz berdi", true);
-      }
     }
 
     let editingTestId = null;
@@ -1831,21 +2009,8 @@
     }
 
     function cancelEditMode() {
-      editingTestId = null;
-      const banner = document.getElementById('editModeBanner');
-      if (banner) banner.style.display = 'none';
-
-      const codeInput = document.getElementById('testCode');
-      if (codeInput) codeInput.disabled = false;
-
-      const publishBtn = document.getElementById('btnPublishTest');
-      if (publishBtn) {
-        publishBtn.innerHTML = `
-          <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-          TESTNI CHIQARISH VA SAQLASH
-        `;
-        publishBtn.style.background = '';
-      }
+      resetCreateForm(true);
+      showToast("Yangi test yaratish rejimiga o'tildi");
     }
 
     async function toggleTestStatus(testId) {

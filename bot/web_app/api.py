@@ -33,6 +33,7 @@ from bot.services.admin_service import (
     get_test_details_admin,
     update_test_with_questions,
     get_test_participants_stats,
+    get_attempt_detailed_answers,
 )
 from bot.services.test_service import (
     get_or_create_user,
@@ -605,6 +606,20 @@ async def api_send_telegram_stats(
         "error": None,
         "message": f"Natijalar posti muvaffaqiyatli Telegramga ({target_chat}) yuborildi!",
     }
+
+
+@app.get("/api/admin/attempts/{attempt_id}/details")
+async def api_get_attempt_details(
+    attempt_id: int,
+    admin_telegram_id: int = Depends(require_admin_user),
+):
+    """Talabgorning ma'lum bir urinishi bo'yicha savolma-savol javoblari tahlilini olish"""
+    user = await get_or_create_user(admin_telegram_id, "Admin")
+    details = await get_attempt_detailed_answers(attempt_id, user.id)
+    if not details:
+        raise HTTPException(status_code=404, detail="Urinish ma'lumotlari topilmadi yoki ruxsat yo'q.")
+    return details
+
 
 
 

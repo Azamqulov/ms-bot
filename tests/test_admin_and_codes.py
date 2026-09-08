@@ -393,4 +393,121 @@ def test_format_telegram_stats_post():
     assert "Valiyev Ali</b> ------ 🎯 20 ta to'g'ri, ⭐️ 32.0 ball, ❌ Sertifikat berilmadi" in post
 
 
+@pytest.mark.asyncio
+async def test_duplicate_test_code_prevention():
+    """Bir xil kodli test yaratishga yo'l qo'ymaslikni tekshirish"""
+    import time
+    from bot.services.admin_service import create_test_with_questions
+
+    admin_user = await get_or_create_user(settings.SUPER_ADMIN_ID, "Super Admin")
+    unique_code = f"DUP-{int(time.time())}"
+
+    # 1. Birinchi marta yaratish muvaffaqiyatli
+    ok, msg, test1 = await create_test_with_questions(
+        creator_user_id=admin_user.id,
+        code=unique_code,
+        title="Original Test",
+        description="Original desc",
+        time_limit_min=150,
+        questions_data=[
+            {"order_no": 1, "type": "Y-1", "correct_answer": "A"}
+        ]
+    )
+    assert ok is True
+    assert test1.code == unique_code
+
+    # 2. Xuddi shu kod (yoki kichik harflar bilan) qayta yaratish rad etilishi shart
+    ok2, msg2, test2 = await create_test_with_questions(
+        creator_user_id=admin_user.id,
+        code=unique_code.lower(),
+        title="Duplicate Test",
+        description="Duplicate desc",
+        time_limit_min=150,
+        questions_data=[
+            {"order_no": 1, "type": "Y-1", "correct_answer": "B"}
+        ]
+    )
+    assert ok2 is False
+    assert test2 is None
+    assert "allaqachon mavjud" in msg2
+
+
+@pytest.mark.asyncio
+async def test_attempt_detailed_answers_breakdown():
+    """O'quvchining har bir savol bo'yicha javoblari va to'g'ri javoblari tahlilini tekshirish"""
+    import time
+    from bot.services.admin_service import create_test_with_questions, get_attempt_detailed_answers
+    from bot.database.models import User, Attempt, AttemptAnswer, Question
+    from bot.database.session import async_session_maker
+
+    admin_user = await get_or_create_user(settings.SUPER_ADMIN_ID, "Super Admin")
+    test_code = f"BRK-{int(time.time())}"
+    ok, msg, created_test = await create_test_with_questions(
+        creator_user_id=admin_user.id,
+        code=test_code,
+        title="Breakdown Test",
+        description="Breakdown desc",
+        time_limit_min=150,
+        questions_data=[
+            {"order_no": 1, "type": "Y-1", "correct_answer": "A"},
+            {"order_no": 2, "type": "Y-1", "correct_answer": "B"},
+            {"order_no": 36, "type": "O", "sub_parts": [{"label": "a", "correct_answer": "12"}]}
+        ]
+    )
+    assert ok is True
+
+    u = await get_or_create_user(telegram_id=98765400 + int(time.time() % 100000), full_name="Sinovchi O'quvchi")
+
+    async with async_session_maker() as session:
+        # Urinish yaratish
+
+        att = Attempt(
+            test_id=created_test.id,
+            user_id=u.id,
+            raw_score=1,
+            final_score=15.0,
+            grade="C",
+            is_certified=False,
+            status="completed"
+        )
+        session.add(att)
+        await session.flush()
+
+        # 1-savol to'g'ri ('A'), 2-savol xato ('C'), 36-savol javob berilmagan
+        from sqlalchemy import select
+        q1 = (await session.execute(select(Question).where(Question.test_id == created_test.id, Question.order_no == 1))).scalar_one()
+        q2 = (await session.execute(select(Question).where(Question.test_id == created_test.id, Question.order_no == 2))).scalar_one()
+
+        ans1 = AttemptAnswer(attempt_id=att.id, question_id=q1.id, user_answer="A", is_correct=True)
+        ans2 = AttemptAnswer(attempt_id=att.id, question_id=q2.id, user_answer="C", is_correct=False)
+        session.add_all([ans1, ans2])
+        await session.commit()
+        att_id = att.id
+        admin_uid = (await session.execute(select(User).where(User.telegram_id == settings.SUPER_ADMIN_ID))).scalar_one().id
+
+    # Detalizatsiyani chaqirib tekshirish
+    breakdown_data = await get_attempt_detailed_answers(attempt_id=att_id, admin_user_id=admin_uid)
+    assert breakdown_data is not None
+    assert breakdown_data["full_name"] == "Sinovchi O'quvchi"
+    assert breakdown_data["correct_count"] == 1
+    assert breakdown_data["wrong_count"] == 1
+    assert breakdown_data["unanswered_count"] == 1
+
+    items = breakdown_data["breakdown"]
+    assert len(items) == 3
+    # 1-savol: to'g'ri
+    assert items[0]["order_no"] == 1
+    assert items[0]["user_answer"] == "A"
+    assert items[0]["status"] == "correct"
+    # 2-savol: noto'g'ri
+    assert items[1]["order_no"] == 2
+    assert items[1]["user_answer"] == "C"
+    assert items[1]["correct_answer"] == "B"
+    assert items[1]["status"] == "wrong"
+    # 36-savol: yechilmagan
+    assert items[2]["order_no"] == 36
+    assert items[2]["status"] == "unanswered"
+
+
+
 

@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from bot.config import settings
 from bot.database.session import async_session_maker
-from bot.database.models import User, Test, Question, QuestionGroup, Attempt
+from bot.database.models import User, Test, Question, QuestionGroup, Attempt, AttemptAnswer
 
 
 def is_super_admin(telegram_id: int) -> bool:
@@ -135,8 +135,8 @@ async def create_test_with_questions(
         return False, "Savollar ro'yxati bo'sh bo'lishi mumkin emas.", None
 
     async with async_session_maker() as session:
-        # Kod band emasligini tekshirish
-        stmt = select(Test).where(Test.code == clean_code)
+        # Kod band emasligini tekshirish (katta-kichik harf farqsiz qat'iy tekshirish)
+        stmt = select(Test).where(func.upper(Test.code) == clean_code)
         res = await session.execute(stmt)
         if res.scalar_one_or_none():
             return False, f"'{clean_code}' kodi allaqachon mavjud! Boshqa kod tanlang.", None
@@ -493,3 +493,138 @@ async def update_test_with_questions(
 
         await session.commit()
         return True, "Test muvaffaqiyatli yangilandi!"
+
+
+async def get_attempt_detailed_answers(attempt_id: int, admin_user_id: int) -> Optional[Dict[str, Any]]:
+    """Talabgorning ma'lum bir urinishi bo'yicha har bir savol javobi tahlilini olish"""
+    async with async_session_maker() as session:
+        user_stmt = select(User).where(User.id == admin_user_id)
+        admin_user = (await session.execute(user_stmt)).scalar_one_or_none()
+
+        att_stmt = (
+            select(Attempt)
+            .options(
+                selectinload(Attempt.user),
+                selectinload(Attempt.test).selectinload(Test.questions),
+                selectinload(Attempt.answers),
+            )
+            .where(Attempt.id == attempt_id)
+        )
+        att = (await session.execute(att_stmt)).scalar_one_or_none()
+        if not att or not att.test:
+            return None
+
+        # Ruxsat tekshiruvi: faqat test egasi yoki super admin
+        is_super = admin_user and (admin_user.role == "super_admin" or is_super_admin(admin_user.telegram_id))
+        if admin_user and not is_super and att.test.created_by_user_id != admin_user_id:
+            return None
+
+        # Savollar tartibi bo'yicha tartiblash
+        questions = sorted(att.test.questions, key=lambda q: q.order_no)
+        # O'quvchi javoblarini lug'atga joylash: (question_id, sub_part_label) -> AttemptAnswer
+        ans_map = {}
+        for a in att.answers:
+            ans_map[(a.question_id, a.sub_part_label)] = a
+
+        breakdown = []
+        correct_count = 0
+        wrong_count = 0
+        unanswered_count = 0
+
+        for q in questions:
+            if q.type == "O":
+                # Ochiq savol (a va b qismlar)
+                sub_parts = q.sub_parts or [{"label": "a", "correct_answer": ""}, {"label": "b", "correct_answer": ""}]
+                parts_data = []
+                q_all_correct = True
+                q_has_any_answer = False
+
+                for sp in sub_parts:
+                    label = sp.get("label", "a")
+                    corr_val = str(sp.get("correct_answer", "")).strip()
+                    ans_obj = ans_map.get((q.id, label))
+                    user_val = ans_obj.user_answer.strip() if ans_obj else ""
+                    is_corr = ans_obj.is_correct if ans_obj else False
+
+                    if user_val:
+                        q_has_any_answer = True
+                    if is_corr:
+                        correct_count += 1
+                    else:
+                        q_all_correct = False
+                        if user_val:
+                            wrong_count += 1
+                        else:
+                            unanswered_count += 1
+
+                    parts_data.append({
+                        "label": label,
+                        "user_answer": user_val or None,
+                        "correct_answer": corr_val,
+                        "is_correct": is_corr,
+                        "status": "correct" if is_corr else ("wrong" if user_val else "unanswered"),
+                    })
+
+                breakdown.append({
+                    "question_id": q.id,
+                    "order_no": q.order_no,
+                    "type": "O",
+                    "text": q.text,
+                    "image_url": q.image_url,
+                    "sub_parts": parts_data,
+                    "is_correct": q_all_correct,
+                    "status": "correct" if q_all_correct else ("partially_correct" if any(p["is_correct"] for p in parts_data) else ("wrong" if q_has_any_answer else "unanswered")),
+                })
+            else:
+                # Y-1 yoki GROUPED savol
+                ans_obj = ans_map.get((q.id, None))
+                user_val = ans_obj.user_answer.strip() if ans_obj else ""
+                corr_val = str(q.correct_answer or "").strip()
+                is_corr = ans_obj.is_correct if ans_obj else False
+
+                if not user_val:
+                    status = "unanswered"
+                    unanswered_count += 1
+                elif is_corr:
+                    status = "correct"
+                    correct_count += 1
+                else:
+                    status = "wrong"
+                    wrong_count += 1
+
+                breakdown.append({
+                    "question_id": q.id,
+                    "order_no": q.order_no,
+                    "type": q.type,
+                    "text": q.text,
+                    "image_url": q.image_url,
+                    "options": q.options,
+                    "user_answer": user_val or None,
+                    "correct_answer": corr_val,
+                    "is_correct": is_corr,
+                    "status": status,
+                })
+
+        u = att.user
+        return {
+            "attempt_id": att.id,
+            "test_id": att.test.id,
+            "test_code": att.test.code,
+            "test_title": att.test.title,
+            "user_id": u.id if u else None,
+            "telegram_id": u.telegram_id if u else None,
+            "full_name": u.full_name if u else "Noma'lum",
+            "phone_number": u.phone_number if u else None,
+            "username": u.username if u else None,
+            "raw_score": att.raw_score,
+            "final_score": att.final_score,
+            "grade": att.grade,
+            "is_certified": att.is_certified,
+            "finished_at": att.finished_at.strftime("%d.%m.%Y %H:%M") if att.finished_at else "",
+            "total_items": len(breakdown),
+            "correct_count": correct_count,
+            "wrong_count": wrong_count,
+            "unanswered_count": unanswered_count,
+            "breakdown": breakdown,
+        }
+

@@ -74,11 +74,10 @@
           Bekor qilish
         </button>
       </div>
-
-      <!-- Test nomi -->
+        <!-- Test nomi -->
       <div class="form-group">
         <label class="form-label">Test nomi</label>
-        <input type="text" class="form-input" id="testTitle" placeholder="Masalan: Milliy Sertifikat Matematika (1-variant)" value="Milliy Sertifikat Matematika (1-variant)" oninput="scheduleAutosave()">
+        <input type="text" class="form-input" id="testTitle" placeholder="Masalan: Milliy Sertifikat Matematika (1-variant)" value="" oninput="scheduleAutosave()">
       </div>
 
       <!-- Test turi -->
@@ -112,7 +111,7 @@
           <span>Test kodi (Kupon)</span>
           <button type="button" style="background:none; border:none; color:var(--primary); font-size:11px; font-weight:600; cursor:pointer;" onclick="generateRandomCode()">Tasodifiy kod</button>
         </label>
-        <input type="text" class="form-input" id="testCode" placeholder="MS-2026-A" value="MS-2026-A" style="text-transform:uppercase; font-weight:700;" oninput="this.value = this.value.toUpperCase(); scheduleAutosave();">
+        <input type="text" class="form-input" id="testCode" placeholder="Masalan: MS-2026-A" value="" style="text-transform:uppercase; font-weight:700;" oninput="this.value = this.value.toUpperCase(); scheduleAutosave();">
       </div>
 
       <!-- Faqat Vaqtli test tanlanganda chiqadigan bo'lim (Doimiy testda yashiriladi) -->
@@ -410,7 +409,7 @@
       <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
         <span style="font-size: 11px; color: var(--text-sub);" id="statsFooterInfo">Jami: 0 ta natija</span>
         <div style="display: flex; gap: 8px; align-items: center;">
-          <button type="button" class="btn-action-small" id="btnSendStatsTelegram" onclick="openSendStatsDialog()" style="background: linear-gradient(135deg, #0284c7, #2563eb); color: #ffffff; border: none; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 6px rgba(37,99,235,0.25); transition: all 0.2s ease;">
+          <button type="button" class="btn-action-small" id="btnSendStatsTelegram" onclick="sendStatsDirectlyToTelegram()" style="background: linear-gradient(135deg, #0284c7, #2563eb); color: #ffffff; border: none; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 6px rgba(37,99,235,0.25); transition: all 0.2s ease;">
             <svg class="icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
             <span>Telegramga post qilish</span>
           </button>
@@ -420,44 +419,48 @@
     </div>
   </div>
 
-  <!-- Modal: Telegramga Post Yuborish Dialogi -->
-  <div class="modal-overlay" id="sendStatsDialogModal">
-    <div class="modal-card" style="max-width: 440px; padding: 20px;">
-      <div class="modal-header" style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(37,99,235,0.1); color: var(--primary); display: flex; align-items: center; justify-content: center;">
-            <svg class="icon" style="width: 18px; height: 18px;" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-          </div>
-          <div>
-            <div style="font-size: 15px; font-weight: 700; color: var(--text);">Telegramga post qilish</div>
-            <div style="font-size: 11px; color: var(--text-sub);">Natijalar va reytingni Telegramga chiqarish</div>
-          </div>
+  <!-- Modal: O'quvchi Savolma-Savol Javoblari Tahlili -->
+  <div class="modal-overlay" id="attemptDetailsModal" style="z-index: 1050;">
+    <div class="modal-card" style="max-width: 650px; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <div>
+          <span id="attemptDetailsTitle" style="font-size: 15px; font-weight: 700;">Natija tahlili</span>
+          <div id="attemptDetailsSubtitle" style="font-size: 11px; color: var(--text-sub); margin-top: 2px;">Savollar bo'yicha javoblar</div>
         </div>
-        <button type="button" class="icon-btn" style="border:none;" onclick="closeModal('sendStatsDialogModal')">
+        <button type="button" class="icon-btn" style="border:none;" onclick="closeModal('attemptDetailsModal')">
           <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
-      <div class="modal-body" style="padding: 4px 0 16px 0;">
-        <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 12px; line-height: 1.5;">
-          Qatnashuvchilarning to'plagan ballari, to'g'ri javoblar soni va sertifikat darajasi chiroyli post shaklida Telegramga yuboriladi.
-        </p>
-
-        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text);">
-          Yuboriladigan manzil (ixtiyoriy):
-        </label>
-        <input type="text" class="form-input" id="statsTargetChatInput" placeholder="Bo'sh qolsa profilingizga, yoki @kanal / guruh" style="height: 38px; font-size: 13px; margin-bottom: 14px;">
-
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <button type="button" class="btn btn-primary" id="btnExecuteSendTelegram" onclick="executeSendStatsTelegram()" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 42px; font-size: 13px;">
-            <svg class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-            <span>Postni yuborish</span>
-          </button>
-          <button type="button" class="btn btn-secondary" onclick="copyStatsPostToClipboard()" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 40px; font-size: 13px;">
-            <svg class="icon" style="width: 15px; height: 15px;" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            <span>Faqat matnni nusxalash</span>
-          </button>
+      <div class="modal-body" style="padding: 14px; overflow-y: auto; flex: 1;">
+        <!-- KPI ko'rsatkichlar -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;" id="attemptKpiGrid">
+          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 8px; text-align: center;">
+            <div style="font-size: 10px; color: #059669; font-weight: 600;">✅ To'g'ri</div>
+            <div style="font-size: 16px; font-weight: 800; color: #059669;" id="attemptKpiCorrect">0 ta</div>
+          </div>
+          <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 8px; text-align: center;">
+            <div style="font-size: 10px; color: #dc2626; font-weight: 600;">❌ Xato</div>
+            <div style="font-size: 16px; font-weight: 800; color: #dc2626;" id="attemptKpiWrong">0 ta</div>
+          </div>
+          <div style="background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 8px; padding: 8px; text-align: center;">
+            <div style="font-size: 10px; color: #64748b; font-weight: 600;">⚪️ Yechilmagan</div>
+            <div style="font-size: 16px; font-weight: 800; color: #64748b;" id="attemptKpiUnanswered">0 ta</div>
+          </div>
         </div>
+
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">
+          Barcha savollar bo'yicha javoblar:
+        </div>
+
+        <!-- Savollar ro'yxati -->
+        <div id="attemptAnswersList" style="display: flex; flex-direction: column; gap: 6px;">
+          <!-- Dinamik chiziladi -->
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; align-items: center;">
+        <button type="button" class="btn-action-small" onclick="closeModal('attemptDetailsModal')">Yopish</button>
       </div>
     </div>
   </div>
