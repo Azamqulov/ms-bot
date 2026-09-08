@@ -1263,7 +1263,7 @@
       const actualAccessType = 'closed';
       const startTime = (testType === 'timed') ? document.getElementById('startTime').value.trim() : null;
       const endTime = (testType === 'timed') ? document.getElementById('endTime').value.trim() : null;
-      const reqChannel = document.getElementById('requiredChannelInput').value.trim();
+      const reqChannel = document.getElementById('requiredChannelInput')?.value?.trim() || '';
 
       if (!title) {
         showAlertModal("Test nomi kiritilmagan", "Iltimos, test nomini kiriting!", true, () => {
