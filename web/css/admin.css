@@ -216,13 +216,20 @@
       display: flex;
       background: var(--card-sub);
       border-bottom: 1px solid var(--border);
-      padding: 6px 16px;
-      gap: 8px;
+      padding: 6px 12px;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .admin-nav-bar::-webkit-scrollbar {
+      display: none;
     }
 
     .admin-nav-btn {
-      flex: 1;
+      flex: 1 1 0;
+      min-width: 0;
       height: 40px;
+      padding: 0 10px;
       border: 1px solid transparent;
       border-radius: 8px;
       background: transparent;
@@ -234,6 +241,37 @@
       justify-content: center;
       gap: 6px;
       cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .nav-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--primary-light, rgba(37, 99, 235, 0.1));
+      color: var(--primary);
+      margin-left: 2px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .admin-nav-btn.active .nav-badge {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .nav-text-short {
+      display: none;
+    }
+    .nav-text-full {
+      display: inline;
     }
 
     .admin-nav-btn:hover {
@@ -250,6 +288,13 @@
       color: var(--primary);
       border-color: var(--border);
       box-shadow: var(--shadow-sm);
+    }
+
+    @media (max-width: 540px) {
+      .nav-text-full { display: none !important; }
+      .nav-text-short { display: inline !important; }
+      .admin-nav-btn { font-size: 12px; padding: 0 6px; gap: 4px; height: 38px; }
+      .admin-nav-bar { padding: 5px 8px; gap: 4px; }
     }
 
     /* Content Form */
@@ -1667,8 +1712,9 @@
 
     /* Extra small: 360px */
     @media (max-width: 360px) {
-      .admin-nav-btn span { display: none; }
-      .admin-nav-btn { width: 40px; }
+      .admin-nav-btn { font-size: 11px; padding: 0 4px; gap: 3px; }
+      .admin-nav-btn svg { width: 14px; height: 14px; }
+      .nav-badge { min-width: 16px; height: 16px; font-size: 10px; padding: 0 3px; }
 
       .key-options-grid { gap: 4px; }
       .key-option-btn { height: 32px; font-size: 12px; }
