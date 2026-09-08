@@ -111,7 +111,7 @@ async def test_create_and_access_test_by_code():
 
 
 @pytest.mark.asyncio
-async def test_admin_api_authentication_security():
+async def test_admin_api_authentication_security(monkeypatch):
     """
     Admin API endpointlari autentifikatsiya va avtorizatsiyasini to'liq tekshirish:
     - Headersiz so'rov -> 401
@@ -122,9 +122,15 @@ async def test_admin_api_authentication_security():
     """
     import time
     import uuid
+    from unittest.mock import AsyncMock, MagicMock
     from httpx import AsyncClient, ASGITransport
     from bot.web_app.api import app
     from bot.web_app.auth import create_mock_init_data
+
+    # CI/CD muhitida haqiqiy Telegram so'rovi Unauthorized bermasligi uchun botni mock qilish
+    mock_bot = MagicMock()
+    mock_bot.send_message = AsyncMock(return_value=MagicMock())
+    monkeypatch.setattr(app.state, "bot", mock_bot, raising=False)
 
     await init_db()
 
