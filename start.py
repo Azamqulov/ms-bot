@@ -35,6 +35,22 @@ def update_env(key: str, value: str):
         new_lines.append(f"{key}={value}")
     ENV_FILE.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
 
+def update_html_files(tunnel_url: str):
+    root = Path(__file__).parent
+    html_files = [
+        root / "web" / "index.html",
+        root / "index.html",
+        root / "web" / "admin.html",
+        root / "admin.html",
+    ]
+    pattern = re.compile(r'const DEFAULT_API_BASE\s*=\s*"[^"]*";')
+    replacement = f'const DEFAULT_API_BASE = "{tunnel_url}";'
+    for f in html_files:
+        if f.exists():
+            text = f.read_text(encoding="utf-8")
+            if pattern.search(text):
+                f.write_text(pattern.sub(replacement, text), encoding="utf-8")
+
 def cleanup(signum=None, frame=None):
     log("[STOP] Botva tunnel to'xtatilmoqda...")
     for p in processes:
@@ -86,11 +102,12 @@ if __name__ == "__main__":
     # 1. Tunnel ishga tushirish
     tunnel_url = start_tunnel()
 
-    # 2. .env yangilash
+    # 2. .env va HTML fayllarni yangilash
     if tunnel_url:
         update_env("API_SERVER_URL", tunnel_url)
+        update_html_files(tunnel_url)
         log(f"[OK] Tunnel: {tunnel_url}")
-        log("[OK] .env yangilandi")
+        log("[OK] .env va HTML fayllar yangilandi")
     else:
         log("[INFO] Tunnelsiz davom etilmoqda...")
 
