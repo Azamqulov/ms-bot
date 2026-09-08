@@ -532,11 +532,34 @@ async def api_send_telegram_stats(
         raise HTTPException(status_code=404, detail="Test topilmadi yoki statistikani ko'rishga ruxsat yo'q")
 
     messages = format_telegram_stats_post(stats)
-    bot = getattr(app.state, "bot", None)
+    full_text = "\n\n".join(messages)
 
-    target_chat = payload.target_chat.strip() if (payload and payload.target_chat and payload.target_chat.strip()) else admin_telegram_id
-    if isinstance(target_chat, str) and (target_chat.isdigit() or (target_chat.startswith("-") and target_chat[1:].isdigit())):
-        target_chat = int(target_chat)
+    # Bot nusxasini olish yoki yaratish
+    bot = getattr(app.state, "bot", None)
+    if not bot and settings.BOT_TOKEN and "TEST_BOT_TOKEN" not in settings.BOT_TOKEN:
+        try:
+            from aiogram import Bot
+            from aiogram.enums import ParseMode
+            from aiogram.client.default import DefaultBotProperties
+            bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+        except Exception as e:
+            logger.warning(f"Aiogram Bot yaratishda xatolik: {e}")
+
+    # Manzilni tozalash va aniqlash
+    raw_target = payload.target_chat.strip() if (payload and payload.target_chat and payload.target_chat.strip()) else ""
+    if raw_target:
+        # https://t.me/kanal yoki t.me/kanal kabi havolalarni tozalash
+        for prefix in ["https://t.me/", "http://t.me/", "t.me/"]:
+            if raw_target.lower().startswith(prefix):
+                raw_target = raw_target[len(prefix):]
+        if raw_target.isdigit() or (raw_target.startswith("-") and raw_target[1:].isdigit()):
+            target_chat = int(raw_target)
+        elif not raw_target.startswith("@"):
+            target_chat = f"@{raw_target}"
+        else:
+            target_chat = raw_target
+    else:
+        target_chat = admin_telegram_id
 
     sent_to_telegram = False
     send_error = None
@@ -551,25 +574,36 @@ async def api_send_telegram_stats(
                 )
             sent_to_telegram = True
         except Exception as e:
-            logger.warning(f"Telegram post yuborishda xatolik: {e}")
+            logger.error(f"Telegram post yuborishda xatolik ({target_chat}): {e}")
             send_error = str(e)
+    else:
+        send_error = "Telegram Bot ulanmagan yoki token kiritilmagan."
 
-    full_text = "\n\n".join(messages)
+    if not sent_to_telegram:
+        user_err = send_error or "Noma'lum xatolik"
+        if "chat not found" in str(send_error).lower():
+            user_err = f"'{target_chat}' chati/kanali topilmadi. Kanal nomi to'g'riligini va bot kanalga qo'shilganini tekshiring."
+        elif "bot was blocked" in str(send_error).lower():
+            user_err = "Bot siz tomondan bloklangan. Botga /start bosing."
+        elif "not enough rights" in str(send_error).lower() or "need administrator rights" in str(send_error).lower():
+            user_err = "Bot ushbu kanalda xabar yozish (adminlik) huquqiga ega emas. Botni kanalga admin qilib qo'shing."
+
+        return {
+            "success": False,
+            "sent_to_telegram": False,
+            "target_chat": str(target_chat),
+            "post_text": full_text,
+            "error": user_err,
+            "message": f"Telegramga yuborib bo'lmadi: {user_err} (Matn nusxalandi)",
+        }
+
     return {
         "success": True,
-        "sent_to_telegram": sent_to_telegram,
+        "sent_to_telegram": True,
         "target_chat": str(target_chat),
         "post_text": full_text,
-        "error": send_error,
-        "message": (
-            "Natijalar posti muvaffaqiyatli Telegramga yuborildi!"
-            if sent_to_telegram
-            else (
-                "Post matni tayyorlandi va nusxalandi!"
-                if not send_error
-                else f"Telegramga yuborishda xatolik: {send_error}. Matn nusxalandi."
-            )
-        ),
+        "error": None,
+        "message": f"Natijalar posti muvaffaqiyatli Telegramga ({target_chat}) yuborildi!",
     }
 
 

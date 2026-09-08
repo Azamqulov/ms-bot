@@ -38,15 +38,41 @@ def generate_certificate_image(
     base_img = Image.open(CERT_TEMPLATE_PATH).convert("RGBA")
     draw = ImageDraw.Draw(base_img)
 
-    # Shriftlarni tanlash
-    font_bold = "C:/Windows/Fonts/arialbd.ttf"
-    font_regular = "C:/Windows/Fonts/arial.ttf"
-    if not os.path.exists(font_bold):
-        font_bold = font_regular
+    # Shriftlarni cross-platform xavfsiz tanlash (Windows, Linux, Docker, GitHub Actions CI)
+    font_candidates = [
+        "C:/Windows/Fonts/arialbd.ttf",
+        "C:/Windows/Fonts/arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+    ]
+    font_path = next((f for f in font_candidates if os.path.exists(f)), None)
 
-    font_title = ImageFont.truetype(font_bold, 18)
-    font_field = ImageFont.truetype(font_bold, 15)
-    font_meta = ImageFont.truetype(font_bold, 13)
+    font_title = None
+    font_field = None
+    font_meta = None
+
+    if font_path:
+        try:
+            font_title = ImageFont.truetype(font_path, 18)
+            font_field = ImageFont.truetype(font_path, 15)
+            font_meta = ImageFont.truetype(font_path, 13)
+        except Exception:
+            pass
+
+    if not font_title:
+        try:
+            font_title = ImageFont.truetype("DejaVuSans", 18)
+            font_field = ImageFont.truetype("DejaVuSans", 15)
+            font_meta = ImageFont.truetype("DejaVuSans", 13)
+        except Exception:
+            default_font = ImageFont.load_default()
+            font_title = default_font
+            font_field = default_font
+            font_meta = default_font
 
     # Rasmiy to'q ko'k-qora rang
     text_color = (15, 30, 70, 255)

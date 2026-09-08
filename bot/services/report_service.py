@@ -2,6 +2,7 @@
 Test natijalarini chiroyli formatda taqdim etish servisi (Report Service).
 """
 
+import html
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from bot.database.models import Attempt, User
@@ -140,8 +141,8 @@ def format_telegram_stats_post(stats: Dict[str, Any]) -> List[str]:
     cert_cnt = stats.get("certified_count", 0)
     cert_pct = round((cert_cnt / completed_cnt * 100), 1) if completed_cnt > 0 else 0.0
 
-    test_title = stats.get("test_title", "Milliy Sertifikat Testi")
-    test_code = stats.get("test_code", "")
+    test_title = html.escape(str(stats.get("test_title", "Milliy Sertifikat Testi")))
+    test_code = html.escape(str(stats.get("test_code", "")))
     q_count = stats.get("question_count", 45)
     time_limit = stats.get("time_limit_min", 150)
     avg_score = stats.get("avg_score", 0.0)
@@ -168,11 +169,11 @@ def format_telegram_stats_post(stats: Dict[str, Any]) -> List[str]:
     lines = []
     for p in participants:
         rank = p.get("rank", 1)
-        name = p.get("full_name", "Noma'lum")
+        name = html.escape(str(p.get("full_name", "Noma'lum")))
         raw_score = p.get("raw_score", 0)
         final_score = p.get("final_score", 0.0)
         is_cert = p.get("is_certified", False)
-        grade = p.get("grade")
+        grade = html.escape(str(p.get("grade", ""))) if p.get("grade") else ""
 
         if is_cert:
             grade_label = f"{grade} (✅ Sertifikat berildi)" if grade else "✅ Sertifikat berildi"

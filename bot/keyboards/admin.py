@@ -72,10 +72,13 @@ def get_admin_test_stats_keyboard(test_id: int) -> InlineKeyboardMarkup:
     """Test statistikasi xabari ostidagi boshqaruv tugmalari"""
     builder = InlineKeyboardBuilder()
     builder.row(
+        InlineKeyboardButton(text="📢 Kanal/Guruhga post qilish", callback_data=f"adm_poststats_{test_id}"),
         InlineKeyboardButton(text="🔄 Yangilash", callback_data=f"adm_tstats_{test_id}"),
-        InlineKeyboardButton(text="📋 Barcha testlarim", callback_data="adm_my_tests"),
     )
-    builder.row(InlineKeyboardButton(text="🔙 Admin panelga qaytish", callback_data="adm_open_panel"))
+    builder.row(
+        InlineKeyboardButton(text="📋 Barcha testlarim", callback_data="adm_my_tests"),
+        InlineKeyboardButton(text="🔙 Admin panelga qaytish", callback_data="adm_open_panel"),
+    )
     return builder.as_markup()
 
 

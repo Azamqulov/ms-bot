@@ -248,3 +248,57 @@ async def handle_test_stats(callback: CallbackQuery):
         parse_mode="HTML"
     )
 
+
+@router.callback_query(F.data.startswith("adm_poststats_"))
+async def handle_post_stats_to_chat(callback: CallbackQuery, state: FSMContext):
+    """Statistika xabarini kanal yoki guruhga post qilish uchun so'rov"""
+    test_id = int(callback.data.replace("adm_poststats_", ""))
+    await state.update_data(stats_post_test_id=test_id)
+    await state.set_state(AdminState.waiting_stats_channel)
+    await callback.message.answer(
+        "📢 <b>Ushbu test statistikasini qaysi kanal yoki guruhga yubormoqchisiz?</b>\n\n"
+        "Kanal/guruh usernamesini kiriting (masalan <code>@kanal_nomi</code> yoki <code>-100...</code>):\n\n"
+        "<i>Eslatma: Bot ushbu kanalda xabar yozish huquqiga (adminlikka) ega bo'lishi kerak.</i>\n\n"
+        "Bekor qilish uchun /cancel deb yozing.",
+        parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@router.message(AdminState.waiting_stats_channel)
+async def process_stats_chat_target(message: Message, state: FSMContext):
+    if message.text and message.text.startswith("/cancel"):
+        await state.clear()
+        await message.answer("Bekor qilindi.")
+        return
+
+    data = await state.get_data()
+    test_id = data.get("stats_post_test_id")
+    target_chat = message.text.strip()
+    for prefix in ["https://t.me/", "http://t.me/", "t.me/"]:
+        if target_chat.lower().startswith(prefix):
+            target_chat = target_chat[len(prefix):]
+    if not target_chat.startswith("@") and not target_chat.lstrip("-").isdigit():
+        target_chat = f"@{target_chat}"
+    if target_chat.lstrip("-").isdigit():
+        target_chat = int(target_chat)
+
+    admin_user = await get_or_create_user(message.from_user.id, message.from_user.full_name or "Admin")
+    stats = await get_test_participants_stats(test_id, admin_user.id)
+    if not stats:
+        await message.answer("❌ Test topilmadi yoki statistikani yuborishga ruxsat yo'q.")
+        await state.clear()
+        return
+
+    from bot.services.report_service import format_telegram_stats_post
+    messages = format_telegram_stats_post(stats)
+    try:
+        for msg in messages:
+            await message.bot.send_message(chat_id=target_chat, text=msg, parse_mode="HTML")
+        await message.answer(f"✅ Statistika posti muvaffaqiyatli <b>{target_chat}</b> kanaliga yuborildi!", parse_mode="HTML")
+    except Exception as e:
+        await message.answer(f"❌ Telegramga yuborishda xatolik: {e}\n\nBot ushbu kanalda admin ekanligiga ishonch hosil qiling.")
+    finally:
+        await state.clear()
+
+
