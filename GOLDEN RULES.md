@@ -85,6 +85,11 @@
   - Shaxsiy yordam va test yaratishda adminlik huquqini olish uchun bosh admin @ITCenter_01 profili hamda Telegram chatga o'tuvchi inline tugma joylashtirildi.
   - Botda ("👑 Admin Panel" / `/admin`) va Web ilovada (`web/js/admin.js`) admin huquqi bo'lmagan foydalanuvchilar kirganda @ITCenter_01 bilan bog'lanish tugmasi va tushuntirish berildi.
   - O'quvchi javoblar varaqasi bosh ekranida (`web/index.html`) ham ustozlar uchun axborot ko'rsatkichi ulandi.
+- [x] 42. AWS EC2 fon tunneli (`https://mil-had-create-mhz.trycloudflare.com`) to'liq ulandi:
+  - Tunnel `nohup` yordamida orqa fonda 24/7 ishlaydigan mustaqil jarayon sifatida yoqildi.
+  - Ortiqcha "Server sozlamasi" prompt dialogi butunlay olib tashlandi, o'rniga oddiy va toza "🔄 Qayta yuklash" tugmasi qo'yildi.
+  - Brauzer va Telegram keshini avtomatik chetlab o'tish uchun barcha HTML fayllarga `?v=20260908_2` versiya parametrlari ulandi.
+  - O'zgarishlar GitHub'ga muvaffaqiyatli push qilindi.
 
 ## ✅ Completed Checklist (History)
 - [x] [2026-09-07] LaTeX formula tozalash moduli yaratildi.
